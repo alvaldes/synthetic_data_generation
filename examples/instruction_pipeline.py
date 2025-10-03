@@ -33,7 +33,7 @@ def instruction_prompt_template(row: Dict) -> str:
 
 generate_instruction = OllamaLLMStep(
     name="generate_instruction",
-    model_name="llama3.2",
+    model_name="deepseek-r1:8b",
     prompt_column="topic",
     output_column="instruction",
     prompt_template=instruction_prompt_template,
@@ -48,7 +48,7 @@ def response_prompt_template(row: Dict) -> str:
 
 generate_response = OllamaLLMStep(
     name="generate_response",
-    model_name="llama3.2",
+    model_name="deepseek-r1:8b",
     prompt_column="instruction",
     output_column="response",
     prompt_template=response_prompt_template,
@@ -83,5 +83,5 @@ if __name__ == "__main__":
     print(result_df)
 
     # Guardar resultado
-    result_df.to_csv("instruction_dataset.csv", index=False)
-    print("\n✓ Saved to instruction_dataset.csv")
+    result_df.to_csv("examples/instruction_dataset.csv", index=False)
+    print("\n✓ Saved to examples/instruction_dataset.csv")
