@@ -70,7 +70,7 @@ class OllamaLLMStep(BaseStep):
         """Construye el prompt usando la plantilla o directamente la columna."""
         if self.prompt_template:
             return self.prompt_template(row)
-        return row[self.prompt_column]
+        return str(row[self.prompt_column])
 
     def _generate_with_retry(
         self,
@@ -85,11 +85,12 @@ class OllamaLLMStep(BaseStep):
 
             messages.append({"role": "user", "content": prompt})
 
+            # ✅ FIX: Los parámetros de generación van en 'options'
             response = self.client.chat(
                 model=self.model_name,
                 messages=messages,
                 stream=False,
-                **self.generation_kwargs
+                options=self.generation_kwargs  # ✅ Correcto: dentro de options
             )
             return response['message']['content']
 
@@ -122,8 +123,6 @@ class OllamaLLMStep(BaseStep):
         results = []
         
         # Usar utilidades de batching ✅
-        num_batches = get_num_batches(df, self.batch_size)
-        
         with tqdm(total=len(df), desc=f"Processing {self.name}") as pbar:
             for batch in batch_dataframe(df, self.batch_size):  # ✅ Iterator
                 processed_batch = self._process_batch(batch)
