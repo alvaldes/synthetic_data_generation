@@ -1,7 +1,7 @@
 # simple_pipeline/base_step.py
 
 from abc import ABC, abstractmethod
-from typing import List, Optional, Dict
+from typing import List, Optional, Dict, Any
 import pandas as pd
 
 class BaseStep(ABC):
@@ -97,3 +97,12 @@ class BaseStep(ABC):
         df = self._apply_output_mappings(df)
 
         return df
+    
+    def get_config(self) -> Dict[str, Any]:
+        """Get step configuration for caching."""
+        return {
+            "name": self.name,
+            "class": self.__class__.__name__,
+            "inputs": self.inputs,
+            "outputs": self.outputs,
+        }

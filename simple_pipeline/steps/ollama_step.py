@@ -7,6 +7,7 @@ from tqdm import tqdm
 import time
 
 from ..base_step import BaseStep
+from ..utils.batching import batch_dataframe, get_num_batches
 
 
 class OllamaLLMStep(BaseStep):
@@ -119,16 +120,14 @@ class OllamaLLMStep(BaseStep):
     def process(self, df: pd.DataFrame) -> pd.DataFrame:
         """Procesa el DataFrame en batches a través de Ollama."""
         results = []
-        num_batches = (len(df) + self.batch_size - 1) // self.batch_size
-
+        
+        # Usar utilidades de batching ✅
+        num_batches = get_num_batches(df, self.batch_size)
+        
         with tqdm(total=len(df), desc=f"Processing {self.name}") as pbar:
-            for i in range(num_batches):
-                start_idx = i * self.batch_size
-                end_idx = min((i + 1) * self.batch_size, len(df))
-                batch = df.iloc[start_idx:end_idx]
-
+            for batch in batch_dataframe(df, self.batch_size):  # ✅ Iterator
                 processed_batch = self._process_batch(batch)
                 results.append(processed_batch)
                 pbar.update(len(batch))
-
+        
         return pd.concat(results, ignore_index=False)

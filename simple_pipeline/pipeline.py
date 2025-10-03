@@ -3,138 +3,120 @@
 from typing import List, Optional, Dict
 from pathlib import Path
 import pandas as pd
-import pickle
-import hashlib
-import json
-import shutil
 
 from .base_step import BaseStep
+from .utils.cache import CacheManager
+from .utils.logging import setup_logger
+import logging
 
 class SimplePipeline:
-    """
-    Pipeline simplificado para procesar DataFrames paso a paso.
-    - Permite añadir steps en secuencia
-    - Maneja ejecución, cacheo y recuperación
-    - Devuelve un DataFrame final transformado
-    """
+    """Pipeline simplificado para procesar DataFrames paso a paso."""
 
     def __init__(
         self,
         name: str,
         description: str = "",
-        cache_dir: str = ".cache/simple_pipeline"
+        cache_dir: str = ".cache/simple_pipeline",
+        log_level: str = "INFO"
     ):
         self.name = name
         self.description = description
-        self.cache_dir = Path(cache_dir) / name
-        self.cache_dir.mkdir(parents=True, exist_ok=True)
+        
+        # Usar CacheManager ✅
+        self.cache_manager = CacheManager(cache_dir=f"{cache_dir}/{name}")
+        
+        # Setup logging
+        self.logger = setup_logger(
+            name=f"SimplePipeline.{name}",
+            level=getattr(logging, log_level.upper())
+        )
+        
+        self.steps: List[BaseStep] = []
+        self._step_outputs: Dict[str, pd.DataFrame] = {}
 
-        self.steps: List[BaseStep] = []          # Lista de steps
-        self._step_outputs: Dict[str, pd.DataFrame] = {}  # Resultados intermedios
-
-    # -------- Añadir steps --------
     def add_step(self, step: BaseStep) -> 'SimplePipeline':
         """Añadir un step a la secuencia del pipeline."""
         self.steps.append(step)
+        self.logger.info(f"Added step: {step.name}")
         return self
 
     def __rshift__(self, step: BaseStep) -> 'SimplePipeline':
         """Permite usar la sintaxis pipeline >> step."""
         return self.add_step(step)
 
-    # -------- Cache --------
-    def _get_cache_key(self, step: BaseStep, input_hash: str) -> str:
-        """Genera una clave de cache única para un step + datos de entrada."""
-        step_config = {
-            "name": step.name,
-            "class": step.__class__.__name__,
-            "inputs": step.inputs,
-            "outputs": step.outputs,
-        }
-        step_str = json.dumps(step_config, sort_keys=True)
-        combined = f"{step_str}_{input_hash}"
-        return hashlib.md5(combined.encode()).hexdigest()
-
-    def _get_df_hash(self, df: pd.DataFrame) -> str:
-        """Hash rápido del DataFrame para detectar cambios."""
-        return hashlib.md5(
-            pd.util.hash_pandas_object(df, index=True).values
-        ).hexdigest()[:16]
-
-    def _load_from_cache(self, cache_key: str) -> Optional[pd.DataFrame]:
-        """Intenta cargar un DataFrame desde la cache."""
-        cache_file = self.cache_dir / f"{cache_key}.pkl"
-        if cache_file.exists():
-            with open(cache_file, 'rb') as f:
-                return pickle.load(f)
-        return None
-
-    def _save_to_cache(self, cache_key: str, df: pd.DataFrame) -> None:
-        """Guarda un DataFrame en la cache."""
-        cache_file = self.cache_dir / f"{cache_key}.pkl"
-        with open(cache_file, 'wb') as f:
-            pickle.dump(df, f)
-
-    # -------- Ejecución --------
     def run(
         self,
         input_df: Optional[pd.DataFrame] = None,
         use_cache: bool = True
     ) -> pd.DataFrame:
-        """
-        Ejecuta el pipeline completo sobre un DataFrame inicial o desde un step generador.
-        """
-        # Paso inicial: con DataFrame externo o el primer step como generador
+        """Ejecuta el pipeline completo."""
+        self.logger.info(f"Starting pipeline: {self.name}")
+        self.logger.info(f"Number of steps: {len(self.steps)}")
+
+        if not self.steps:
+            raise ValueError("Pipeline has no steps")
+
+        # Inicializar con input o primer step generador
         if input_df is not None:
             current_df = input_df.copy()
             steps_to_process = self.steps
         else:
-            if not self.steps:
-                raise ValueError("Pipeline vacío: no hay steps definidos")
-
             first_step = self.steps[0]
-            print(f"Loading data from {first_step.name}...")
-            current_df = first_step(pd.DataFrame())  # Generadores no necesitan input
+            self.logger.info(f"Executing generator step: {first_step.name}")
+            current_df = first_step(pd.DataFrame())
             self._step_outputs[first_step.name] = current_df
             steps_to_process = self.steps[1:]
 
-        # Procesar cada step en orden
+        # Procesar steps restantes
         for step in steps_to_process:
-            print(f"\nExecuting step: {step.name}")
+            self.logger.info(f"Executing step: {step.name}")
 
-            input_hash = self._get_df_hash(current_df)
-            cache_key = self._get_cache_key(step, input_hash)
-
-            # Revisar cache
+            # Usar CacheManager ✅
             if use_cache and step.cache:
-                cached_df = self._load_from_cache(cache_key)
+                input_hash = self.cache_manager.get_df_hash(current_df)
+                cache_key = self.cache_manager.get_cache_key(
+                    step_name=step.name,
+                    step_class=step.__class__.__name__,
+                    inputs=step.inputs,
+                    outputs=step.outputs,
+                    input_hash=input_hash
+                )
+                
+                cached_df = self.cache_manager.load(cache_key)
                 if cached_df is not None:
-                    print(f"  ✓ Loaded from cache")
+                    self.logger.info(f"  ✓ Loaded from cache")
                     current_df = cached_df
                     self._step_outputs[step.name] = current_df
                     continue
 
-            # Ejecutar el step
+            # Ejecutar step
             try:
                 current_df = step(current_df)
                 self._step_outputs[step.name] = current_df
 
+                # Guardar en cache usando CacheManager ✅
                 if use_cache and step.cache:
-                    self._save_to_cache(cache_key, current_df)
+                    self.cache_manager.save(cache_key, current_df)
 
-                print(f"  ✓ Complete ({len(current_df)} rows, {len(current_df.columns)} columns)")
+                self.logger.info(
+                    f"  ✓ Complete ({len(current_df)} rows, "
+                    f"{len(current_df.columns)} columns)"
+                )
 
             except Exception as e:
-                print(f"  ✗ Error in step {step.name}: {e}")
+                self.logger.error(f"  ✗ Error in step {step.name}: {e}")
                 raise
             finally:
                 step.unload()
 
+        self.logger.info("Pipeline execution complete!")
         return current_df
 
-    # -------- Utilidades --------
     def clear_cache(self) -> None:
         """Elimina toda la cache del pipeline."""
-        if self.cache_dir.exists():
-            shutil.rmtree(self.cache_dir)
-            self.cache_dir.mkdir(parents=True, exist_ok=True)
+        self.cache_manager.clear()
+        self.logger.info("Cache cleared")
+
+    def get_step_output(self, step_name: str) -> Optional[pd.DataFrame]:
+        """Obtiene la salida de un step específico."""
+        return self._step_outputs.get(step_name)
