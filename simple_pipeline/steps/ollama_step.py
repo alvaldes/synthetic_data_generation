@@ -5,6 +5,9 @@ import pandas as pd
 from typing import Callable, List, Dict, Any, Optional
 from tqdm import tqdm
 import time
+import re
+from ..utils.logging import setup_logger
+import logging
 
 from ..base_step import BaseStep
 from ..utils.batching import batch_dataframe, get_num_batches
@@ -44,6 +47,10 @@ class OllamaLLMStep(BaseStep):
         self.ollama_host = ollama_host
         self.max_retries = max_retries
         self.client = None
+        self.logger = setup_logger(
+            name=f"OllamaLLMStep.{name}",
+            level=logging.INFO
+        )
 
     # -------- Propiedades requeridas --------
     @property
@@ -72,6 +79,22 @@ class OllamaLLMStep(BaseStep):
             return self.prompt_template(row)
         return str(row[self.prompt_column])
 
+    def _clean_generation(self, text: Optional[str]) -> Optional[str]:
+        """Limpia la salida del modelo removiendo secciones <think> y texto irrelevante."""
+        if not text:
+            return text
+
+        # Elimina bloques <think>...</think>
+        cleaned = re.sub(r"<think>.*?</think>", "", text, flags=re.DOTALL)
+
+        # Para eliminar cualquier bloque o etiquetas HTML/XML
+        # cleaned = re.sub(r"<.*?>.*?</.*?>", "", text, flags=re.DOTALL)
+
+        # Limpia espacios en blanco, saltos de línea redundantes
+        cleaned = cleaned.strip()
+
+        return cleaned
+
     def _generate_with_retry(
         self,
         prompt: str,
@@ -85,14 +108,15 @@ class OllamaLLMStep(BaseStep):
 
             messages.append({"role": "user", "content": prompt})
 
-            # ✅ FIX: Los parámetros de generación van en 'options'
+            # Todo: hay que tratar con format para que devuelva un json con lo que excactamente queremos
             response = self.client.chat(
                 model=self.model_name,
                 messages=messages,
                 stream=False,
-                options=self.generation_kwargs  # ✅ Correcto: dentro de options
+                options=self.generation_kwargs
             )
-            return response['message']['content']
+            raw_content = response['message']['content']
+            return self._clean_generation(raw_content)
 
         except Exception as e:
             if retry_count < self.max_retries:
@@ -100,7 +124,7 @@ class OllamaLLMStep(BaseStep):
                 time.sleep(wait_time)
                 return self._generate_with_retry(prompt, retry_count + 1)
             else:
-                print(f"Error tras {self.max_retries} reintentos: {e}")
+                self.logger.error(f"Error tras {self.max_retries} reintentos: {e}")
                 return None
 
     def _process_batch(self, batch_df: pd.DataFrame) -> pd.DataFrame:
@@ -109,14 +133,13 @@ class OllamaLLMStep(BaseStep):
         for _, row in batch_df.iterrows():
             prompt = self._format_prompt(row.to_dict())
             generation = self._generate_with_retry(prompt)
-            results.append({
-                self.output_column: generation,
-                "model_name": self.model_name
-            })
-
-        # Devuelve DataFrame con nuevas columnas añadidas
-        result_df = pd.DataFrame(results, index=batch_df.index)
-        return pd.concat([batch_df, result_df], axis=1)
+            results.append(generation)
+        
+        result_df = batch_df.copy()
+        result_df[self.output_column] = results
+        result_df["model_name"] = self.model_name
+        
+        return result_df
 
     def process(self, df: pd.DataFrame) -> pd.DataFrame:
         """Procesa el DataFrame en batches a través de Ollama."""

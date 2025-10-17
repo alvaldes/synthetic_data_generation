@@ -21,7 +21,8 @@ data = pd.DataFrame({
 # --------------------------
 pipeline = SimplePipeline(
     name="instruction-generation",
-    description="Genera instrucciones y respuestas para temas de programación"
+    description="Genera instrucciones y respuestas para temas de programación",
+    log_level="DEBUG"
 )
 
 # Step 1: cargar datos
@@ -75,7 +76,7 @@ pipeline.add_step(keep_cols)
 # 4. Ejecución
 # --------------------------
 if __name__ == "__main__":
-    result_df = pipeline.run(use_cache=True)
+    result_df = pipeline.run(use_cache=False)
 
     print("\n" + "="*50)
     print("FINAL DATASET")
