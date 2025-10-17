@@ -101,7 +101,7 @@ class OllamaLLMStep(BaseStep):
                 messages=messages,
                 stream=False,
                 options=self.generation_kwargs,
-                format=self.output_format.model_json_schema()
+                # format=self.output_format.model_json_schema()
             )
             raw_content = response['message']['content']
             return raw_content
@@ -120,16 +120,19 @@ class OllamaLLMStep(BaseStep):
         results = []
         for _, row in batch_df.iterrows():
             prompt = self._format_prompt(row.to_dict())
+            # self.logger.info(f"Prompt from row {row.name}: {prompt}")
             generation = self._generate_with_retry(prompt)
-            if self.output_format is not ResponseOutput:
-                results.append(generation)
-            else:
-                try:
-                    parsed = self.output_format.parse_raw(generation)
-                    results.append(parsed.response)
-                except Exception as e:
-                    self.logger.error(f"Error parsing generation: {e}")
-                    results.append(None)
+            self.logger.info(f"Generation for row {row.name}: {generation}")
+            # if self.output_format is not ResponseOutput:
+            #     results.append(generation)
+            # else:
+            #     try:
+            #         parsed = self.output_format.parse_raw(generation)
+            #         results.append(parsed.response)
+            #     except Exception as e:
+            #         self.logger.error(f"Error parsing generation: {e}")
+            #         results.append(None)
+            results.append(generation)
         
         result_df = batch_df.copy()
         result_df[self.output_column] = results
