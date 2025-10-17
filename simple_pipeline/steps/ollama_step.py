@@ -8,9 +8,13 @@ import time
 import re
 from ..utils.logging import setup_logger
 import logging
+from pydantic import BaseModel
 
 from ..base_step import BaseStep
 from ..utils.batching import batch_dataframe, get_num_batches
+
+class ResponseOutput(BaseModel):
+    response: Optional[str]
 
 
 class OllamaLLMStep(BaseStep):
@@ -28,8 +32,9 @@ class OllamaLLMStep(BaseStep):
         model_name: str,
         prompt_column: str,
         output_column: str = "generation",
+        output_format: Optional[BaseModel] = ResponseOutput,
         system_prompt: Optional[str] = None,
-        prompt_template: Optional[Callable[[Dict], str]] = None,
+        prompt_template: Callable[[Dict], str] = None,
         batch_size: int = 8,
         generation_kwargs: Optional[Dict[str, Any]] = None,
         ollama_host: str = "http://localhost:11434",
@@ -40,6 +45,7 @@ class OllamaLLMStep(BaseStep):
         self.model_name = model_name
         self.prompt_column = prompt_column
         self.output_column = output_column
+        self.output_format = output_format
         self.system_prompt = system_prompt
         self.prompt_template = prompt_template
         self.batch_size = batch_size
@@ -74,26 +80,8 @@ class OllamaLLMStep(BaseStep):
 
     # -------- Utilidades internas --------
     def _format_prompt(self, row: Dict[str, Any]) -> str:
-        """Construye el prompt usando la plantilla o directamente la columna."""
-        if self.prompt_template:
-            return self.prompt_template(row)
-        return str(row[self.prompt_column])
+        return self.prompt_template(row)
 
-    def _clean_generation(self, text: Optional[str]) -> Optional[str]:
-        """Limpia la salida del modelo removiendo secciones <think> y texto irrelevante."""
-        if not text:
-            return text
-
-        # Elimina bloques <think>...</think>
-        cleaned = re.sub(r"<think>.*?</think>", "", text, flags=re.DOTALL)
-
-        # Para eliminar cualquier bloque o etiquetas HTML/XML
-        # cleaned = re.sub(r"<.*?>.*?</.*?>", "", text, flags=re.DOTALL)
-
-        # Limpia espacios en blanco, saltos de línea redundantes
-        cleaned = cleaned.strip()
-
-        return cleaned
 
     def _generate_with_retry(
         self,
@@ -108,15 +96,15 @@ class OllamaLLMStep(BaseStep):
 
             messages.append({"role": "user", "content": prompt})
 
-            # Todo: hay que tratar con format para que devuelva un json con lo que excactamente queremos
             response = self.client.chat(
                 model=self.model_name,
                 messages=messages,
                 stream=False,
-                options=self.generation_kwargs
+                options=self.generation_kwargs,
+                format=self.output_format.model_json_schema()
             )
             raw_content = response['message']['content']
-            return self._clean_generation(raw_content)
+            return raw_content
 
         except Exception as e:
             if retry_count < self.max_retries:
@@ -133,7 +121,15 @@ class OllamaLLMStep(BaseStep):
         for _, row in batch_df.iterrows():
             prompt = self._format_prompt(row.to_dict())
             generation = self._generate_with_retry(prompt)
-            results.append(generation)
+            if self.output_format is not ResponseOutput:
+                results.append(generation)
+            else:
+                try:
+                    parsed = self.output_format.parse_raw(generation)
+                    results.append(parsed.response)
+                except Exception as e:
+                    self.logger.error(f"Error parsing generation: {e}")
+                    results.append(None)
         
         result_df = batch_df.copy()
         result_df[self.output_column] = results

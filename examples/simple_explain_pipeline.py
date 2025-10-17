@@ -2,6 +2,8 @@
 
 import pandas as pd
 from typing import Dict
+from pydantic import BaseModel
+from typing import Optional
 
 from simple_pipeline.pipeline import SimplePipeline
 from simple_pipeline.steps.load_dataframe import LoadDataFrame
@@ -34,13 +36,21 @@ def explanation_prompt_template(row: Dict) -> str:
 
 generate_explanation = OllamaLLMStep(
     name="generate_explanation",
-    model_name="deepseek-r1:8b",
+    # model_name="deepseek-r1:8b",
+    model_name="llama3.1:8b",
     prompt_column="concept",
     output_column="explanation",
     prompt_template=explanation_prompt_template,
     system_prompt="You are a clear, concise technical educator.",
-    batch_size=3,
-    generation_kwargs={"temperature": 0.7, "num_predict": 100}
+    batch_size=5,
+    generation_kwargs = {
+        "temperature": 0.3,
+        "num_predict": 200,
+        "top_p": 0.9,
+        "seed": 42,
+        "repeat_penalty": 1.2,
+        "stop": ["</think>", "\nuser:"]
+    }
 )
 
 # Step 3: quedarnos solo con las columnas relevantes
