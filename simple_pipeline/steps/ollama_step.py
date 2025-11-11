@@ -65,7 +65,7 @@ class OllamaLLMStep(BaseStep):
 
     @property
     def outputs(self) -> List[str]:
-        return [self.output_column, "model_name"]
+        return [self.output_column]
 
     # -------- Ciclo de vida --------
     def load(self) -> None:
