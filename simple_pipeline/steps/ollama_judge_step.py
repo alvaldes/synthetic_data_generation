@@ -278,7 +278,7 @@ RESPONDE ÚNICAMENTE CON ESTE JSON VÁLIDO (sin markdown, sin explicaciones):
         result_df["validacion_aprobado"] = [r['aprobado'] for r in results]
         result_df["validacion_problemas"] = [str(r['problemas_criticos']) for r in results]
         result_df["validacion_recomendaciones"] = [str(r['recomendaciones']) for r in results]
-        result_df["judge_model_name"] = self.model_name
+        # result_df["judge_model_name"] = self.model_name
 
         return result_df
 

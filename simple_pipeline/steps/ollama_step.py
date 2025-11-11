@@ -136,7 +136,7 @@ class OllamaLLMStep(BaseStep):
         
         result_df = batch_df.copy()
         result_df[self.output_column] = results
-        result_df["model_name"] = self.model_name
+        # result_df["model_name"] = self.model_name
         
         return result_df
 

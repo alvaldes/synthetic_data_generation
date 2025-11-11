@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="simple-pipeline",
-    version="0.1.3",
+    version="0.1.4",
     author="Angel L. Valdés",
     description="A simplified Distilabel-inspired pipeline for DataFrame processing with Ollama",
     packages=find_packages(),
