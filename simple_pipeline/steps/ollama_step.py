@@ -122,7 +122,7 @@ class OllamaLLMStep(BaseStep):
             prompt = self._format_prompt(row.to_dict())
             # self.logger.info(f"Prompt from row {row.name}: {prompt}")
             generation = self._generate_with_retry(prompt)
-            self.logger.info(f"Generation for row {row.name}: {generation}")
+            # self.logger.info(f"Generation for row {row.name}: {generation}")
             # if self.output_format is not ResponseOutput:
             #     results.append(generation)
             # else:
