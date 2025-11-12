@@ -72,8 +72,7 @@ class OllamaJudgeStep(BaseStep):
             "validacion_total",
             "validacion_aprobado",
             "validacion_problemas",
-            "validacion_recomendaciones",
-            "judge_model_name"
+            "validacion_recomendaciones"
         ]
 
     # -------- Ciclo de vida --------
@@ -229,13 +228,33 @@ RESPONDE ÚNICAMENTE CON ESTE JSON VÁLIDO (sin markdown, sin explicaciones):
             validation_result = self._parse_validation_result(raw_content)
             return validation_result
 
-        except Exception as e:
+        except ollama.ResponseError as e:
+            self.logger.warning(f"Ollama API error during validation: {e.error}")
+            if e.status_code == 404:
+                self.logger.error(f"Judge model {self.model_name} not found. Try: ollama pull {self.model_name}")
             if retry_count < self.max_retries:
-                wait_time = 2 ** retry_count  # backoff exponencial
+                wait_time = 2 ** retry_count  # exponential backoff
                 time.sleep(wait_time)
                 return self._validate_with_retry(historia_usuario, tareas_generadas, retry_count + 1)
             else:
-                self.logger.error(f"Error tras {self.max_retries} reintentos: {e}")
+                self.logger.error(f"Judge validation failed after {self.max_retries} retries")
+                return None
+        except ConnectionError as e:
+            self.logger.error(f"Connection error during validation: {e}")
+            if retry_count < self.max_retries:
+                wait_time = 2 ** retry_count
+                time.sleep(wait_time)
+                return self._validate_with_retry(historia_usuario, tareas_generadas, retry_count + 1)
+            else:
+                self.logger.error("Ollama server appears to be down. Check with: ollama serve")
+                return None
+        except Exception as e:
+            if retry_count < self.max_retries:
+                wait_time = 2 ** retry_count
+                time.sleep(wait_time)
+                return self._validate_with_retry(historia_usuario, tareas_generadas, retry_count + 1)
+            else:
+                self.logger.error(f"Unexpected error in judge validation after {self.max_retries} retries: {e}")
                 return None
 
     def _process_batch(self, batch_df: pd.DataFrame) -> pd.DataFrame:
@@ -278,7 +297,6 @@ RESPONDE ÚNICAMENTE CON ESTE JSON VÁLIDO (sin markdown, sin explicaciones):
         result_df["validacion_aprobado"] = [r['aprobado'] for r in results]
         result_df["validacion_problemas"] = [str(r['problemas_criticos']) for r in results]
         result_df["validacion_recomendaciones"] = [str(r['recomendaciones']) for r in results]
-        # result_df["judge_model_name"] = self.model_name
 
         return result_df
 

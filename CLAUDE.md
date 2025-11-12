@@ -34,6 +34,11 @@ python scripts/clear_cache.py
 python examples/instruction_pipeline.py
 python examples/advanced_pipeline.py
 python examples/model_comparison.py
+
+# Run Salony user story to tasks pipeline (with optional judge validation)
+python examples/salony_pipeline.py output.csv
+python examples/salony_pipeline.py output.csv --use-judge --judge-threshold 40
+python examples/salony_pipeline.py output.csv --sample 10  # For testing
 ```
 
 ### Ollama Setup
@@ -67,6 +72,7 @@ This is a **DataFrame-based pipeline processing library** inspired by Distilabel
 - **Data Loading**: `LoadDataFrame` - loads data from DataFrame or CSV
 - **Data Transformation**: `FilterRows`, `SortRows`, `SampleRows`, `AddColumn`, `KeepColumns`
 - **LLM Generation**: `OllamaLLMStep`, `RobustOllamaStep` (with error handling and retry logic)
+- **LLM Validation**: `OllamaJudgeStep` - validates generated content using LLM-as-a-judge pattern
 
 ### Key Architecture Patterns
 
@@ -112,8 +118,40 @@ result = pipeline.run(use_cache=True)
 ### LLM Step Patterns
 - Use `OllamaLLMStep` for basic LLM generation
 - Use `RobustOllamaStep` for production pipelines with error handling
+- Use `OllamaJudgeStep` for LLM-as-a-judge validation of generated content
 - Always specify `prompt_column` (input) and `output_column` (generated text)
 - Configure `batch_size` based on model size and memory constraints
+
+### LLM Judge Validation Pattern
+The `OllamaJudgeStep` implements LLM-as-a-judge for quality validation:
+
+```python
+# Basic judge validation setup
+pipeline.add_step(
+    OllamaJudgeStep(
+        name="validate_content",
+        model_name="llama3.1:8b",
+        historia_usuario_column="input",
+        tareas_generadas_column="generated_tasks",
+        approval_threshold=35.0,  # Score out of 50
+        batch_size=2
+    )
+)
+```
+
+**Judge Validation Criteria**:
+- **Coherencia (0-10)**: Relevance to input requirements
+- **Completitud (0-10)**: Coverage of all necessary aspects
+- **Viabilidad (0-10)**: Technical feasibility
+- **Formato (0-10)**: Proper structure and formatting
+- **Granularidad (0-10)**: Appropriate level of detail
+
+**Judge Output Columns**:
+- `validacion_*`: Individual criterion scores
+- `validacion_total`: Total score (0-50)
+- `validacion_aprobado`: Boolean approval status
+- `validacion_problemas`: List of identified issues
+- `validacion_recomendaciones`: Suggested improvements
 
 ### Cache Management
 - Cache keys include step configuration AND input data hash

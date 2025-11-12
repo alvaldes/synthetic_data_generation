@@ -88,7 +88,7 @@ class OllamaLLMStep(BaseStep):
         prompt: str,
         retry_count: int = 0
     ) -> Optional[str]:
-        """Llama al modelo con reintentos en caso de error."""
+        """Call model with retry logic on error, following ollama best practices."""
         try:
             messages = []
             if self.system_prompt:
@@ -100,44 +100,51 @@ class OllamaLLMStep(BaseStep):
                 model=self.model_name,
                 messages=messages,
                 stream=False,
-                options=self.generation_kwargs,
-                # format=self.output_format.model_json_schema()
+                options=self.generation_kwargs
             )
             raw_content = response['message']['content']
             return raw_content
 
-        except Exception as e:
+        except ollama.ResponseError as e:
+            self.logger.warning(f"Ollama API error: {e.error}")
+            if e.status_code == 404:
+                self.logger.error(f"Model {self.model_name} not found. Try: ollama pull {self.model_name}")
             if retry_count < self.max_retries:
-                wait_time = 2 ** retry_count  # backoff exponencial
+                wait_time = 2 ** retry_count  # exponential backoff
                 time.sleep(wait_time)
                 return self._generate_with_retry(prompt, retry_count + 1)
             else:
-                self.logger.error(f"Error tras {self.max_retries} reintentos: {e}")
+                self.logger.error(f"Failed after {self.max_retries} retries")
+                return None
+        except ConnectionError as e:
+            self.logger.error(f"Connection error: {e}")
+            if retry_count < self.max_retries:
+                wait_time = 2 ** retry_count
+                time.sleep(wait_time)
+                return self._generate_with_retry(prompt, retry_count + 1)
+            else:
+                self.logger.error("Ollama server appears to be down. Check with: ollama serve")
+                return None
+        except Exception as e:
+            if retry_count < self.max_retries:
+                wait_time = 2 ** retry_count
+                time.sleep(wait_time)
+                return self._generate_with_retry(prompt, retry_count + 1)
+            else:
+                self.logger.error(f"Unexpected error after {self.max_retries} retries: {e}")
                 return None
 
     def _process_batch(self, batch_df: pd.DataFrame) -> pd.DataFrame:
-        """Procesa un batch de filas con Ollama."""
+        """Process a batch of rows with Ollama."""
         results = []
         for _, row in batch_df.iterrows():
             prompt = self._format_prompt(row.to_dict())
-            # self.logger.info(f"Prompt from row {row.name}: {prompt}")
             generation = self._generate_with_retry(prompt)
-            # self.logger.info(f"Generation for row {row.name}: {generation}")
-            # if self.output_format is not ResponseOutput:
-            #     results.append(generation)
-            # else:
-            #     try:
-            #         parsed = self.output_format.parse_raw(generation)
-            #         results.append(parsed.response)
-            #     except Exception as e:
-            #         self.logger.error(f"Error parsing generation: {e}")
-            #         results.append(None)
             results.append(generation)
-        
+
         result_df = batch_df.copy()
         result_df[self.output_column] = results
-        # result_df["model_name"] = self.model_name
-        
+
         return result_df
 
     def process(self, df: pd.DataFrame) -> pd.DataFrame:

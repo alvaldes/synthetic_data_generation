@@ -13,11 +13,13 @@ Uso:
 
 import pandas as pd
 import argparse
+import logging
 from pathlib import Path
-from typing import Dict
+from typing import Dict, Optional
+import ollama
 
 from simple_pipeline import SimplePipeline
-from simple_pipeline.steps import LoadDataFrame, OllamaLLMStep
+from simple_pipeline.steps import LoadDataFrame, OllamaLLMStep, OllamaJudgeStep, AddColumn
 
 
 def create_task_generation_prompt(row: Dict) -> str:
@@ -62,74 +64,175 @@ Response:"""
     return prompt
 
 
+def validate_inputs(
+    model_name: str,
+    batch_size: int,
+    temperature: float,
+    num_predict: int,
+    judge_threshold: float = None
+) -> None:
+    """Validate input parameters."""
+    if batch_size <= 0:
+        raise ValueError(f"batch_size must be positive, got: {batch_size}")
+    if not (0.0 <= temperature <= 2.0):
+        raise ValueError(f"temperature must be between 0.0 and 2.0, got: {temperature}")
+    if num_predict <= 0:
+        raise ValueError(f"num_predict must be positive, got: {num_predict}")
+    if judge_threshold is not None and not (0.0 <= judge_threshold <= 50.0):
+        raise ValueError(f"judge_threshold must be between 0.0 and 50.0, got: {judge_threshold}")
+
+
+def load_and_validate_data(input_csv: Path, sample_size: Optional[int] = None) -> pd.DataFrame:
+    """Load and validate the input CSV data with robust error handling."""
+    if not input_csv.exists():
+        raise FileNotFoundError(f"Dataset not found: {input_csv}")
+
+    try:
+        # Use pandas error handling best practices
+        df = pd.read_csv(input_csv)
+    except pd.errors.EmptyDataError:
+        raise ValueError(f"CSV file is empty: {input_csv}")
+    except pd.errors.ParserError as e:
+        raise ValueError(f"Error parsing CSV file {input_csv}: {e}")
+
+    # Remove unnamed index columns (common issue with exported CSVs)
+    if len(df.columns) > 0 and df.columns[0] in ['Unnamed: 0', '']:
+        df = df.iloc[:, 1:]
+
+    # Validate required column exists
+    if 'input' not in df.columns:
+        raise ValueError(
+            f"CSV must have an 'input' column with user stories. "
+            f"Found columns: {list(df.columns)}"
+        )
+
+    # Apply sampling if requested (for testing)
+    if sample_size is not None:
+        if sample_size <= 0:
+            raise ValueError(f"sample_size must be positive, got: {sample_size}")
+        df = df.head(sample_size)
+        logging.info(f"Using sample of {sample_size} rows for testing")
+
+    # Clean data using pandas best practices
+    initial_count = len(df)
+
+    # Handle missing data with pandas errors='coerce' pattern
+    df = df.dropna(subset=['input'])
+    df['input'] = df['input'].astype(str).str.strip()
+
+    # Remove empty strings after stripping
+    df = df[df['input'] != '']
+
+    final_count = len(df)
+    if final_count < initial_count:
+        logging.warning(f"Removed {initial_count - final_count} rows with missing/empty input data")
+
+    if final_count == 0:
+        raise ValueError("No valid user stories found after data cleaning")
+
+    return df
+
+
 def run_salony_pipeline(
     output_csv: str,
+    input_csv: Optional[str] = None,
     model_name: str = "llama3.1:8b",
+    judge_model_name: Optional[str] = None,
     batch_size: int = 2,
     temperature: float = 0.3,
     num_predict: int = 1000,
-    sample_size: int = None
+    sample_size: Optional[int] = None,
+    use_judge: bool = False,
+    judge_threshold: float = 35.0,
+    use_cache: bool = True
 ):
     """
-    Ejecuta el pipeline de generación de tareas para historias de usuario Salony.
-    
+    Execute Salony pipeline to generate development tasks from user stories.
+
     Args:
-        output_csv: Ruta donde guardar el resultado
-        model_name: Modelo de Ollama a usar
-        batch_size: Número de historias a procesar simultáneamente
-        temperature: Temperatura para generación
-        num_predict: Tokens máximos a generar
-        sample_size: Si se especifica, procesa solo N historias (para pruebas)
+        output_csv: Path to save the results
+        input_csv: Optional path to input CSV file (defaults to data/salony_train.csv)
+        model_name: Ollama model for task generation
+        judge_model_name: Optional model for validation (defaults to same as model_name)
+        batch_size: Number of stories to process simultaneously
+        temperature: Generation temperature
+        num_predict: Maximum tokens to generate
+        sample_size: If specified, process only N stories (for testing)
+        use_judge: Whether to enable LLM judge validation
+        judge_threshold: Approval threshold for judge (0-50)
+        use_cache: Whether to use caching
     """
-    
-    print(f"\n{'='*80}")
-    print("🚀 SALONY USER STORIES TO TASKS PIPELINE")
-    print(f"{'='*80}\n")
-    
-    # Cargar datos
-    input_csv = Path(__file__).parent.parent / "data" / "salony_train.csv"
-    print(f"📥 Cargando datos desde: {input_csv}")
-    
-    if not input_csv.exists():
-        raise FileNotFoundError(f"No se encontró el archivo: {input_csv}")
-    
-    df = pd.read_csv(input_csv)
-    
-    # Eliminar la primera columna si es un índice
-    if df.columns[0] == 'Unnamed: 0' or df.columns[0] == '':
-        df = df.iloc[:, 1:]
-    
-    print(f"   ✓ {len(df)} historias cargadas")
-    
-    # Verificar columna 'input'
-    if 'input' not in df.columns:
-        raise ValueError("El CSV debe tener una columna 'input' con las historias de usuario")
-    
-    # Aplicar sampling si se solicita
-    if sample_size:
-        df = df.head(sample_size)
-        print(f"   ℹ️  Procesando solo {sample_size} historias (modo muestra)")
-    
-    # Limpiar datos
-    df = df.dropna(subset=['input'])
-    df['input'] = df['input'].str.strip()
-    
-    # Crear pipeline
-    print(f"\n⚙️ Configurando pipeline:")
-    print(f"   Modelo: {model_name}")
-    print(f"   Batch size: {batch_size}")
-    print(f"   Temperature: {temperature}")
-    print(f"   Historias a procesar: {len(df)}")
-    
+
+    # Set up logging
+    logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
+
+    # Validate inputs first
+    validate_inputs(model_name, batch_size, temperature, num_predict,
+                   judge_threshold if use_judge else None)
+
+    # Set default judge model
+    if use_judge and judge_model_name is None:
+        judge_model_name = model_name
+
+    # Determine input file path
+    if input_csv is None:
+        input_path = Path(__file__).parent.parent / "data" / "salony_train.csv"
+    else:
+        input_path = Path(input_csv)
+
+    logging.info(f"Loading data from: {input_path}")
+
+    # Test Ollama connection early
+    try:
+        client = ollama.Client()
+        # Test if model is available
+        try:
+            models = client.list()
+            available_models = [m['name'] for m in models['models']]
+            if model_name not in available_models:
+                logging.warning(f"Model {model_name} not found locally. Attempting to pull...")
+                client.pull(model_name)
+        except ollama.ResponseError as e:
+            if "connection refused" in str(e).lower():
+                raise ConnectionError("Ollama server not running. Please start with: ollama serve")
+            raise
+    except ConnectionError:
+        raise ConnectionError("Cannot connect to Ollama. Ensure it's running with: ollama serve")
+
+    # Load and validate data
+    df = load_and_validate_data(input_path, sample_size)
+    logging.info(f"Loaded {len(df)} user stories")
+
+    # Configure pipeline
+    pipeline_name = "salony-tasks-pipeline"
+    if use_judge:
+        pipeline_name += "-with-judge"
+
+    logging.info(f"Configuring pipeline: {model_name}, batch_size={batch_size}")
+    if use_judge:
+        logging.info(f"Judge validation enabled: {judge_model_name}, threshold={judge_threshold}")
+
     pipeline = SimplePipeline(
-        name="salony-tasks-pipeline",
-        description="Pipeline para generar tareas de desarrollo del dataset Salony"
+        name=pipeline_name,
+        description="Pipeline for generating and validating development tasks from Salony dataset"
     )
-    
+
+    # Add data loading step
     pipeline.add_step(
         LoadDataFrame(name="load", df=df)
     )
-    
+
+    # Add generator model tracking
+    pipeline.add_step(
+        AddColumn(
+            name="add_generator_model",
+            input_columns=[],
+            output_column="generator_model_name",
+            func=lambda: model_name
+        )
+    )
+
+    # Add task generation step
     pipeline.add_step(
         OllamaLLMStep(
             name="generate_tasks",
@@ -145,99 +248,169 @@ def run_salony_pipeline(
             },
         )
     )
-    
-    # Ejecutar
-    print(f"\n🔄 Procesando historias...\n")
-    result_df = pipeline.run(use_cache=False)
-    
-    # Guardar
-    print(f"\n💾 Guardando resultados...")
-    result_df.to_csv(output_csv, index=False)
-    print(f"   ✓ CSV guardado: {output_csv}")
-    print(f"   ✓ {len(result_df)} historias procesadas")
-    
-    print(f"\n{'='*80}")
-    print("✅ PIPELINE COMPLETADO EXITOSAMENTE")
-    print(f"{'='*80}\n")
-    
-    # Mostrar ejemplo
-    print("📋 Ejemplo de resultado (primeras 3 filas):\n")
-    for idx, row in result_df.head(3).iterrows():
-        print(f"🔹 Historia #{idx}:")
-        print(f"   Input: {row['input'][:100]}...")
-        if 'tasks' in row and pd.notna(row['tasks']):
-            print(f"   Tasks: {row['tasks'][:200]}...")
-        print()
+
+    # Add judge validation if enabled
+    if use_judge:
+        pipeline.add_step(
+            AddColumn(
+                name="add_judge_model",
+                input_columns=[],
+                output_column="judge_model_name",
+                func=lambda: judge_model_name
+            )
+        )
+
+        pipeline.add_step(
+            OllamaJudgeStep(
+                name="validate_tasks",
+                model_name=judge_model_name,
+                historia_usuario_column="input",
+                tareas_generadas_column="tasks",
+                approval_threshold=judge_threshold,
+                batch_size=max(1, batch_size // 2),  # Smaller batches for judge
+                generation_kwargs={
+                    "temperature": 0.2,  # Lower temperature for more consistent judging
+                    "num_predict": 800
+                }
+            )
+        )
+
+    # Execute pipeline
+    logging.info("Executing pipeline...")
+    try:
+        result_df = pipeline.run(use_cache=use_cache)
+    except ollama.ResponseError as e:
+        raise RuntimeError(f"Ollama API error: {e.error}")
+    except Exception as e:
+        raise RuntimeError(f"Pipeline execution failed: {e}")
+
+    # Save results
+    logging.info("Saving results...")
+    try:
+        result_df.to_csv(output_csv, index=False)
+    except Exception as e:
+        raise RuntimeError(f"Failed to save CSV: {e}")
+
+    logging.info(f"Results saved to: {output_csv}")
+    logging.info(f"Processed {len(result_df)} user stories successfully")
+
+    # Show validation statistics if judge was used
+    if use_judge and 'validacion_aprobado' in result_df.columns:
+        approved = result_df['validacion_aprobado'].sum()
+        total = len(result_df)
+        avg_score = result_df['validacion_total'].mean()
+        logging.info(f"Validation: {approved}/{total} approved ({approved/total*100:.1f}%)")
+        logging.info(f"Average score: {avg_score:.1f}/50")
+
+    return result_df
 
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Genera tareas de desarrollo a partir de historias de usuario del dataset Salony",
+        description="Generate development tasks from user stories in the Salony dataset",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
-Ejemplos:
-  python salony_pipeline.py salony_tasks.csv
-  python salony_pipeline.py salony_tasks.csv --model mistral
-  python salony_pipeline.py salony_tasks.csv --batch-size 4 --temperature 0.6
-  python salony_pipeline.py salony_tasks.csv --sample 10  # Solo 10 historias
+Examples:
+  python salony_pipeline.py output.csv
+  python salony_pipeline.py output.csv --model mistral
+  python salony_pipeline.py output.csv --use-judge --judge-threshold 40
+  python salony_pipeline.py output.csv --input-csv custom_data.csv
+  python salony_pipeline.py output.csv --batch-size 4 --temperature 0.6
+  python salony_pipeline.py output.csv --sample 10  # For testing
 
-El script usa automáticamente el dataset: data/salony_train.csv
+Default dataset: data/salony_train.csv
         """
     )
-    
+
     parser.add_argument(
         'output_csv',
-        help='Ruta donde guardar las tareas generadas'
+        help='Path to save the generated tasks'
     )
-    
+
+    parser.add_argument(
+        '--input-csv',
+        help='Path to input CSV file (default: data/salony_train.csv)'
+    )
+
     parser.add_argument(
         '--model',
         default='llama3.1:8b',
-        help='Modelo de Ollama a usar (default: llama3.1:8b)'
+        help='Ollama model for task generation (default: llama3.1:8b)'
     )
-    
+
+    parser.add_argument(
+        '--use-judge',
+        action='store_true',
+        help='Enable LLM judge validation'
+    )
+
+    parser.add_argument(
+        '--judge-model',
+        help='Ollama model for judge validation (defaults to same as --model)'
+    )
+
+    parser.add_argument(
+        '--judge-threshold',
+        type=float,
+        default=35.0,
+        help='Approval threshold for judge (0-50, default: 35.0)'
+    )
+
     parser.add_argument(
         '--batch-size',
         type=int,
         default=2,
-        help='Historias a procesar simultáneamente (default: 2)'
+        help='Stories to process simultaneously (default: 2)'
     )
-    
+
     parser.add_argument(
         '--temperature',
         type=float,
         default=0.3,
-        help='Temperatura para generación (default: 0.3)'
+        help='Generation temperature (default: 0.3)'
     )
-    
+
     parser.add_argument(
         '--num-predict',
         type=int,
         default=1000,
-        help='Tokens máximos a generar (default: 1000)'
+        help='Maximum tokens to generate (default: 1000)'
     )
-    
+
     parser.add_argument(
         '--sample',
         type=int,
-        default=None,
-        help='Número de historias a procesar (útil para pruebas)'
+        help='Number of stories to process (useful for testing)'
     )
-    
+
+    parser.add_argument(
+        '--no-cache',
+        action='store_true',
+        help='Disable caching'
+    )
+
     args = parser.parse_args()
-    
+
     try:
         run_salony_pipeline(
             output_csv=args.output_csv,
+            input_csv=args.input_csv,
             model_name=args.model,
+            judge_model_name=args.judge_model,
             batch_size=args.batch_size,
             temperature=args.temperature,
             num_predict=args.num_predict,
-            sample_size=args.sample
+            sample_size=args.sample,
+            use_judge=args.use_judge,
+            judge_threshold=args.judge_threshold,
+            use_cache=not args.no_cache
         )
         return 0
+    except (ValueError, FileNotFoundError, ConnectionError, RuntimeError) as e:
+        logging.error(f"Error: {e}")
+        return 1
     except Exception as e:
-        print(f"\n❌ Error: {e}")
+        logging.error(f"Unexpected error: {e}")
         import traceback
         traceback.print_exc()
         return 1
