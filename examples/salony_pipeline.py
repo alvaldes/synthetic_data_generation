@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """
-Script para generar tareas de desarrollo a partir de historias de usuario del dataset Salony.
+Script to generate development tasks from Salony dataset user stories.
 
-Este pipeline toma historias de usuario del dataset salony_train.csv y las descompone
-en tareas de desarrollo más pequeñas y accionables.
+This pipeline takes user stories from the salony_train.csv dataset and breaks them down
+into smaller, actionable development tasks.
 
-Uso:
+Usage:
     python salony_pipeline.py output.csv
     python salony_pipeline.py output.csv --model llama3.1:8b --batch-size 4
     python salony_pipeline.py output.csv --sample 10

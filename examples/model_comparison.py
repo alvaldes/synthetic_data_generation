@@ -45,18 +45,18 @@ gen_mistral = OllamaLLMStep(
     output_mappings={"model_name": "mistral_model"}
 )
 
-# Nota: aquí los steps se ejecutan secuencialmente,
-# pero se podrían paralelizar en una versión más avanzada.
+# Note: here the steps run sequentially,
+# but they could be parallelized in a more advanced version.
 
 # --------------------------
-# 3. Construcción del pipeline
+# 3. Pipeline construction
 # --------------------------
 pipeline.add_step(load_step)
 pipeline.add_step(gen_llama)
 pipeline.add_step(gen_mistral)
 
 # --------------------------
-# 4. Ejecución
+# 4. Execution
 # --------------------------
 if __name__ == "__main__":
     result = pipeline.run(use_cache=True)

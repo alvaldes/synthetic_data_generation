@@ -65,7 +65,7 @@ keep_cols = KeepColumns(
 )
 
 # --------------------------
-# 3. Construcción del pipeline
+# 3. Pipeline construction
 # --------------------------
 pipeline.add_step(load_step)
 pipeline.add_step(generate_instruction)
@@ -73,7 +73,7 @@ pipeline.add_step(generate_response)
 pipeline.add_step(keep_cols)
 
 # --------------------------
-# 4. Ejecución
+# 4. Execution
 # --------------------------
 if __name__ == "__main__":
     result_df = pipeline.run(use_cache=False)

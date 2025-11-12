@@ -16,16 +16,16 @@ from ..utils.batching import batch_dataframe, get_num_batches
 
 class OllamaJudgeStep(BaseStep):
     """
-    Step que valida tareas generadas usando un LLM como juez.
+    Step that validates generated tasks using an LLM as judge.
 
-    Evalúa las tareas generadas según criterios de:
-    - Coherencia: Relación con la historia de usuario original
-    - Completitud: Cobertura de todos los aspectos necesarios
-    - Viabilidad: Factibilidad técnica de las tareas
-    - Formato: Estructura correcta de cada tarea
-    - Granularidad: Nivel de detalle apropiado
+    Evaluates generated tasks according to criteria:
+    - Coherence: Relationship with original user story
+    - Completeness: Coverage of all necessary aspects
+    - Feasibility: Technical feasibility of tasks
+    - Format: Correct structure of each task
+    - Granularity: Appropriate level of detail
 
-    Retorna puntuaciones estructuradas y estado de aprobación.
+    Returns structured scores and approval status.
     """
 
     def __init__(
@@ -149,7 +149,7 @@ RESPONDE ÚNICAMENTE CON ESTE JSON VÁLIDO (sin markdown, sin explicaciones):
         return prompt
 
     def _clean_json_response(self, response: str) -> str:
-        """Limpia la respuesta para extraer JSON válido."""
+        """Cleans the response to extract valid JSON."""
         # Remover markdown si existe
         response = response.replace("```json", "").replace("```", "").strip()
 
@@ -167,19 +167,19 @@ RESPONDE ÚNICAMENTE CON ESTE JSON VÁLIDO (sin markdown, sin explicaciones):
             cleaned_response = self._clean_json_response(raw_response)
             result = json.loads(cleaned_response)
 
-            # Validar estructura mínima requerida
+            # Validate minimum required structure
             required_fields = ['coherencia', 'completitud', 'viabilidad', 'formato', 'granularidad']
             for field in required_fields:
                 if field not in result or 'puntuacion' not in result[field]:
                     raise ValueError(f"Campo requerido faltante: {field}")
 
-            # Calcular puntuación total si no está presente
+            # Calculate total score if not present
             if 'puntuacion_total' not in result:
                 result['puntuacion_total'] = sum(
                     result[field]['puntuacion'] for field in required_fields
                 )
 
-            # Determinar aprobación si no está presente
+            # Determine approval if not present
             if 'aprobado' not in result:
                 result['aprobado'] = result['puntuacion_total'] >= self.approval_threshold
 
@@ -284,10 +284,10 @@ RESPONDE ÚNICAMENTE CON ESTE JSON VÁLIDO (sin markdown, sin explicaciones):
             self.logger.info(f"Validación para fila {row.name}: aprobado={validation['aprobado']}, total={validation['puntuacion_total']}")
             results.append(validation)
 
-        # Crear DataFrame resultado con todas las columnas de validación
+        # Create result DataFrame with all validation columns
         result_df = batch_df.copy()
 
-        # Agregar columnas de validación
+        # Add validation columns
         result_df["validacion_coherencia"] = [r['coherencia']['puntuacion'] for r in results]
         result_df["validacion_completitud"] = [r['completitud']['puntuacion'] for r in results]
         result_df["validacion_viabilidad"] = [r['viabilidad']['puntuacion'] for r in results]
@@ -301,10 +301,10 @@ RESPONDE ÚNICAMENTE CON ESTE JSON VÁLIDO (sin markdown, sin explicaciones):
         return result_df
 
     def process(self, df: pd.DataFrame) -> pd.DataFrame:
-        """Procesa el DataFrame en batches para validación."""
+        """Processes the DataFrame in batches for validation."""
         results = []
 
-        # Verificar que las columnas existen y tienen datos válidos
+        # Verify that columns exist and have valid data
         for col in [self.historia_usuario_column, self.tareas_generadas_column]:
             if col not in df.columns:
                 raise ValueError(f"Columna requerida '{col}' no encontrada en DataFrame")

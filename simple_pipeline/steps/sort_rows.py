@@ -7,7 +7,7 @@ from ..base_step import BaseStep
 
 class SortRows(BaseStep):
     """
-    Step que ordena las filas del DataFrame por una o más columnas.
+    Step that sorts DataFrame rows by one or more columns.
     """
 
     def __init__(
@@ -27,7 +27,7 @@ class SortRows(BaseStep):
             # Ordenar por una columna
             SortRows(name="sort", by="age", ascending=False)
             
-            # Ordenar por múltiples columnas
+            # Sort by multiple columns
             SortRows(name="sort", by=["category", "price"], ascending=[True, False])
         """
         super().__init__(name, **kwargs)

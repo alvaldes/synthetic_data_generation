@@ -6,7 +6,7 @@ from ..base_step import BaseStep
 
 class KeepColumns(BaseStep):
     """
-    Step que conserva únicamente las columnas especificadas.
+    Step that keeps only the specified columns.
     """
 
     def __init__(self, name: str, columns: List[str], **kwargs):

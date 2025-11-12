@@ -36,7 +36,7 @@ class LoadDataFrame(BaseStep):
         return []
 
     def load(self) -> None:
-        """Carga el DataFrame desde CSV si no se pasó uno directamente."""
+        """Loads the DataFrame from CSV if one was not passed directly."""
         if self.csv_path and self.df is None:
             self.df = pd.read_csv(self.csv_path)
         super().load()

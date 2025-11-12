@@ -19,11 +19,11 @@ class ResponseOutput(BaseModel):
 
 class OllamaLLMStep(BaseStep):
     """
-    Step que llama a un modelo LLM en Ollama para inferencia sobre filas de un DataFrame.
-    - Usa una columna del DataFrame como prompt de entrada
-    - Genera una nueva columna con la respuesta del modelo
-    - Permite definir un system_prompt y plantillas de prompt
-    - Soporta procesamiento en batches y reintentos automáticos
+    Step that calls an LLM model in Ollama for inference on DataFrame rows.
+    - Uses a DataFrame column as input prompt
+    - Generates a new column with the model response
+    - Allows defining system_prompt and prompt templates
+    - Supports batch processing and automatic retries
     """
 
     def __init__(
@@ -148,7 +148,7 @@ class OllamaLLMStep(BaseStep):
         return result_df
 
     def process(self, df: pd.DataFrame) -> pd.DataFrame:
-        """Procesa el DataFrame en batches a través de Ollama."""
+        """Processes the DataFrame in batches through Ollama."""
         results = []
         
         # Usar utilidades de batching ✅

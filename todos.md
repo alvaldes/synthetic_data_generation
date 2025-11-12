@@ -15,7 +15,6 @@
 - [ ] Implement security scanning (bandit, safety) | Due: 12/10/2024
 
 ### 📊 Medium Priority
-- [ ] Fix the mixed language comments (should be only english)
 - [ ] Add type checking with mypy for static analysis
 - [ ] Break down long functions in salony_pipeline.py:136-305
 - [ ] Replace magic numbers with constants in judge_step.py:115,184
@@ -32,3 +31,4 @@
 - [ ] Add parallelization options
 
 ## Completed
+- [x] Fix the mixed language comments (should be only english) | Done: 11/12/2024

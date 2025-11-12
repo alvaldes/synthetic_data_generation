@@ -7,8 +7,8 @@ from ..base_step import BaseStep
 
 class FilterRows(BaseStep):
     """
-    Step que filtra filas del DataFrame basándose en una condición.
-    Permite usar expresiones lambda o funciones personalizadas.
+    Step that filters DataFrame rows based on a condition.
+    Allows using lambda expressions or custom functions.
     """
 
     def __init__(
@@ -27,10 +27,10 @@ class FilterRows(BaseStep):
             condition: Condición como string (e.g., "> 5", "== 'Python'")
             
         Examples:
-            # Usando función:
+            # Using function:
             FilterRows(name="filter", filter_func=lambda row: row['age'] > 18)
             
-            # Usando condición:
+            # Using condition:
             FilterRows(name="filter", filter_column="age", condition="> 18")
         """
         super().__init__(name, **kwargs)
@@ -38,7 +38,7 @@ class FilterRows(BaseStep):
         self.filter_func = filter_func
         self.condition = condition
         
-        # Validar que se proporcione al menos un método de filtrado
+        # Validate that at least one filtering method is provided
         if filter_func is None and condition is None:
             raise ValueError("Must provide either 'filter_func' or 'condition'")
         
@@ -60,12 +60,12 @@ class FilterRows(BaseStep):
         initial_count = len(df)
         
         if self.filter_func:
-            # Usar función personalizada
+            # Use custom function
             mask = df.apply(self.filter_func, axis=1)
             result = df[mask].copy()
         else:
-            # Usar condición en columna específica
-            # Construir la expresión
+            # Use condition on specific column
+            # Build the expression
             query_str = f"`{self.filter_column}` {self.condition}"
             result = df.query(query_str).copy()
         

@@ -105,15 +105,15 @@ def run_pipeline(
     num_predict: int = 1000
 ):
     """
-    Ejecuta el pipeline de generación de tareas.
-    
+    Executes the task generation pipeline.
+
     Args:
-        input_csv: Ruta al CSV con historias de usuario
-        output_csv: Ruta donde guardar el resultado
-        model_name: Modelo de Ollama a usar
-        batch_size: Número de historias a procesar simultáneamente
-        temperature: Temperatura para generación
-        num_predict: Tokens máximos a generar
+        input_csv: Path to CSV with user stories
+        output_csv: Path where to save the result
+        model_name: Ollama model to use
+        batch_size: Number of stories to process simultaneously
+        temperature: Temperature for generation
+        num_predict: Maximum tokens to generate
     """
     
     print(f"\n{'='*80}")

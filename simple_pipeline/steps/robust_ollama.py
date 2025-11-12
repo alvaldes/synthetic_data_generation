@@ -9,11 +9,11 @@ from .ollama_step import OllamaLLMStep
 
 class RobustOllamaStep(OllamaLLMStep):
     """
-    Versión mejorada de OllamaLLMStep con:
-    - Dead letter queue para filas que fallan
-    - Guardado de errores en CSV
-    - Métricas de éxito/fallo
-    - Tracking detallado de problemas
+    Enhanced version of OllamaLLMStep with:
+    - Dead letter queue for failed rows
+    - Error saving to CSV
+    - Success/failure metrics
+    - Detailed problem tracking
     """
 
     def __init__(
@@ -85,13 +85,13 @@ class RobustOllamaStep(OllamaLLMStep):
         return pd.DataFrame(results)
 
     def process(self, df: pd.DataFrame) -> pd.DataFrame:
-        """Procesa con tracking y guardado de fallos."""
-        # Reset de métricas
+        """Processes with tracking and failure saving."""
+        # Reset metrics
         self.failed_rows = []
         self.success_count = 0
         self.failure_count = 0
         
-        # Procesar usando el método padre
+        # Process using parent method
         result_df = super().process(df)
 
         # Guardar filas fallidas si existen
@@ -108,7 +108,7 @@ class RobustOllamaStep(OllamaLLMStep):
             print(f"\n⚠️  {self.failure_count} rows failed")
             print(f"   Saved to: {failed_file}")
 
-        # Mostrar métricas
+        # Show metrics
         total = self.success_count + self.failure_count
         if total > 0:
             success_rate = (self.success_count / total * 100)

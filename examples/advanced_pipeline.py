@@ -1,12 +1,12 @@
 # examples/advanced_pipeline.py
 """
-Ejemplo avanzado que muestra:
-- Carga de datos
-- Filtrado de filas
-- Muestreo para prototipado rápido
-- Generación con múltiples pasos LLM
-- Manejo robusto de errores
-- Ordenamiento de resultados
+Advanced example that demonstrates:
+- Data loading
+- Row filtering
+- Sampling for rapid prototyping
+- Generation with multiple LLM steps
+- Robust error handling
+- Results sorting
 """
 
 import pandas as pd
@@ -28,7 +28,7 @@ from simple_pipeline.steps import (
 # 1. Crear dataset de ejemplo
 # --------------------------
 def create_sample_data():
-    """Crea un dataset de tópicos técnicos con metadatos."""
+    """Creates a dataset of technical topics with metadata."""
     return pd.DataFrame({
         "topic": [
             "Machine Learning", 
@@ -60,7 +60,7 @@ def create_sample_data():
 # --------------------------
 def create_advanced_pipeline():
     """
-    Crea un pipeline avanzado con múltiples pasos de procesamiento.
+    Creates an advanced pipeline with multiple processing steps.
     """
     
     pipeline = SimplePipeline(
@@ -75,7 +75,7 @@ def create_advanced_pipeline():
         LoadDataFrame(name="load_data", df=data)
     )
     
-    # Step 2: Filtrar solo tópicos de dificultad intermedia o avanzada
+    # Step 2: Filter only intermediate or advanced difficulty topics
     pipeline.add_step(
         FilterRows(
             name="filter_difficulty",
@@ -92,8 +92,8 @@ def create_advanced_pipeline():
         )
     )
     
-    # Step 4: Tomar una muestra para prototipado rápido
-    # (Comenta esta línea para procesar todos los datos)
+    # Step 4: Take a sample for rapid prototyping
+    # (Comment this line to process all data)
     pipeline.add_step(
         SampleRows(
             name="sample_for_testing",
@@ -102,7 +102,7 @@ def create_advanced_pipeline():
         )
     )
     
-    # Step 5: Generar pregunta técnica
+    # Step 5: Generate technical question
     def question_prompt(row: Dict) -> str:
         return (
             f"Generate a {row['difficulty']} level technical question about "
@@ -160,7 +160,7 @@ def create_advanced_pipeline():
         )
     )
     
-    # Step 7: Añadir metadatos adicionales
+    # Step 7: Add additional metadata
     pipeline.add_step(
         AddColumn(
             name="add_metadata",
@@ -181,7 +181,7 @@ def create_advanced_pipeline():
                 "question", 
                 "answer",
                 "word_count",
-                "status"  # Añadido por RobustOllamaStep
+                "status"  # Added by RobustOllamaStep
             ]
         )
     )
@@ -205,21 +205,21 @@ def main():
     try:
         result_df = pipeline.run(use_cache=True)
         
-        # Análisis de resultados
+        # Results analysis
         print("\n" + "="*70)
         print("📊 RESULTS ANALYSIS")
         print("="*70)
         
         print(f"\nTotal records generated: {len(result_df)}")
         
-        # Analizar éxito/fallo
+        # Analyze success/failure
         if 'status' in result_df.columns:
             success_count = (result_df['status'] == 'success').sum()
             failed_count = (result_df['status'] == 'failed').sum()
             print(f"\n✅ Successful: {success_count}")
             print(f"❌ Failed: {failed_count}")
         
-        # Estadísticas de palabras
+        # Word statistics
         if 'word_count' in result_df.columns:
             avg_words = result_df['word_count'].mean()
             max_words = result_df['word_count'].max()
@@ -240,7 +240,7 @@ def main():
         result_df.to_csv(output_file, index=False)
         print(f"\n💾 Full dataset saved to: {output_file}")
         
-        # Guardar también en formato Excel si hay datos válidos
+        # Also save in Excel format if there is valid data
         valid_data = result_df[result_df['status'] == 'success']
         if len(valid_data) > 0:
             excel_file = "data/advanced_synthetic_dataset.xlsx"

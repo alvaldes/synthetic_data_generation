@@ -10,18 +10,18 @@ from typing import Optional
 
 class CacheManager:
     """
-    Maneja el almacenamiento en caché de DataFrames para steps del pipeline.
-    - Genera claves únicas por combinación de step + entrada
-    - Guarda y carga resultados en disco
+    Manages DataFrame caching for pipeline steps.
+    - Generates unique keys per step + input combination
+    - Saves and loads results to disk
     """
 
     def __init__(self, cache_dir: str = ".cache/simple_pipeline"):
         self.cache_dir = Path(cache_dir)
         self.cache_dir.mkdir(parents=True, exist_ok=True)
 
-    # -------- Generar claves únicas --------
+    # -------- Generate unique keys --------
     def get_cache_key(self, step_name: str, step_class: str, inputs, outputs, input_hash: str) -> str:
-        """Crea un hash único basado en config del step + hash de entrada."""
+        """Creates a unique hash based on step config + input hash."""
         step_config = {
             "name": step_name,
             "class": step_class,
@@ -33,7 +33,7 @@ class CacheManager:
         return hashlib.md5(combined.encode()).hexdigest()
 
     def get_df_hash(self, df: pd.DataFrame) -> str:
-        """Crea un hash del DataFrame (contenido + índice)."""
+        """Creates a hash of the DataFrame (content + index)."""
         return hashlib.md5(
             pd.util.hash_pandas_object(df, index=True).values
         ).hexdigest()[:16]

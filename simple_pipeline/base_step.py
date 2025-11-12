@@ -6,11 +6,11 @@ import pandas as pd
 
 class BaseStep(ABC):
     """
-    Clase abstracta base para todos los pasos (steps) del pipeline.
-    Define el ciclo de vida de un step:
-    - Validación de entradas
-    - Transformación de datos
-    - Mapeo de columnas de entrada y salida
+    Abstract base class for all pipeline steps.
+    Defines the lifecycle of a step:
+    - Input validation
+    - Data transformation
+    - Input and output column mapping
     """
 
     def __init__(
@@ -50,13 +50,13 @@ class BaseStep(ABC):
 
     # --------- Validaciones y mapeos ---------
     def _apply_input_mappings(self, df: pd.DataFrame) -> pd.DataFrame:
-        """Renombra columnas de entrada según input_mappings."""
+        """Renames input columns according to input_mappings."""
         if self.input_mappings:
             df = df.rename(columns=self.input_mappings)
         return df
 
     def _apply_output_mappings(self, df: pd.DataFrame) -> pd.DataFrame:
-        """Renombra columnas de salida según output_mappings."""
+        """Renames output columns according to output_mappings."""
         if self.output_mappings:
             df = df.rename(columns=self.output_mappings)
         return df
@@ -70,16 +70,16 @@ class BaseStep(ABC):
                 f"Disponibles: {list(df.columns)}"
             )
 
-    # --------- Método abstracto de proceso ---------
+    # --------- Abstract process method ---------
     @abstractmethod
     def process(self, df: pd.DataFrame) -> pd.DataFrame:
-        """Transforma el DataFrame y devuelve el resultado."""
+        """Transforms the DataFrame and returns the result."""
         pass
 
-    # --------- Ejecución del step ---------
+    # --------- Step execution ---------
     def __call__(self, df: pd.DataFrame) -> pd.DataFrame:
         """
-        Ejecuta el step con validación, mapeos y transformación.
+        Executes the step with validation, mappings and transformation.
         """
         if not self._loaded:
             self.load()

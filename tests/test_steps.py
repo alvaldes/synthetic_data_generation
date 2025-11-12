@@ -11,7 +11,7 @@ from simple_pipeline.steps.keep_columns import KeepColumns
 def test_load_dataframe_from_df():
     df = pd.DataFrame({"x": [1, 2]})
     step = LoadDataFrame(name="load", df=df)
-    result = step(pd.DataFrame())   # entrada vacía porque es generador
+    result = step(pd.DataFrame())   # empty input because it's a generator
     assert "x" in result.columns
     assert result.equals(df)
 

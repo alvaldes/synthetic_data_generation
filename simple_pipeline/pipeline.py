@@ -35,7 +35,7 @@ class SimplePipeline:
         self._step_outputs: Dict[str, pd.DataFrame] = {}
 
     def add_step(self, step: BaseStep) -> 'SimplePipeline':
-        """Añadir un step a la secuencia del pipeline."""
+        """Add a step to the pipeline sequence."""
         self.steps.append(step)
         self.logger.info(f"Added step: {step.name}")
         return self
@@ -118,5 +118,5 @@ class SimplePipeline:
         self.logger.info("Cache cleared")
 
     def get_step_output(self, step_name: str) -> Optional[pd.DataFrame]:
-        """Obtiene la salida de un step específico."""
+        """Gets the output of a specific step."""
         return self._step_outputs.get(step_name)

@@ -16,7 +16,7 @@ def setup_logger(name: str, level: int = logging.INFO) -> logging.Logger:
     logger = logging.getLogger(name)
     logger.setLevel(level)
 
-    # Evitar handlers duplicados si ya está configurado
+    # Avoid duplicate handlers if already configured
     if not logger.handlers:
         ch = logging.StreamHandler()
         ch.setLevel(level)
