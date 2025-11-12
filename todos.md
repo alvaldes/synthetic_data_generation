@@ -3,11 +3,14 @@
 ## Active
 
 ### 🔥 Critical Priority (Week 1)
+
+- [ ] Update the comparison judge to accept a list of generative outputs
 - [ ] Replace pickle with safer serialization (parquet/feather) in simple_pipeline/utils/cache.py | Due: 11/19/2024
 - [ ] Add input validation wrapper for file paths in salony_pipeline.py | Due: 11/19/2024
 - [ ] Fix dynamic module execution in scripts/run_pipeline.py | Due: 11/19/2024
 
 ### 🚨 High Priority (Week 2-4)
+
 - [ ] Expand test coverage to >80% - Add unit tests for each step class | Due: 11/26/2024
 - [ ] Add integration tests for LLM steps with mocked Ollama API calls | Due: 11/26/2024
 - [ ] Add comprehensive API documentation with docstrings to all public methods | Due: 12/03/2024
@@ -15,6 +18,7 @@
 - [ ] Implement security scanning (bandit, safety) | Due: 12/10/2024
 
 ### 📊 Medium Priority
+
 - [ ] Add type checking with mypy for static analysis
 - [ ] Break down long functions in salony_pipeline.py:136-305
 - [ ] Replace magic numbers with constants in judge_step.py:115,184
@@ -23,6 +27,7 @@
 - [ ] Add async processing option for improved LLM API throughput
 
 ### 📝 Low Priority
+
 - [ ] Add contribution guidelines (CONTRIBUTING.md)
 - [ ] Set up GitHub Actions for CI/CD
 - [ ] Add configuration validation with Pydantic models
@@ -31,4 +36,6 @@
 - [ ] Add parallelization options
 
 ## Completed
+
 - [x] Fix the mixed language comments (should be only english) | Done: 11/12/2024
+- [x] Add dual generator pipeline with 2 LLM generators and 1 judge step to evaluate outputs and select the best one | Done: 11/12/2024
