@@ -1,4 +1,4 @@
-# Synthetic Data Generation
+# LocalLLM-DataForge
 
 A simplified Distilabel-inspired pipeline for synthetic dataset creation using pandas DataFrames and local Ollama models.
 
