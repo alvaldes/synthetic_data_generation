@@ -379,6 +379,11 @@ def run_dual_generator_pipeline(
         'judge_score_b_actionability',
         'judge_score_b_logical_structure',
         'judge_score_b_granularity',
+        # Qualitative feedback
+        'judge_strengths_a',
+        'judge_weaknesses_a',
+        'judge_strengths_b',
+        'judge_weaknesses_b',
         # Decision
         'judge_winner',
         'judge_reason'

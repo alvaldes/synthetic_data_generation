@@ -89,6 +89,11 @@ class ComparisonJudgeStep(BaseStep):
             "judge_score_b_actionability",
             "judge_score_b_logical_structure",
             "judge_score_b_granularity",
+            # Qualitative feedback
+            "judge_strengths_a",
+            "judge_weaknesses_a",
+            "judge_strengths_b",
+            "judge_weaknesses_b",
             # Decision and reason
             "judge_winner",
             "judge_reason",
@@ -238,6 +243,12 @@ class ComparisonJudgeStep(BaseStep):
             score_b_logical_structure = breakdown_b.get('logical_structure', 0)
             score_b_granularity = breakdown_b.get('granularity', 0)
             
+            # Extract qualitative feedback
+            strengths_a = breakdown_a.get('strengths', 'N/A')
+            weaknesses_a = breakdown_a.get('weaknesses', 'N/A')
+            strengths_b = breakdown_b.get('strengths', 'N/A')
+            weaknesses_b = breakdown_b.get('weaknesses', 'N/A')
+            
             winner = judgment['winner']
             reason = judgment['reason']
 
@@ -263,6 +274,11 @@ class ComparisonJudgeStep(BaseStep):
                 "judge_score_b_actionability": score_b_actionability,
                 "judge_score_b_logical_structure": score_b_logical_structure,
                 "judge_score_b_granularity": score_b_granularity,
+                # Qualitative feedback
+                "judge_strengths_a": strengths_a,
+                "judge_weaknesses_a": weaknesses_a,
+                "judge_strengths_b": strengths_b,
+                "judge_weaknesses_b": weaknesses_b,
                 # Decision
                 "judge_winner": winner,
                 "judge_reason": reason,
@@ -321,6 +337,11 @@ class ComparisonJudgeStep(BaseStep):
                 fallback_df["judge_score_b_actionability"] = [5] * batch_size
                 fallback_df["judge_score_b_logical_structure"] = [5] * batch_size
                 fallback_df["judge_score_b_granularity"] = [5] * batch_size
+                # Qualitative feedback
+                fallback_df["judge_strengths_a"] = ["N/A"] * batch_size
+                fallback_df["judge_weaknesses_a"] = ["Error occurred"] * batch_size
+                fallback_df["judge_strengths_b"] = ["N/A"] * batch_size
+                fallback_df["judge_weaknesses_b"] = ["Error occurred"] * batch_size
                 # Decision
                 fallback_df["judge_winner"] = ["A"] * batch_size
                 fallback_df["judge_reason"] = [f"Batch processing failed: {e}"] * batch_size
