@@ -39,6 +39,8 @@ class OllamaLLMStep(BaseStep):
         generation_kwargs: Optional[Dict[str, Any]] = None,
         ollama_host: str = "http://localhost:11434",
         max_retries: int = 3,
+        track_time: bool = False,
+        time_column: Optional[str] = None,
         **kwargs
     ):
         super().__init__(name, **kwargs)
@@ -52,6 +54,8 @@ class OllamaLLMStep(BaseStep):
         self.generation_kwargs = generation_kwargs or {}
         self.ollama_host = ollama_host
         self.max_retries = max_retries
+        self.track_time = track_time
+        self.time_column = time_column or f"{output_column}_time"
         self.client = None
         self.logger = setup_logger(
             name=f"OllamaLLMStep.{name}",
@@ -65,6 +69,8 @@ class OllamaLLMStep(BaseStep):
 
     @property
     def outputs(self) -> List[str]:
+        if self.track_time:
+            return [self.output_column, self.time_column]
         return [self.output_column]
 
     # -------- Ciclo de vida --------
@@ -137,13 +143,26 @@ class OllamaLLMStep(BaseStep):
     def _process_batch(self, batch_df: pd.DataFrame) -> pd.DataFrame:
         """Process a batch of rows with Ollama."""
         results = []
+        times = []
+        
         for _, row in batch_df.iterrows():
             prompt = self._format_prompt(row.to_dict())
-            generation = self._generate_with_retry(prompt)
+            
+            if self.track_time:
+                start_time = time.time()
+                generation = self._generate_with_retry(prompt)
+                elapsed_time = time.time() - start_time
+                times.append(elapsed_time)
+            else:
+                generation = self._generate_with_retry(prompt)
+            
             results.append(generation)
 
         result_df = batch_df.copy()
         result_df[self.output_column] = results
+        
+        if self.track_time:
+            result_df[self.time_column] = times
 
         return result_df
 

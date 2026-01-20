@@ -3,6 +3,8 @@ import logging
 import pandas as pd
 from typing import Dict, List, Optional, Any
 import ollama
+import time
+from datetime import datetime
 
 from ..base_step import BaseStep
 from ..utils.batching import batch_dataframe, get_num_batches
@@ -97,7 +99,10 @@ class ComparisonJudgeStep(BaseStep):
             # Decision and reason
             "judge_winner",
             "judge_reason",
-            "selected_output"
+            "selected_output",
+            # Timing metadata
+            "judge_time",
+            "timestamp"
         ]
 
     def load(self) -> None:
@@ -218,8 +223,14 @@ class ComparisonJudgeStep(BaseStep):
             output_a = str(row[self.output_a_column])
             output_b = str(row[self.output_b_column])
 
+            # Track judge time
+            start_time = time.time()
+            timestamp = datetime.now().isoformat()
+            
             # Get judge evaluation
             judgment = self._judge_comparison(input_text, output_a, output_b)
+            
+            judge_time = time.time() - start_time
 
             # Extract breakdown for A
             breakdown_a = judgment['breakdown_a']
@@ -282,7 +293,10 @@ class ComparisonJudgeStep(BaseStep):
                 # Decision
                 "judge_winner": winner,
                 "judge_reason": reason,
-                "selected_output": selected_output
+                "selected_output": selected_output,
+                # Timing metadata
+                "judge_time": judge_time,
+                "timestamp": timestamp
             })
 
         # Create result DataFrame with all original columns plus new ones
@@ -346,6 +360,9 @@ class ComparisonJudgeStep(BaseStep):
                 fallback_df["judge_winner"] = ["A"] * batch_size
                 fallback_df["judge_reason"] = [f"Batch processing failed: {e}"] * batch_size
                 fallback_df["selected_output"] = batch_df[self.output_a_column].tolist()
+                # Timing metadata
+                fallback_df["judge_time"] = [0.0] * batch_size
+                fallback_df["timestamp"] = [datetime.now().isoformat()] * batch_size
                 results.append(fallback_df)
 
         # Combine all results

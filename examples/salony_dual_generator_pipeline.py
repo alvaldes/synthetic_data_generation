@@ -21,6 +21,7 @@ Usage:
 import pandas as pd
 import argparse
 import logging
+import time
 from pathlib import Path
 from typing import Dict, Optional
 import ollama
@@ -295,6 +296,8 @@ def run_dual_generator_pipeline(
                 "temperature": temperature_a,
                 "num_predict": num_predict
             },
+            track_time=True,
+            time_column="generation_time_a"
         )
     )
 
@@ -312,6 +315,8 @@ def run_dual_generator_pipeline(
                 "temperature": temperature_b,
                 "num_predict": num_predict
             },
+            track_time=True,
+            time_column="generation_time_b"
         )
     )
 
@@ -351,14 +356,21 @@ def run_dual_generator_pipeline(
 
     # Execute pipeline up to this point (before exploding tasks)
     logging.info("Executing dual generator pipeline with judge comparison...")
+    pipeline_start_time = time.time()
     try:
         result_df = pipeline.run(use_cache=use_cache)
     except ollama.ResponseError as e:
         raise RuntimeError(f"Ollama API error: {e.error}")
     except Exception as e:
         raise RuntimeError(f"Pipeline execution failed: {e}")
+    
+    pipeline_end_time = time.time()
+    total_pipeline_time = pipeline_end_time - pipeline_start_time
 
     logging.info(f"Successfully compared {len(result_df)} user stories with dual generators")
+    
+    # Calculate total_time per row (generation_time_a + generation_time_b + judge_time)
+    result_df['total_time'] = result_df['generation_time_a'] + result_df['generation_time_b'] + result_df['judge_time']
 
     # Create judge results CSV (one row per user story) with detailed scores
     judge_results_df = result_df[[
@@ -386,7 +398,13 @@ def run_dual_generator_pipeline(
         'judge_weaknesses_b',
         # Decision
         'judge_winner',
-        'judge_reason'
+        'judge_reason',
+        # Timing metadata
+        'generation_time_a',
+        'generation_time_b',
+        'judge_time',
+        'total_time',
+        'timestamp'
     ]].copy()
 
     # Save judge results
@@ -461,6 +479,19 @@ def run_dual_generator_pipeline(
             avg_a = result_df[f'judge_score_a_{criterion}'].mean()
             avg_b = result_df[f'judge_score_b_{criterion}'].mean()
             logging.info(f"{criterion.capitalize():20s}: A={avg_a:.1f}, B={avg_b:.1f}")
+        
+        # Show timing statistics
+        logging.info(f"\n=== TIMING STATISTICS (seconds) ===")
+        avg_time_a = result_df['generation_time_a'].mean()
+        avg_time_b = result_df['generation_time_b'].mean()
+        avg_judge_time = result_df['judge_time'].mean()
+        avg_total_time = result_df['total_time'].mean()
+        
+        logging.info(f"Average generation time A: {avg_time_a:.2f}s")
+        logging.info(f"Average generation time B: {avg_time_b:.2f}s")
+        logging.info(f"Average judge time:        {avg_judge_time:.2f}s")
+        logging.info(f"Average total time:        {avg_total_time:.2f}s")
+        logging.info(f"Total pipeline time:       {total_pipeline_time:.2f}s")
 
     logging.info("\n✅ Dual generator pipeline with judge comparison completed successfully!")
     logging.info(f"   - Tasks comparison: {output_csv}")
