@@ -74,8 +74,22 @@ class ComparisonJudgeStep(BaseStep):
     @property
     def outputs(self) -> List[str]:
         return [
-            "judge_score_a",
-            "judge_score_b",
+            # Total scores
+            "judge_score_a_total",
+            "judge_score_b_total",
+            # Individual criteria scores for A
+            "judge_score_a_completeness",
+            "judge_score_a_clarity",
+            "judge_score_a_actionability",
+            "judge_score_a_logical_structure",
+            "judge_score_a_granularity",
+            # Individual criteria scores for B
+            "judge_score_b_completeness",
+            "judge_score_b_clarity",
+            "judge_score_b_actionability",
+            "judge_score_b_logical_structure",
+            "judge_score_b_granularity",
+            # Decision and reason
             "judge_winner",
             "judge_reason",
             "selected_output"
@@ -190,6 +204,9 @@ class ComparisonJudgeStep(BaseStep):
     def _process_batch(self, batch_df: pd.DataFrame) -> pd.DataFrame:
         """Process a batch of rows for comparison judging."""
         results = []
+        
+        # Define score criteria
+        score_criteria = ['completeness', 'clarity', 'actionability', 'logical_structure', 'granularity']
 
         for _, row in batch_df.iterrows():
             input_text = str(row[self.input_column])
@@ -199,9 +216,28 @@ class ComparisonJudgeStep(BaseStep):
             # Get judge evaluation
             judgment = self._judge_comparison(input_text, output_a, output_b)
 
-            # Extract scores and decision
-            score_a = judgment['breakdown_a']['total_score']
-            score_b = judgment['breakdown_b']['total_score']
+            # Extract breakdown for A
+            breakdown_a = judgment['breakdown_a']
+            breakdown_b = judgment['breakdown_b']
+            
+            # Extract total scores
+            score_a_total = breakdown_a.get('total_score', 0)
+            score_b_total = breakdown_b.get('total_score', 0)
+            
+            # Extract individual criteria scores for A
+            score_a_completeness = breakdown_a.get('completeness', 0)
+            score_a_clarity = breakdown_a.get('clarity', 0)
+            score_a_actionability = breakdown_a.get('actionability', 0)
+            score_a_logical_structure = breakdown_a.get('logical_structure', 0)
+            score_a_granularity = breakdown_a.get('granularity', 0)
+            
+            # Extract individual criteria scores for B
+            score_b_completeness = breakdown_b.get('completeness', 0)
+            score_b_clarity = breakdown_b.get('clarity', 0)
+            score_b_actionability = breakdown_b.get('actionability', 0)
+            score_b_logical_structure = breakdown_b.get('logical_structure', 0)
+            score_b_granularity = breakdown_b.get('granularity', 0)
+            
             winner = judgment['winner']
             reason = judgment['reason']
 
@@ -212,8 +248,22 @@ class ComparisonJudgeStep(BaseStep):
                 selected_output = output_a
 
             results.append({
-                "judge_score_a": score_a,
-                "judge_score_b": score_b,
+                # Total scores
+                "judge_score_a_total": score_a_total,
+                "judge_score_b_total": score_b_total,
+                # Individual scores for A
+                "judge_score_a_completeness": score_a_completeness,
+                "judge_score_a_clarity": score_a_clarity,
+                "judge_score_a_actionability": score_a_actionability,
+                "judge_score_a_logical_structure": score_a_logical_structure,
+                "judge_score_a_granularity": score_a_granularity,
+                # Individual scores for B
+                "judge_score_b_completeness": score_b_completeness,
+                "judge_score_b_clarity": score_b_clarity,
+                "judge_score_b_actionability": score_b_actionability,
+                "judge_score_b_logical_structure": score_b_logical_structure,
+                "judge_score_b_granularity": score_b_granularity,
+                # Decision
                 "judge_winner": winner,
                 "judge_reason": reason,
                 "selected_output": selected_output
@@ -222,12 +272,9 @@ class ComparisonJudgeStep(BaseStep):
         # Create result DataFrame with all original columns plus new ones
         result_df = batch_df.copy()
 
-        # Add judge columns
-        result_df["judge_score_a"] = [r['judge_score_a'] for r in results]
-        result_df["judge_score_b"] = [r['judge_score_b'] for r in results]
-        result_df["judge_winner"] = [r['judge_winner'] for r in results]
-        result_df["judge_reason"] = [r['judge_reason'] for r in results]
-        result_df["selected_output"] = [r['selected_output'] for r in results]
+        # Add all judge columns
+        for key in results[0].keys():
+            result_df[key] = [r[key] for r in results]
 
         return result_df
 
@@ -259,8 +306,22 @@ class ComparisonJudgeStep(BaseStep):
                 # Create fallback results for failed batch
                 batch_size = len(batch_df)
                 fallback_df = batch_df.copy()
-                fallback_df["judge_score_a"] = [25] * batch_size
-                fallback_df["judge_score_b"] = [25] * batch_size
+                # Total scores
+                fallback_df["judge_score_a_total"] = [25] * batch_size
+                fallback_df["judge_score_b_total"] = [25] * batch_size
+                # Individual scores for A (distributed equally)
+                fallback_df["judge_score_a_completeness"] = [5] * batch_size
+                fallback_df["judge_score_a_clarity"] = [5] * batch_size
+                fallback_df["judge_score_a_actionability"] = [5] * batch_size
+                fallback_df["judge_score_a_logical_structure"] = [5] * batch_size
+                fallback_df["judge_score_a_granularity"] = [5] * batch_size
+                # Individual scores for B (distributed equally)
+                fallback_df["judge_score_b_completeness"] = [5] * batch_size
+                fallback_df["judge_score_b_clarity"] = [5] * batch_size
+                fallback_df["judge_score_b_actionability"] = [5] * batch_size
+                fallback_df["judge_score_b_logical_structure"] = [5] * batch_size
+                fallback_df["judge_score_b_granularity"] = [5] * batch_size
+                # Decision
                 fallback_df["judge_winner"] = ["A"] * batch_size
                 fallback_df["judge_reason"] = [f"Batch processing failed: {e}"] * batch_size
                 fallback_df["selected_output"] = batch_df[self.output_a_column].tolist()
@@ -272,8 +333,8 @@ class ComparisonJudgeStep(BaseStep):
         # Log statistics
         if len(final_df) > 0:
             winner_counts = final_df["judge_winner"].value_counts()
-            avg_score_a = final_df["judge_score_a"].mean()
-            avg_score_b = final_df["judge_score_b"].mean()
+            avg_score_a = final_df["judge_score_a_total"].mean()
+            avg_score_b = final_df["judge_score_b_total"].mean()
 
             logging.info(f"Judge results: A wins: {winner_counts.get('A', 0)}, B wins: {winner_counts.get('B', 0)}")
             logging.info(f"Average scores: A={avg_score_a:.1f}, B={avg_score_b:.1f}")

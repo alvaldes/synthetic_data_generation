@@ -360,12 +360,26 @@ def run_dual_generator_pipeline(
 
     logging.info(f"Successfully compared {len(result_df)} user stories with dual generators")
 
-    # Create judge results CSV (one row per user story)
+    # Create judge results CSV (one row per user story) with detailed scores
     judge_results_df = result_df[[
         'us_id',
         'input',
-        'judge_score_a',
-        'judge_score_b',
+        # Total scores
+        'judge_score_a_total',
+        'judge_score_b_total',
+        # Individual criteria scores for A
+        'judge_score_a_completeness',
+        'judge_score_a_clarity',
+        'judge_score_a_actionability',
+        'judge_score_a_logical_structure',
+        'judge_score_a_granularity',
+        # Individual criteria scores for B
+        'judge_score_b_completeness',
+        'judge_score_b_clarity',
+        'judge_score_b_actionability',
+        'judge_score_b_logical_structure',
+        'judge_score_b_granularity',
+        # Decision
         'judge_winner',
         'judge_reason'
     ]].copy()
@@ -427,14 +441,21 @@ def run_dual_generator_pipeline(
     # Show statistics
     if len(result_df) > 0:
         winner_counts = result_df['judge_winner'].value_counts()
-        avg_score_a = result_df['judge_score_a'].mean()
-        avg_score_b = result_df['judge_score_b'].mean()
+        avg_score_a = result_df['judge_score_a_total'].mean()
+        avg_score_b = result_df['judge_score_b_total'].mean()
 
         logging.info(f"\n=== JUDGE SELECTION STATISTICS ===")
         logging.info(f"Generator A ({model_a}) wins: {winner_counts.get('A', 0)} ({winner_counts.get('A', 0)/len(result_df)*100:.1f}%)")
         logging.info(f"Generator B ({model_b}) wins: {winner_counts.get('B', 0)} ({winner_counts.get('B', 0)/len(result_df)*100:.1f}%)")
-        logging.info(f"Average score A: {avg_score_a:.1f}/50")
-        logging.info(f"Average score B: {avg_score_b:.1f}/50")
+        logging.info(f"Average total scores: A={avg_score_a:.1f}/50, B={avg_score_b:.1f}/50")
+        
+        # Show average scores by criteria
+        logging.info(f"\n=== AVERAGE SCORES BY CRITERIA (out of 10) ===")
+        criteria = ['completeness', 'clarity', 'actionability', 'logical_structure', 'granularity']
+        for criterion in criteria:
+            avg_a = result_df[f'judge_score_a_{criterion}'].mean()
+            avg_b = result_df[f'judge_score_b_{criterion}'].mean()
+            logging.info(f"{criterion.capitalize():20s}: A={avg_a:.1f}, B={avg_b:.1f}")
 
     logging.info("\n✅ Dual generator pipeline with judge comparison completed successfully!")
     logging.info(f"   - Tasks comparison: {output_csv}")
