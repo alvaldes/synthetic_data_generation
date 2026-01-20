@@ -4,11 +4,11 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "LocalLLM-DataForge"
-version = "0.1.5"
+version = "0.2.0"
 authors = [
     {name = "Angel L. Valdés"}
 ]
-description = "A simplified Distilabel-inspired pipeline for DataFrame processing with Ollama"
+description = "DataFrame-based pipeline for user story task decomposition using local Ollama LLMs with single and dual generator support"
 readme = "README.md"
 requires-python = ">=3.8"
 classifiers = [

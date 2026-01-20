@@ -133,6 +133,25 @@ docs/_templates/
 # Project specific
 data/*.csv
 data/*.xlsx
+!data/salony_train.csv
 !data/.gitkeep
-notebooks/*.csv
-notebooks/*.xlsx
+
+# Example outputs (keep only source .py files)
+examples/*.csv
+examples/*.xlsx
+examples/*.json
+examples/*.parquet
+
+# Notebooks (if added back later)
+notebooks/
+*.ipynb
+
+# Old documentation and reports
+*_Report.md
+Code_Quality_*.md
+compass_artifact_*.md
+
+# Backup files
+*.backup
+*_backup.*
+*_old.*

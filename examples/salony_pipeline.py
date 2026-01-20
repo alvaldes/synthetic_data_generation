@@ -188,7 +188,7 @@ def run_salony_pipeline(
         # Test if model is available
         try:
             models = client.list()
-            available_models = [m['name'] for m in models['models']]
+            available_models = [m.model for m in models.models]
             if model_name not in available_models:
                 logging.warning(f"Model {model_name} not found locally. Attempting to pull...")
                 client.pull(model_name)
