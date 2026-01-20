@@ -6,6 +6,7 @@ from .ollama_judge_step import OllamaJudgeStep
 from .comparison_judge_step import ComparisonJudgeStep
 from .keep_columns import KeepColumns
 from .add_column import AddColumn
+from .explode_tasks import ExplodeTasks
 
 __all__ = [
     "LoadDataFrame",
@@ -14,4 +15,5 @@ __all__ = [
     "ComparisonJudgeStep",
     "KeepColumns",
     "AddColumn",
+    "ExplodeTasks",
 ]
