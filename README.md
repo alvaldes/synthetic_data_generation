@@ -41,7 +41,7 @@ python scripts/clear_cache.py
 ## 🏗️ Architecture
 
 ```
-SimplePipeline
+DataForgePipeline
 ├── LoadDataFrame (load data)
 ├── FilterRows (filter data)
 ├── SortRows (sort data)
@@ -58,8 +58,8 @@ SimplePipeline
 
 ```python
 import pandas as pd
-from simple_pipeline import SimplePipeline
-from simple_pipeline.steps import LoadDataFrame, OllamaLLMStep
+from dataforge import DataForgePipeline
+from dataforge.steps import LoadDataFrame, OllamaLLMStep
 
 # Create data
 df = pd.DataFrame({
@@ -67,7 +67,7 @@ df = pd.DataFrame({
 })
 
 # Create pipeline
-pipeline = SimplePipeline(name="basic-example")
+pipeline = DataForgePipeline(name="basic-example")
 
 # Add steps
 pipeline.add_step(LoadDataFrame(name="load", df=df))
@@ -87,9 +87,9 @@ print(result)
 ### Advanced Pipeline with Transformations
 
 ```python
-from simple_pipeline.steps import FilterRows, SortRows, RobustOllamaStep
+from dataforge.steps import FilterRows, SortRows, RobustOllamaStep
 
-pipeline = SimplePipeline(name="advanced")
+pipeline = DataForgePipeline(name="advanced")
 
 # Filter, sort, and generate
 pipeline.add_step(LoadDataFrame(name="load", df=data))
@@ -115,7 +115,7 @@ result = pipeline.run(use_cache=True)
 
 ```python
 # Chain steps with >> for cleaner syntax
-pipeline = SimplePipeline(name="chain")
+pipeline = DataForgePipeline(name="chain")
 
 (pipeline
     >> LoadDataFrame(name="load", df=data)
@@ -149,7 +149,7 @@ result = pipeline.run()
 ## 🎨 Creating Custom Steps
 
 ```python
-from simple_pipeline.base_step import BaseStep
+from dataforge.base_step import BaseStep
 import pandas as pd
 
 class MyCustomStep(BaseStep):
@@ -227,7 +227,7 @@ print(summary)
 Configure logging level:
 
 ```python
-pipeline = SimplePipeline(
+pipeline = DataForgePipeline(
     name="my-pipeline",
     log_level="DEBUG"  # DEBUG, INFO, WARNING, ERROR
 )
@@ -243,14 +243,14 @@ pytest tests/ -v
 pytest tests/test_pipeline.py -v
 
 # Run with coverage
-pytest tests/ --cov=simple_pipeline
+pytest tests/ --cov=dataforge
 ```
 
 ## 📁 Project Structure
 
 ```
 synthetic_data_generation/
-├── simple_pipeline/           # Core library
+├── dataforge/           # Core library
 │   ├── __init__.py
 │   ├── base_step.py          # Base step class
 │   ├── pipeline.py           # Pipeline orchestrator
@@ -287,10 +287,10 @@ synthetic_data_generation/
 
 Contributions are welcome! To add a new step:
 
-1. Create a new file in `simple_pipeline/steps/`
+1. Create a new file in `dataforge/steps/`
 2. Inherit from `BaseStep`
 3. Implement `inputs`, `outputs`, and `process()`
-4. Add to `simple_pipeline/steps/__init__.py`
+4. Add to `dataforge/steps/__init__.py`
 5. Write tests in `tests/`
 
 ## 📄 License

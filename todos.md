@@ -5,7 +5,7 @@
 ### 🔥 Critical Priority (Week 1)
 
 - [ ] Update the comparison judge to accept a list of generative outputs
-- [ ] Replace pickle with safer serialization (parquet/feather) in simple_pipeline/utils/cache.py | Due: 11/19/2024
+- [ ] Replace pickle with safer serialization (parquet/feather) in dataforge/utils/cache.py | Due: 11/19/2024
 - [ ] Add input validation wrapper for file paths in salony_pipeline.py | Due: 11/19/2024
 - [ ] Fix dynamic module execution in scripts/run_pipeline.py | Due: 11/19/2024
 

@@ -1,4 +1,4 @@
-# simple_pipeline/steps/add_column.py
+# dataforge/steps/add_column.py
 
 from typing import List, Callable
 import pandas as pd

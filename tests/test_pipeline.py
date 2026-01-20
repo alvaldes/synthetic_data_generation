@@ -3,10 +3,10 @@
 import pandas as pd
 import pytest
 
-from simple_pipeline.pipeline import SimplePipeline
-from simple_pipeline.steps.load_dataframe import LoadDataFrame
-from simple_pipeline.steps.keep_columns import KeepColumns
-from simple_pipeline.steps.add_column import AddColumn
+from dataforge.pipeline import DataForgePipeline
+from dataforge.steps.load_dataframe import LoadDataFrame
+from dataforge.steps.keep_columns import KeepColumns
+from dataforge.steps.add_column import AddColumn
 
 
 def test_pipeline_runs_with_basic_steps():
@@ -14,7 +14,7 @@ def test_pipeline_runs_with_basic_steps():
     df = pd.DataFrame({"a": [1, 2], "b": [3, 4]})
 
     # Crear pipeline
-    pipeline = SimplePipeline(name="test-pipeline")
+    pipeline = DataForgePipeline(name="test-pipeline")
 
     # Step 1: cargar datos
     load = LoadDataFrame(name="load", df=df)
@@ -46,7 +46,7 @@ def test_pipeline_runs_with_basic_steps():
 
 def test_pipeline_fails_with_wrong_column():
     df = pd.DataFrame({"x": [1]})
-    pipeline = SimplePipeline(name="fail-pipeline")
+    pipeline = DataForgePipeline(name="fail-pipeline")
 
     load = LoadDataFrame(name="load", df=df)
 

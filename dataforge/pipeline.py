@@ -1,4 +1,4 @@
-# simple_pipeline/pipeline.py
+# dataforge/pipeline.py
 
 from typing import List, Optional, Dict
 from pathlib import Path
@@ -9,14 +9,14 @@ from .utils.cache import CacheManager
 from .utils.logging import setup_logger
 import logging
 
-class SimplePipeline:
-    """Pipeline simplificado para procesar DataFrames paso a paso."""
+class DataForgePipeline:
+    """DataFrame-based pipeline for processing data step by step."""
 
     def __init__(
         self,
         name: str,
         description: str = "",
-        cache_dir: str = ".cache/simple_pipeline",
+        cache_dir: str = ".cache/dataforge",
         log_level: str = "INFO"
     ):
         self.name = name
@@ -27,20 +27,20 @@ class SimplePipeline:
         
         # Setup logging
         self.logger = setup_logger(
-            name=f"SimplePipeline.{name}",
+            name=f"DataForgePipeline.{name}",
             level=getattr(logging, log_level.upper())
         )
         
         self.steps: List[BaseStep] = []
         self._step_outputs: Dict[str, pd.DataFrame] = {}
 
-    def add_step(self, step: BaseStep) -> 'SimplePipeline':
+    def add_step(self, step: BaseStep) -> 'DataForgePipeline':
         """Add a step to the pipeline sequence."""
         self.steps.append(step)
         self.logger.info(f"Added step: {step.name}")
         return self
 
-    def __rshift__(self, step: BaseStep) -> 'SimplePipeline':
+    def __rshift__(self, step: BaseStep) -> 'DataForgePipeline':
         """Permite usar la sintaxis pipeline >> step."""
         return self.add_step(step)
 

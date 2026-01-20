@@ -18,8 +18,8 @@ from pathlib import Path
 from typing import Dict, Optional
 import ollama
 
-from simple_pipeline import SimplePipeline
-from simple_pipeline.steps import (
+from dataforge import DataForgePipeline
+from dataforge.steps import (
     LoadDataFrame,
     OllamaLLMStep,
     OllamaJudgeStep,
@@ -249,7 +249,7 @@ def run_salony_pipeline(
                 judge_model_name}, threshold={judge_threshold}"
         )
 
-    pipeline = SimplePipeline(
+    pipeline = DataForgePipeline(
         name=pipeline_name,
         description="Pipeline for generating and validating development tasks from Salony dataset",
     )

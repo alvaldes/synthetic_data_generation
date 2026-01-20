@@ -1,4 +1,4 @@
-# simple_pipeline/steps/__init__.py
+# dataforge/steps/__init__.py
 
 from .load_dataframe import LoadDataFrame
 from .ollama_step import OllamaLLMStep

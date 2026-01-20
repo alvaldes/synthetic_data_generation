@@ -7,7 +7,7 @@ import shutil
 from pathlib import Path
 
 
-def clear_cache(cache_dir: str = ".cache/simple_pipeline"):
+def clear_cache(cache_dir: str = ".cache/dataforge"):
     """Clear all cached data."""
     cache_path = Path(cache_dir)
     
@@ -20,11 +20,11 @@ def clear_cache(cache_dir: str = ".cache/simple_pipeline"):
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Clear Simple Pipeline cache"
+        description="Clear DataForge Pipeline cache"
     )
     parser.add_argument(
         "--cache-dir",
-        default=".cache/simple_pipeline",
+        default=".cache/dataforge",
         help="Cache directory to clear"
     )
     

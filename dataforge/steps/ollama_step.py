@@ -1,4 +1,4 @@
-# simple_pipeline/steps/ollama_step.py
+# dataforge/steps/ollama_step.py
 
 import ollama
 import pandas as pd

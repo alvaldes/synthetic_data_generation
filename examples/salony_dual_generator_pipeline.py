@@ -25,8 +25,8 @@ from pathlib import Path
 from typing import Dict, Optional
 import ollama
 
-from simple_pipeline import SimplePipeline
-from simple_pipeline.steps import LoadDataFrame, OllamaLLMStep, AddColumn, ComparisonJudgeStep, KeepColumns
+from dataforge import DataForgePipeline
+from dataforge.steps import LoadDataFrame, OllamaLLMStep, AddColumn, ComparisonJudgeStep, KeepColumns
 
 
 def create_task_generation_prompt(row: Dict) -> str:
@@ -271,7 +271,7 @@ def run_dual_generator_pipeline(
     logging.info(f"  Judge: {judge_model}")
     logging.info(f"  Batch size: {batch_size}")
 
-    pipeline = SimplePipeline(
+    pipeline = DataForgePipeline(
         name=pipeline_name,
         description="Dual generator pipeline with judge selection for Salony dataset"
     )

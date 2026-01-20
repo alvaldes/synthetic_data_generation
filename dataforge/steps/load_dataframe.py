@@ -1,4 +1,4 @@
-# simple_pipeline/steps/load_dataframe.py
+# dataforge/steps/load_dataframe.py
 
 from typing import List, Optional
 import pandas as pd

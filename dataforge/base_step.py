@@ -1,4 +1,4 @@
-# simple_pipeline/base_step.py
+# dataforge/base_step.py
 
 from abc import ABC, abstractmethod
 from typing import List, Optional, Dict, Any

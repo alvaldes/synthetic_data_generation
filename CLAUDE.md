@@ -22,7 +22,7 @@ pytest tests/ -v
 pytest tests/test_pipeline.py -v
 
 # Run with coverage
-pytest tests/ --cov=simple_pipeline
+pytest tests/ --cov=dataforge
 ```
 
 ### Pipeline Management
@@ -56,13 +56,13 @@ This is a **DataFrame-based pipeline processing library** inspired by Distilabel
 
 ### Core Components
 
-**SimplePipeline** (`simple_pipeline/pipeline.py`): Main orchestrator that:
+**DataForgePipeline** (`dataforge/pipeline.py`): Main orchestrator that:
 - Executes steps sequentially with data flowing between them
 - Manages caching using `CacheManager` for expensive LLM operations
 - Supports the `>>` operator for chaining steps
 - Handles logging and error recovery
 
-**BaseStep** (`simple_pipeline/base_step.py`): Abstract base class for all processing steps:
+**BaseStep** (`dataforge/base_step.py`): Abstract base class for all processing steps:
 - Defines `inputs` and `outputs` properties for column validation
 - Handles input/output column mappings and renaming
 - Manages step lifecycle (load/unload resources)
@@ -82,7 +82,7 @@ This is a **DataFrame-based pipeline processing library** inspired by Distilabel
 - Step configuration hash
 - Input DataFrame content hash
 - Step class and parameters
-Cache lives in `.cache/simple_pipeline/{pipeline_name}/`
+Cache lives in `.cache/dataforge/{pipeline_name}/`
 
 **Error Handling**: `RobustOllamaStep` provides production-ready LLM processing with:
 - Automatic retries for failed generations
@@ -95,7 +95,7 @@ Cache lives in `.cache/simple_pipeline/{pipeline_name}/`
 ### Pipeline Flow Example
 ```python
 # Typical pipeline structure
-pipeline = SimplePipeline(name="example")
+pipeline = DataForgePipeline(name="example")
 
 (pipeline
     >> LoadDataFrame(name="load", df=data)           # Generator step
@@ -113,7 +113,7 @@ result = pipeline.run(use_cache=True)
 - Inherit from `BaseStep`
 - Define `inputs` and `outputs` properties as List[str]
 - Implement `process(self, df: pd.DataFrame) -> pd.DataFrame`
-- Add to `simple_pipeline/steps/__init__.py` for imports
+- Add to `dataforge/steps/__init__.py` for imports
 
 ### LLM Step Patterns
 - Use `OllamaLLMStep` for basic LLM generation

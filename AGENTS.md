@@ -67,7 +67,7 @@ LocalLLM-DataForge is a DataFrame-based pipeline processing library inspired by 
 
 ```
 LocalLLM-DataForge/
-├── simple_pipeline/           # Core library
+├── dataforge/           # Core library
 │   ├── __init__.py
 │   ├── base_step.py          # Base step class
 │   ├── pipeline.py           # Pipeline orchestrator
@@ -141,16 +141,16 @@ pytest tests/ -v
 python examples/instruction_pipeline.py
 
 # Check package installation
-python -c "import simple_pipeline; print(simple_pipeline.__version__)"
+python -c "import dataforge; print(dataforge.__version__)"
 ```
 
 ---
 
 ## Core Architecture
 
-### SimplePipeline
+### DataForgePipeline
 
-The main orchestrator (`simple_pipeline/pipeline.py`) that:
+The main orchestrator (`dataforge/pipeline.py`) that:
 
 - Executes steps sequentially with data flowing between them
 - Manages caching using `CacheManager` for expensive LLM operations
@@ -159,9 +159,9 @@ The main orchestrator (`simple_pipeline/pipeline.py`) that:
 - Validates column dependencies between steps
 
 ```python
-from simple_pipeline import SimplePipeline
+from dataforge import DataForgePipeline
 
-pipeline = SimplePipeline(
+pipeline = DataForgePipeline(
     name="my-pipeline",
     log_level="INFO"  # DEBUG, INFO, WARNING, ERROR
 )
@@ -169,7 +169,7 @@ pipeline = SimplePipeline(
 
 ### BaseStep
 
-Abstract base class (`simple_pipeline/base_step.py`) for all processing steps:
+Abstract base class (`dataforge/base_step.py`) for all processing steps:
 
 - Defines `inputs` and `outputs` properties for column validation
 - Handles input/output column mappings and renaming
@@ -224,7 +224,7 @@ Each step can be cached based on:
 - Input DataFrame content hash
 - Step class name and version
 
-Cache lives in `.cache/simple_pipeline/{pipeline_name}/`
+Cache lives in `.cache/dataforge/{pipeline_name}/`
 
 ```python
 # Use cache (default)
@@ -309,11 +309,11 @@ judge_step = OllamaJudgeStep(
 ## Pipeline Flow Example
 
 ```python
-from simple_pipeline import SimplePipeline
-from simple_pipeline.steps import LoadDataFrame, OllamaLLMStep, KeepColumns
+from dataforge import DataForgePipeline
+from dataforge.steps import LoadDataFrame, OllamaLLMStep, KeepColumns
 
 # Create pipeline
-pipeline = SimplePipeline(name="example")
+pipeline = DataForgePipeline(name="example")
 
 # Chain steps using >> operator
 (pipeline
@@ -338,7 +338,7 @@ result = pipeline.run(use_cache=True)
 ### Basic Custom Step
 
 ```python
-from simple_pipeline.base_step import BaseStep
+from dataforge.base_step import BaseStep
 import pandas as pd
 
 class MyCustomStep(BaseStep):
@@ -368,7 +368,7 @@ class MyCustomStep(BaseStep):
 
 ### Registering Custom Steps
 
-Add your custom step to `simple_pipeline/steps/__init__.py`:
+Add your custom step to `dataforge/steps/__init__.py`:
 
 ```python
 from .my_custom_step import MyCustomStep
@@ -393,10 +393,10 @@ pytest tests/ -v
 pytest tests/test_pipeline.py -v
 
 # Run with coverage
-pytest tests/ --cov=simple_pipeline
+pytest tests/ --cov=dataforge
 
 # Run with coverage report
-pytest tests/ --cov=simple_pipeline --cov-report=html
+pytest tests/ --cov=dataforge --cov-report=html
 ```
 
 ### Testing Patterns
@@ -411,8 +411,8 @@ pytest tests/ --cov=simple_pipeline --cov-report=html
 ```python
 import pytest
 import pandas as pd
-from simple_pipeline import SimplePipeline
-from simple_pipeline.steps import LoadDataFrame
+from dataforge import DataForgePipeline
+from dataforge.steps import LoadDataFrame
 
 @pytest.fixture
 def sample_data():
@@ -421,7 +421,7 @@ def sample_data():
     })
 
 def test_pipeline_basic(sample_data):
-    pipeline = SimplePipeline(name="test")
+    pipeline = DataForgePipeline(name="test")
     pipeline.add_step(LoadDataFrame(name="load", df=sample_data))
     
     result = pipeline.run(use_cache=False)
@@ -436,7 +436,7 @@ def test_pipeline_basic(sample_data):
 
 ### Cache Location
 
-Caches are stored in `.cache/simple_pipeline/{pipeline_name}/`
+Caches are stored in `.cache/dataforge/{pipeline_name}/`
 
 ### Cache Keys
 
@@ -473,7 +473,7 @@ result = pipeline.run(use_cache=False)
 ### Basic LLM Generation
 
 ```python
-from simple_pipeline.steps import OllamaLLMStep
+from dataforge.steps import OllamaLLMStep
 
 step = OllamaLLMStep(
     name="generate",
@@ -487,7 +487,7 @@ step = OllamaLLMStep(
 ### Production LLM Generation with Error Handling
 
 ```python
-from simple_pipeline.steps import RobustOllamaStep
+from dataforge.steps import RobustOllamaStep
 
 step = RobustOllamaStep(
     name="generate",
@@ -510,7 +510,7 @@ print(step.get_failure_summary())
 ### LLM Judge Validation
 
 ```python
-from simple_pipeline.steps import OllamaJudgeStep
+from dataforge.steps import OllamaJudgeStep
 
 judge = OllamaJudgeStep(
     name="validate",
@@ -525,7 +525,7 @@ judge = OllamaJudgeStep(
 ### Dual Generator Comparison
 
 ```python
-from simple_pipeline.steps import ComparisonJudgeStep
+from dataforge.steps import ComparisonJudgeStep
 
 comparator = ComparisonJudgeStep(
     name="compare",
@@ -588,10 +588,10 @@ comparator = ComparisonJudgeStep(
 
 ### Adding a New Step Type
 
-1. Create new file in `simple_pipeline/steps/`
+1. Create new file in `dataforge/steps/`
 2. Inherit from `BaseStep`
 3. Implement `inputs`, `outputs`, and `process()`
-4. Add to `simple_pipeline/steps/__init__.py`
+4. Add to `dataforge/steps/__init__.py`
 5. Write tests in `tests/test_steps.py`
 6. Update documentation
 

@@ -1,4 +1,4 @@
-# simple_pipeline/utils/logging.py
+# dataforge/utils/logging.py
 
 import logging
 

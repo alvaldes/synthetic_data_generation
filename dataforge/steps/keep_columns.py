@@ -1,4 +1,4 @@
-# simple_pipeline/steps/keep_columns.py
+# dataforge/steps/keep_columns.py
 
 from typing import List
 import pandas as pd

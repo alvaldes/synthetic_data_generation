@@ -1,4 +1,4 @@
-# simple_pipeline/utils/batching.py
+# dataforge/utils/batching.py
 import pandas as pd
 from typing import Iterator, List
 
