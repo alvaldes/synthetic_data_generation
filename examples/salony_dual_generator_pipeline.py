@@ -26,7 +26,7 @@ from typing import Dict, Optional
 import ollama
 
 from dataforge import DataForgePipeline
-from dataforge.steps import LoadDataFrame, OllamaLLMStep, AddColumn, ComparisonJudgeStep, KeepColumns
+from dataforge.steps import LoadDataFrame, OllamaLLMStep, AddColumn, ComparisonJudgeStep, KeepColumns, ExplodeTasks
 
 
 def create_task_generation_prompt(row: Dict) -> str:
@@ -333,25 +333,24 @@ def run_dual_generator_pipeline(
         )
     )
 
-    # Add final column selection - keep only essential outputs
+    # Add US ID tracking (counter starting from 1)
+    us_counter = {"count": 0}
+
+    def get_us_id():
+        us_counter["count"] += 1
+        return us_counter["count"]
+
     pipeline.add_step(
-        KeepColumns(
-            name="final_selection",
-            columns=[
-                "input",                    # Original user story
-                "tasks_generator_a",        # Output from generator A
-                "tasks_generator_b",        # Output from generator B
-                # "selected_output",          # Best output chosen by judge
-                "judge_score_a",            # Score for generator A
-                "judge_score_b",            # Score for generator B
-                "judge_winner",             # Which generator won (A or B)
-                "judge_reason"              # Why the winner was chosen
-            ]
+        AddColumn(
+            name="add_us_id",
+            input_columns=[],
+            output_column="us_id",
+            func=get_us_id
         )
     )
 
-    # Execute pipeline
-    logging.info("Executing complete dual generator pipeline with judge selection...")
+    # Execute pipeline up to this point (before exploding tasks)
+    logging.info("Executing dual generator pipeline with judge comparison...")
     try:
         result_df = pipeline.run(use_cache=use_cache)
     except ollama.ResponseError as e:
@@ -359,7 +358,71 @@ def run_dual_generator_pipeline(
     except Exception as e:
         raise RuntimeError(f"Pipeline execution failed: {e}")
 
-    logging.info(f"Successfully processed {len(result_df)} user stories with dual generators and judge selection")
+    logging.info(f"Successfully compared {len(result_df)} user stories with dual generators")
+
+    # Create judge results CSV (one row per user story)
+    judge_results_df = result_df[[
+        'us_id',
+        'input',
+        'judge_score_a',
+        'judge_score_b',
+        'judge_winner',
+        'judge_reason'
+    ]].copy()
+
+    # Save judge results
+    judge_output_path = Path(output_csv).stem + "_judge_results.csv"
+    judge_output_full = str(Path(output_csv).parent / judge_output_path)
+    
+    logging.info(f"\nSaving judge results to: {judge_output_full}")
+    try:
+        judge_results_df.to_csv(judge_output_full, index=False)
+        logging.info(f"✅ Judge results saved ({len(judge_results_df)} user stories)")
+    except Exception as e:
+        raise RuntimeError(f"Failed to save judge results CSV: {e}")
+
+    # Now create tasks DataFrames by exploding both generators
+    from dataforge.steps.explode_tasks import ExplodeTasks
+    
+    explode_step = ExplodeTasks(name="explode", tasks_column="tasks", output_column="task")
+    
+    # Explode Generator A tasks
+    logging.info("\nExploding Generator A tasks...")
+    df_a = result_df[['us_id', 'input', 'tasks_generator_a']].copy()
+    df_a = df_a.rename(columns={'tasks_generator_a': 'tasks'})
+    df_a_exploded = explode_step.process(df_a)
+    df_a_exploded['generator'] = 'A'
+    df_a_exploded['generator_model'] = model_a
+    df_a_exploded = df_a_exploded.rename(columns={'task': 'task_generator_a'})
+    
+    # Explode Generator B tasks
+    logging.info("Exploding Generator B tasks...")
+    df_b = result_df[['us_id', 'input', 'tasks_generator_b']].copy()
+    df_b = df_b.rename(columns={'tasks_generator_b': 'tasks'})
+    df_b_exploded = explode_step.process(df_b)
+    df_b_exploded['generator'] = 'B'
+    df_b_exploded['generator_model'] = model_b
+    df_b_exploded = df_b_exploded.rename(columns={'task': 'task_generator_b'})
+    
+    # Merge both on us_id and task_id to align tasks side-by-side
+    logging.info("Merging exploded tasks...")
+    tasks_df = pd.merge(
+        df_a_exploded[['us_id', 'input', 'task_id', 'task_generator_a']],
+        df_b_exploded[['us_id', 'task_id', 'task_generator_b']],
+        on=['us_id', 'task_id'],
+        how='outer'
+    )
+    
+    # Reorder columns
+    tasks_df = tasks_df[['us_id', 'task_id', 'input', 'task_generator_a', 'task_generator_b']]
+    
+    # Save tasks CSV
+    logging.info(f"\nSaving tasks comparison to: {output_csv}")
+    try:
+        tasks_df.to_csv(output_csv, index=False)
+        logging.info(f"✅ Tasks saved ({len(tasks_df)} tasks from {tasks_df['us_id'].nunique()} user stories)")
+    except Exception as e:
+        raise RuntimeError(f"Failed to save tasks CSV: {e}")
 
     # Show statistics
     if len(result_df) > 0:
@@ -373,32 +436,11 @@ def run_dual_generator_pipeline(
         logging.info(f"Average score A: {avg_score_a:.1f}/50")
         logging.info(f"Average score B: {avg_score_b:.1f}/50")
 
-        # Preview sample results
-        logging.info(f"\n=== SAMPLE RESULT ===")
-        sample_idx = 0
-        sample = result_df.iloc[sample_idx]
-        logging.info(f"User Story: {sample['input'][:150]}...")
-        logging.info(f"Winner: Generator {sample['judge_winner']} (Score A: {sample['judge_score_a']}, Score B: {sample['judge_score_b']})")
-        logging.info(f"Reason: {sample['judge_reason']}")
+    logging.info("\n✅ Dual generator pipeline with judge comparison completed successfully!")
+    logging.info(f"   - Tasks comparison: {output_csv}")
+    logging.info(f"   - Judge results: {judge_output_full}")
 
-        # Show the winning output based on judge_winner
-        if sample['judge_winner'] == 'B':
-            winning_output = sample['tasks_generator_b']
-            logging.info(f"Winning Output (Generator B): {winning_output[:300]}...")
-        else:
-            winning_output = sample['tasks_generator_a']
-            logging.info(f"Winning Output (Generator A): {winning_output[:300]}...")
-
-    # Save results
-    logging.info(f"\nSaving final results to: {output_csv}")
-    try:
-        result_df.to_csv(output_csv, index=False)
-    except Exception as e:
-        raise RuntimeError(f"Failed to save CSV: {e}")
-
-    logging.info("✅ Dual generator pipeline with judge selection completed successfully!")
-
-    return result_df
+    return tasks_df, judge_results_df
 
 
 def main():
