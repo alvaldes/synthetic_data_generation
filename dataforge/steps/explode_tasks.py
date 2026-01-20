@@ -17,7 +17,9 @@ class ExplodeTasks(BaseStep):
     2. summary: Tarea 2
     description: Descripción 2"
     
-    Y las separa en filas individuales, duplicando las otras columnas.
+    Y las separa en filas individuales con:
+    - task_id: Identificador único de la tarea (contador global)
+    - task: Contenido de la tarea (sin el número inicial)
     """
 
     def __init__(
@@ -25,6 +27,7 @@ class ExplodeTasks(BaseStep):
         name: str,
         tasks_column: str = "tasks",
         output_column: str = "task",
+        task_id_column: str = "task_id",
         **kwargs
     ):
         """
@@ -32,10 +35,12 @@ class ExplodeTasks(BaseStep):
             name: Nombre del step
             tasks_column: Columna que contiene las tareas concatenadas
             output_column: Nombre de la columna para la tarea individual
+            task_id_column: Nombre de la columna para el ID de la tarea
         """
         super().__init__(name, **kwargs)
         self.tasks_column = tasks_column
         self.output_column = output_column
+        self.task_id_column = task_id_column
 
     @property
     def inputs(self) -> List[str]:
@@ -43,14 +48,18 @@ class ExplodeTasks(BaseStep):
 
     @property
     def outputs(self) -> List[str]:
-        return [self.output_column]
+        return [self.task_id_column, self.output_column]
 
     def process(self, df: pd.DataFrame) -> pd.DataFrame:
         """
         Procesa el DataFrame separando las tareas en filas individuales.
+        Agrega task_id y limpia el número inicial de cada tarea.
         """
         # Crear una lista para almacenar las filas expandidas
         expanded_rows = []
+        
+        # Contador global para task_id
+        task_counter = 0
 
         for idx, row in df.iterrows():
             tasks_text = row[self.tasks_column]
@@ -61,14 +70,19 @@ class ExplodeTasks(BaseStep):
             
             # Si no se encontraron tareas numeradas, mantener el texto completo
             if not tasks:
+                task_counter += 1
                 new_row = row.to_dict()
-                new_row[self.output_column] = tasks_text
+                new_row[self.task_id_column] = task_counter
+                new_row[self.output_column] = self._clean_task_number(tasks_text)
                 expanded_rows.append(new_row)
             else:
                 # Crear una fila por cada tarea
                 for task in tasks:
+                    task_counter += 1
                     new_row = row.to_dict()
-                    new_row[self.output_column] = task.strip()
+                    new_row[self.task_id_column] = task_counter
+                    # Limpiar el número inicial de la tarea
+                    new_row[self.output_column] = self._clean_task_number(task.strip())
                     expanded_rows.append(new_row)
 
         # Crear nuevo DataFrame con las filas expandidas
@@ -77,6 +91,18 @@ class ExplodeTasks(BaseStep):
         # Eliminar la columna original de tareas concatenadas si es diferente
         if self.tasks_column != self.output_column and self.tasks_column in result_df.columns:
             result_df = result_df.drop(columns=[self.tasks_column])
+        
+        # Reordenar columnas para poner task_id antes de task
+        cols = list(result_df.columns)
+        if self.task_id_column in cols and self.output_column in cols:
+            # Remover task_id y task de su posición actual
+            cols.remove(self.task_id_column)
+            cols.remove(self.output_column)
+            
+            # Insertar task_id y task justo antes de la posición donde estaba task
+            # o al final si no existía
+            cols.extend([self.task_id_column, self.output_column])
+            result_df = result_df[cols]
         
         return result_df
 
@@ -99,3 +125,22 @@ class ExplodeTasks(BaseStep):
         tasks = [task.strip() for task in tasks if task.strip()]
         
         return tasks
+
+    def _clean_task_number(self, task_text: str) -> str:
+        """
+        Limpia el número inicial de la tarea.
+        
+        Convierte:
+        "1. summary: Crear base de datos\ndescription: ..."
+        
+        En:
+        "summary: Crear base de datos\ndescription: ..."
+        """
+        # Patrón para detectar y remover el número inicial (ej: "1. ", "2. ", etc.)
+        # Busca: inicio de línea, dígitos, punto, espacios
+        pattern = r'^\d+\.\s+'
+        
+        # Remover el número inicial
+        cleaned_text = re.sub(pattern, '', task_text.strip())
+        
+        return cleaned_text

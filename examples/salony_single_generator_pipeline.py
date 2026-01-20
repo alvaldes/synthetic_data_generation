@@ -86,14 +86,12 @@ def validate_inputs(
     if batch_size <= 0:
         raise ValueError(f"batch_size must be positive, got: {batch_size}")
     if not (0.0 <= temperature <= 2.0):
-        raise ValueError(
-            f"temperature must be between 0.0 and 2.0, got: {temperature}")
+        raise ValueError(f"temperature must be between 0.0 and 2.0, got: {temperature}")
     if num_predict <= 0:
         raise ValueError(f"num_predict must be positive, got: {num_predict}")
     if judge_threshold is not None and not (0.0 <= judge_threshold <= 50.0):
         raise ValueError(
-            f"judge_threshold must be between 0.0 and 50.0, got: {
-                judge_threshold}"
+            f"judge_threshold must be between 0.0 and 50.0, got: {judge_threshold}"
         )
 
 
@@ -126,8 +124,7 @@ def load_and_validate_data(
     # Apply sampling if requested (for testing)
     if sample_size is not None:
         if sample_size <= 0:
-            raise ValueError(
-                f"sample_size must be positive, got: {sample_size}")
+            raise ValueError(f"sample_size must be positive, got: {sample_size}")
         df = df.head(sample_size)
         logging.info(f"Using sample of {sample_size} rows for testing")
 
@@ -144,8 +141,7 @@ def load_and_validate_data(
     final_count = len(df)
     if final_count < initial_count:
         logging.warning(
-            f"Removed {initial_count -
-                       final_count} rows with missing/empty input data"
+            f"Removed {initial_count - final_count} rows with missing/empty input data"
         )
 
     if final_count == 0:
@@ -185,8 +181,7 @@ def run_salony_pipeline(
     """
 
     # Set up logging
-    logging.basicConfig(level=logging.INFO,
-                        format="%(levelname)s: %(message)s")
+    logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 
     # Validate inputs first
     validate_inputs(
@@ -241,12 +236,10 @@ def run_salony_pipeline(
     if use_judge:
         pipeline_name += "-with-judge"
 
-    logging.info(f"Configuring pipeline: {
-                 model_name}, batch_size={batch_size}")
+    logging.info(f"Configuring pipeline: {model_name}, batch_size={batch_size}")
     if use_judge:
         logging.info(
-            f"Judge validation enabled: {
-                judge_model_name}, threshold={judge_threshold}"
+            f"Judge validation enabled: {judge_model_name}, threshold={judge_threshold}"
         )
 
     pipeline = DataForgePipeline(
@@ -290,15 +283,13 @@ def run_salony_pipeline(
             prompt_template=create_task_generation_prompt,
             system_prompt="You are an expert software development lead who excels at breaking down user stories into clear, actionable development tasks.",
             batch_size=batch_size,
-            generation_kwargs={"temperature": temperature,
-                               "num_predict": num_predict},
+            generation_kwargs={"temperature": temperature, "num_predict": num_predict},
         )
     )
 
     # Add explode tasks step to separate tasks into individual rows
     pipeline.add_step(
-        ExplodeTasks(name="explode_tasks",
-                     tasks_column="tasks", output_column="task")
+        ExplodeTasks(name="explode_tasks", tasks_column="tasks", output_column="task")
     )
 
     # Add judge validation if enabled
@@ -350,7 +341,7 @@ def run_salony_pipeline(
         raise RuntimeError(f"Failed to save CSV: {e}")
 
     logging.info(f"Results saved to: {output_csv}")
-    logging.info(f"Processed {len(result_df)} user stories successfully")
+    logging.info(f"Processed {len(result_df)} tasks successfully")
 
     # Show validation statistics if judge was used
     if use_judge and "validacion_aprobado" in result_df.columns:
@@ -358,8 +349,7 @@ def run_salony_pipeline(
         total = len(result_df)
         avg_score = result_df["validacion_total"].mean()
         logging.info(
-            f"Validation: {
-                approved}/{total} approved ({approved / total * 100:.1f}%)"
+            f"Validation: {approved}/{total} approved ({approved / total * 100:.1f}%)"
         )
         logging.info(f"Average score: {avg_score:.1f}/50")
 
@@ -436,8 +426,7 @@ Default dataset: data/salony_train.csv
         "--sample", type=int, help="Number of stories to process (useful for testing)"
     )
 
-    parser.add_argument("--no-cache", action="store_true",
-                        help="Disable caching")
+    parser.add_argument("--no-cache", action="store_true", help="Disable caching")
 
     args = parser.parse_args()
 
