@@ -101,8 +101,7 @@ class ComparisonJudgeStep(BaseStep):
             "judge_reason",
             "selected_output",
             # Timing metadata
-            "judge_time",
-            "timestamp"
+            "judge_time"
         ]
 
     def load(self) -> None:
@@ -225,7 +224,6 @@ class ComparisonJudgeStep(BaseStep):
 
             # Track judge time
             start_time = time.time()
-            timestamp = datetime.now().isoformat()
             
             # Get judge evaluation
             judgment = self._judge_comparison(input_text, output_a, output_b)
@@ -295,8 +293,7 @@ class ComparisonJudgeStep(BaseStep):
                 "judge_reason": reason,
                 "selected_output": selected_output,
                 # Timing metadata
-                "judge_time": judge_time,
-                "timestamp": timestamp
+                "judge_time": judge_time
             })
 
         # Create result DataFrame with all original columns plus new ones
@@ -362,7 +359,6 @@ class ComparisonJudgeStep(BaseStep):
                 fallback_df["selected_output"] = batch_df[self.output_a_column].tolist()
                 # Timing metadata
                 fallback_df["judge_time"] = [0.0] * batch_size
-                fallback_df["timestamp"] = [datetime.now().isoformat()] * batch_size
                 results.append(fallback_df)
 
         # Combine all results

@@ -1,6 +1,6 @@
 # dataforge/steps/explode_tasks.py
 
-from typing import List
+from typing import List, Optional
 import pandas as pd
 import re
 from ..base_step import BaseStep
@@ -18,7 +18,7 @@ class ExplodeTasks(BaseStep):
     description: Descripción 2"
     
     Y las separa en filas individuales con:
-    - task_id: Identificador único de la tarea (contador global)
+    - task_id: Identificador de la tarea (contador global o por grupo)
     - task: Contenido de la tarea (sin el número inicial)
     """
 
@@ -28,6 +28,7 @@ class ExplodeTasks(BaseStep):
         tasks_column: str = "tasks",
         output_column: str = "task",
         task_id_column: str = "task_id",
+        group_by_column: Optional[str] = None,
         **kwargs
     ):
         """
@@ -36,15 +37,21 @@ class ExplodeTasks(BaseStep):
             tasks_column: Columna que contiene las tareas concatenadas
             output_column: Nombre de la columna para la tarea individual
             task_id_column: Nombre de la columna para el ID de la tarea
+            group_by_column: Si se especifica, task_id se resetea por cada grupo (ej: 'us_id')
+                           Si es None, task_id es un contador global
         """
         super().__init__(name, **kwargs)
         self.tasks_column = tasks_column
         self.output_column = output_column
         self.task_id_column = task_id_column
+        self.group_by_column = group_by_column
 
     @property
     def inputs(self) -> List[str]:
-        return [self.tasks_column]
+        inputs_list = [self.tasks_column]
+        if self.group_by_column:
+            inputs_list.append(self.group_by_column)
+        return inputs_list
 
     @property
     def outputs(self) -> List[str]:
@@ -54,36 +61,71 @@ class ExplodeTasks(BaseStep):
         """
         Procesa el DataFrame separando las tareas en filas individuales.
         Agrega task_id y limpia el número inicial de cada tarea.
+        
+        Si group_by_column está especificado, task_id se resetea por cada grupo.
+        Si no, task_id es un contador global.
         """
         # Crear una lista para almacenar las filas expandidas
         expanded_rows = []
         
-        # Contador global para task_id
+        # Contador global para task_id (solo si no hay grouping)
         task_counter = 0
-
-        for idx, row in df.iterrows():
-            tasks_text = row[self.tasks_column]
-            
-            # Separar las tareas usando el patrón de numeración
-            # Busca patrones como "1. summary:", "2. summary:", etc.
-            tasks = self._split_tasks(tasks_text)
-            
-            # Si no se encontraron tareas numeradas, mantener el texto completo
-            if not tasks:
-                task_counter += 1
-                new_row = row.to_dict()
-                new_row[self.task_id_column] = task_counter
-                new_row[self.output_column] = self._clean_task_number(tasks_text)
-                expanded_rows.append(new_row)
-            else:
-                # Crear una fila por cada tarea
-                for task in tasks:
+        
+        # Si hay grouping, procesar por grupos
+        if self.group_by_column and self.group_by_column in df.columns:
+            # Procesar cada grupo por separado
+            for group_value in df[self.group_by_column].unique():
+                group_df = df[df[self.group_by_column] == group_value]
+                
+                # Resetear contador para este grupo
+                group_task_counter = 0
+                
+                for idx, row in group_df.iterrows():
+                    tasks_text = str(row[self.tasks_column])
+                    
+                    # Separar las tareas usando el patrón de numeración
+                    tasks = self._split_tasks(tasks_text)
+                    
+                    # Si no se encontraron tareas numeradas, mantener el texto completo
+                    if not tasks:
+                        group_task_counter += 1
+                        new_row = row.to_dict()
+                        new_row[self.task_id_column] = group_task_counter
+                        new_row[self.output_column] = self._clean_task_number(tasks_text)
+                        expanded_rows.append(new_row)
+                    else:
+                        # Crear una fila por cada tarea
+                        for task in tasks:
+                            group_task_counter += 1
+                            new_row = row.to_dict()
+                            new_row[self.task_id_column] = group_task_counter
+                            # Limpiar el número inicial de la tarea
+                            new_row[self.output_column] = self._clean_task_number(task.strip())
+                            expanded_rows.append(new_row)
+        else:
+            # Procesamiento sin grouping (contador global)
+            for idx, row in df.iterrows():
+                tasks_text = str(row[self.tasks_column])
+                
+                # Separar las tareas usando el patrón de numeración
+                tasks = self._split_tasks(tasks_text)
+                
+                # Si no se encontraron tareas numeradas, mantener el texto completo
+                if not tasks:
                     task_counter += 1
                     new_row = row.to_dict()
                     new_row[self.task_id_column] = task_counter
-                    # Limpiar el número inicial de la tarea
-                    new_row[self.output_column] = self._clean_task_number(task.strip())
+                    new_row[self.output_column] = self._clean_task_number(tasks_text)
                     expanded_rows.append(new_row)
+                else:
+                    # Crear una fila por cada tarea
+                    for task in tasks:
+                        task_counter += 1
+                        new_row = row.to_dict()
+                        new_row[self.task_id_column] = task_counter
+                        # Limpiar el número inicial de la tarea
+                        new_row[self.output_column] = self._clean_task_number(task.strip())
+                        expanded_rows.append(new_row)
 
         # Crear nuevo DataFrame con las filas expandidas
         result_df = pd.DataFrame(expanded_rows)

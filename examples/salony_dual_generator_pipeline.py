@@ -357,6 +357,8 @@ def run_dual_generator_pipeline(
     # Execute pipeline up to this point (before exploding tasks)
     logging.info("Executing dual generator pipeline with judge comparison...")
     pipeline_start_time = time.time()
+    start_timestamp = pd.Timestamp.now().isoformat()
+    
     try:
         result_df = pipeline.run(use_cache=use_cache)
     except ollama.ResponseError as e:
@@ -364,10 +366,15 @@ def run_dual_generator_pipeline(
     except Exception as e:
         raise RuntimeError(f"Pipeline execution failed: {e}")
     
+    end_timestamp = pd.Timestamp.now().isoformat()
     pipeline_end_time = time.time()
     total_pipeline_time = pipeline_end_time - pipeline_start_time
 
     logging.info(f"Successfully compared {len(result_df)} user stories with dual generators")
+    
+    # Add pipeline-level timestamps to all rows
+    result_df['start_timestamp'] = start_timestamp
+    result_df['end_timestamp'] = end_timestamp
     
     # Calculate total_time per row (generation_time_a + generation_time_b + judge_time)
     result_df['total_time'] = result_df['generation_time_a'] + result_df['generation_time_b'] + result_df['judge_time']
@@ -404,7 +411,8 @@ def run_dual_generator_pipeline(
         'generation_time_b',
         'judge_time',
         'total_time',
-        'timestamp'
+        'start_timestamp',
+        'end_timestamp'
     ]].copy()
 
     # Save judge results
@@ -421,7 +429,12 @@ def run_dual_generator_pipeline(
     # Now create tasks DataFrames by exploding both generators
     from dataforge.steps.explode_tasks import ExplodeTasks
     
-    explode_step = ExplodeTasks(name="explode", tasks_column="tasks", output_column="task")
+    explode_step = ExplodeTasks(
+        name="explode",
+        tasks_column="tasks",
+        output_column="task",
+        group_by_column="us_id"  # ← RESET task_id POR CADA us_id
+    )
     
     # Explode Generator A tasks
     logging.info("\nExploding Generator A tasks...")
@@ -445,10 +458,16 @@ def run_dual_generator_pipeline(
     logging.info("Merging exploded tasks...")
     tasks_df = pd.merge(
         df_a_exploded[['us_id', 'input', 'task_id', 'task_generator_a']],
-        df_b_exploded[['us_id', 'task_id', 'task_generator_b']],
+        df_b_exploded[['us_id', 'input', 'task_id', 'task_generator_b']],
         on=['us_id', 'task_id'],
-        how='outer'
+        how='outer',
+        suffixes=('', '_b')  # Mantener input de A, renombrar B si existe
     )
+    
+    # Resolver conflicto de columna 'input': usar input de A, si está vacío usar de B
+    if 'input_b' in tasks_df.columns:
+        tasks_df['input'] = tasks_df['input'].fillna(tasks_df['input_b'])
+        tasks_df = tasks_df.drop(columns=['input_b'])
     
     # Reorder columns
     tasks_df = tasks_df[['us_id', 'task_id', 'input', 'task_generator_a', 'task_generator_b']]
