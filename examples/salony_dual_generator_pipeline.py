@@ -165,10 +165,6 @@ def load_and_validate_data(input_csv: Path, sample_size: Optional[int] = None) -
     except pd.errors.ParserError as e:
         raise ValueError(f"Error parsing CSV file {input_csv}: {e}")
 
-    # Remove unnamed index columns
-    if len(df.columns) > 0 and df.columns[0] in ['Unnamed: 0', '']:
-        df = df.iloc[:, 1:]
-
     # Validate required column exists
     if 'input' not in df.columns:
         raise ValueError(
