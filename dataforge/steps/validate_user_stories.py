@@ -7,7 +7,9 @@ This step validates that user stories follow the standard format:
 
 import re
 import pandas as pd
-from typing import List
+from pathlib import Path
+from typing import List, Optional
+from datetime import datetime
 
 from dataforge.base_step import BaseStep
 from dataforge.utils.logging import setup_logger
@@ -19,10 +21,26 @@ class ValidateUserStories(BaseStep):
 
     Filters out stories that don't match: "As a(n) [role], I want [feature] so that [benefit]"
 
+    Automatically exports validated stories to CSV in the data/ directory.
+
     Args:
         name: Step name for logging and caching
         story_column: Column containing user stories to validate
         case_sensitive: Whether to enforce case-sensitive matching (default: False)
+        export_filename: Optional custom filename for export (default: timestamped)
+
+    Examples:
+        >>> step = ValidateUserStories(name="validate", story_column="input")
+        >>> result = step.process(df)
+        # Exports to: data/validated_stories_20260209_143025.csv
+
+        >>> step = ValidateUserStories(
+        ...     name="validate",
+        ...     story_column="input",
+        ...     export_filename="clean_stories.csv"
+        ... )
+        >>> result = step.process(df)
+        # Exports to: data/clean_stories.csv
     """
 
     def __init__(
@@ -30,11 +48,13 @@ class ValidateUserStories(BaseStep):
         name: str,
         story_column: str,
         case_sensitive: bool = False,
+        export_filename: Optional[str] = None,
         **kwargs
     ):
         super().__init__(name=name, **kwargs)
         self.story_column = story_column
         self.case_sensitive = case_sensitive
+        self.export_filename = export_filename
         self.logger = setup_logger(f"dataforge.steps.{name}")
 
         # Store regex pattern as string (pandas str.match needs string, not compiled pattern)
@@ -49,6 +69,37 @@ class ValidateUserStories(BaseStep):
     def outputs(self) -> List[str]:
         """This step doesn't add new columns, only filters rows."""
         return []
+
+    def _export_validated_stories(self, df: pd.DataFrame) -> None:
+        """
+        Export validated stories to CSV in data/ directory.
+
+        Args:
+            df: DataFrame with validated stories
+        """
+        if len(df) == 0:
+            self.logger.warning("No valid stories to export")
+            return
+
+        # Determine export path
+        data_dir = Path("data")
+        data_dir.mkdir(parents=True, exist_ok=True)
+
+        # Generate filename
+        if self.export_filename:
+            filename = self.export_filename
+        else:
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            filename = f"validated_stories_{timestamp}.csv"
+
+        export_path = data_dir / filename
+
+        try:
+            df.to_csv(export_path, index=False)
+            self.logger.info(f"✓ Exported {len(df)} validated stories to: {export_path}")
+        except Exception as e:
+            self.logger.error(f"Failed to export validated stories: {e}")
+            raise RuntimeError(f"CSV export failed: {e}")
 
     def process(self, df: pd.DataFrame) -> pd.DataFrame:
         """
@@ -89,5 +140,8 @@ class ValidateUserStories(BaseStep):
 
         if len(result_df) == 0:
             self.logger.warning("All user stories were invalid! Returning empty DataFrame.")
+
+        # Export validated stories to CSV
+        self._export_validated_stories(result_df)
 
         return result_df
