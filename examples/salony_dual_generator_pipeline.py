@@ -27,7 +27,7 @@ from typing import Dict, Optional
 import ollama
 
 from dataforge import DataForgePipeline
-from dataforge.steps import LoadDataFrame, OllamaLLMStep, AddColumn, ComparisonJudgeStep, KeepColumns, ExplodeTasks
+from dataforge.steps import LoadDataFrame, OllamaLLMStep, AddColumn, ComparisonJudgeStep, KeepColumns, ExplodeTasks, ValidateUserStories
 
 
 def create_task_generation_prompt(row: Dict) -> str:
@@ -280,6 +280,15 @@ def run_dual_generator_pipeline(
     # Add data loading step
     pipeline.add_step(
         LoadDataFrame(name="load", df=df)
+    )
+
+    # Validate user story format
+    pipeline.add_step(
+        ValidateUserStories(
+            name="validate_format",
+            story_column="input",
+            case_sensitive=False
+        )
     )
 
     # Add Generator A

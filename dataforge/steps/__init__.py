@@ -7,6 +7,7 @@ from .comparison_judge_step import ComparisonJudgeStep
 from .keep_columns import KeepColumns
 from .add_column import AddColumn
 from .explode_tasks import ExplodeTasks
+from .validate_user_stories import ValidateUserStories
 
 __all__ = [
     "LoadDataFrame",
@@ -16,4 +17,5 @@ __all__ = [
     "KeepColumns",
     "AddColumn",
     "ExplodeTasks",
+    "ValidateUserStories",
 ]
