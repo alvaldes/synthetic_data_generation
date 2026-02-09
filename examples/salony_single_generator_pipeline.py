@@ -25,6 +25,7 @@ from dataforge.steps import (
     OllamaJudgeStep,
     AddColumn,
     ExplodeTasks,
+    ValidateUserStories,
 )
 
 
@@ -249,6 +250,15 @@ def run_salony_pipeline(
 
     # Add data loading step
     pipeline.add_step(LoadDataFrame(name="load", df=df))
+
+    # Validate user story format
+    pipeline.add_step(
+        ValidateUserStories(
+            name="validate_format",
+            story_column="input",
+            case_sensitive=False
+        )
+    )
 
     # Add US ID tracking (counter starting from 1)
     us_counter = {"count": 0}
