@@ -1,0 +1,224 @@
+%% BioMed_Central_Bib_Style_v1.01
+
+\begin{thebibliography}{15}
+% BibTex style file: bmc-mathphys.bst (version 2.1), 2014-07-24
+\ifx \bisbn   \undefined \def \bisbn  #1{ISBN #1}\fi
+\ifx \binits  \undefined \def \binits#1{#1}\fi
+\ifx \bauthor  \undefined \def \bauthor#1{#1}\fi
+\ifx \batitle  \undefined \def \batitle#1{#1}\fi
+\ifx \bjtitle  \undefined \def \bjtitle#1{#1}\fi
+\ifx \bvolume  \undefined \def \bvolume#1{\textbf{#1}}\fi
+\ifx \byear  \undefined \def \byear#1{#1}\fi
+\ifx \bissue  \undefined \def \bissue#1{#1}\fi
+\ifx \bfpage  \undefined \def \bfpage#1{#1}\fi
+\ifx \blpage  \undefined \def \blpage #1{#1}\fi
+\ifx \burl  \undefined \def \burl#1{\textsf{#1}}\fi
+\ifx \doiurl  \undefined \def \doiurl#1{\url{https://doi.org/#1}}\fi
+\ifx \betal  \undefined \def \betal{\textit{et al.}}\fi
+\ifx \binstitute  \undefined \def \binstitute#1{#1}\fi
+\ifx \binstitutionaled  \undefined \def \binstitutionaled#1{#1}\fi
+\ifx \bctitle  \undefined \def \bctitle#1{#1}\fi
+\ifx \beditor  \undefined \def \beditor#1{#1}\fi
+\ifx \bpublisher  \undefined \def \bpublisher#1{#1}\fi
+\ifx \bbtitle  \undefined \def \bbtitle#1{#1}\fi
+\ifx \bedition  \undefined \def \bedition#1{#1}\fi
+\ifx \bseriesno  \undefined \def \bseriesno#1{#1}\fi
+\ifx \blocation  \undefined \def \blocation#1{#1}\fi
+\ifx \bsertitle  \undefined \def \bsertitle#1{#1}\fi
+\ifx \bsnm \undefined \def \bsnm#1{#1}\fi
+\ifx \bsuffix \undefined \def \bsuffix#1{#1}\fi
+\ifx \bparticle \undefined \def \bparticle#1{#1}\fi
+\ifx \barticle \undefined \def \barticle#1{#1}\fi
+\bibcommenthead
+\ifx \bconfdate \undefined \def \bconfdate #1{#1}\fi
+\ifx \botherref \undefined \def \botherref #1{#1}\fi
+\ifx \url \undefined \def \url#1{\textsf{#1}}\fi
+\ifx \bchapter \undefined \def \bchapter#1{#1}\fi
+\ifx \bbook \undefined \def \bbook#1{#1}\fi
+\ifx \bcomment \undefined \def \bcomment#1{#1}\fi
+\ifx \oauthor \undefined \def \oauthor#1{#1}\fi
+\ifx \citeauthoryear \undefined \def \citeauthoryear#1{#1}\fi
+\ifx \endbibitem  \undefined \def \endbibitem {}\fi
+\ifx \bconflocation  \undefined \def \bconflocation#1{#1}\fi
+\ifx \arxivurl  \undefined \def \arxivurl#1{\textsf{#1}}\fi
+\csname PreBibitemsHook\endcsname
+
+%%% 1
+\bibitem[\protect\citeauthoryear{Cohn}{2004}]{cohn2004}
+\begin{bbook}
+\bauthor{\bsnm{Cohn}, \binits{M.}}:
+\bbtitle{User Stories Applied: For Agile Software Development}.
+\bpublisher{Addison-Wesley}, \blocation{???}
+(\byear{2004})
+\end{bbook}
+\endbibitem
+
+%%% 2
+\bibitem[\protect\citeauthoryear{Beck}{2001}]{beck2001}
+\begin{bbook}
+\bauthor{\bsnm{Beck}, \binits{K.}}:
+\bbtitle{Extreme Programming Explained: Embrace Change}.
+\bpublisher{Addison-Wesley}, \blocation{???}
+(\byear{2001})
+\end{bbook}
+\endbibitem
+
+%%% 3
+\bibitem[\protect\citeauthoryear{Rubin}{2012}]{rubin2012}
+\begin{bbook}
+\bauthor{\bsnm{Rubin}, \binits{K.S.}}:
+\bbtitle{Essential Scrum: A Practical Guide to the Most Popular Agile Process}.
+\bpublisher{Addison-Wesley}, \blocation{???}
+(\byear{2012})
+\end{bbook}
+\endbibitem
+
+%%% 4
+\bibitem[\protect\citeauthoryear{Schwaber and Sutherland}{2020}]{schwaber2020}
+\begin{botherref}
+\oauthor{\bsnm{Schwaber}, \binits{K.}},
+\oauthor{\bsnm{Sutherland}, \binits{J.}}:
+The Scrum Guide.
+\url{https://scrumguides.org}.
+Accessed: 2026-03-02
+(2020)
+\end{botherref}
+\endbibitem
+
+%%% 5
+\bibitem[\protect\citeauthoryear{Lucassen et~al.}{2016}]{lucassen2016}
+\begin{barticle}
+\bauthor{\bsnm{Lucassen}, \binits{G.}},
+\bauthor{\bsnm{Dalpiaz}, \binits{F.}},
+\bauthor{\bsnm{Werf}, \binits{J.M.E.}},
+\bauthor{\bsnm{Brinkkemper}, \binits{S.}}:
+\batitle{Improving agile requirements: the quality user story framework and tool}.
+\bjtitle{Requirements Engineering}
+\bvolume{21}(\bissue{3}),
+\bfpage{383}--\blpage{403}
+(\byear{2016})
+\doiurl{10.1007/s00766-016-0250-x}
+\end{barticle}
+\endbibitem
+
+%%% 6
+\bibitem[\protect\citeauthoryear{Gorschek et~al.}{2006}]{gorschek2006}
+\begin{barticle}
+\bauthor{\bsnm{Gorschek}, \binits{T.}},
+\bauthor{\bsnm{Garre}, \binits{P.}},
+\bauthor{\bsnm{Larsson}, \binits{S.}},
+\bauthor{\bsnm{Wohlin}, \binits{C.}}:
+\batitle{A model for technology transfer in practice}.
+\bjtitle{IEEE Software}
+\bvolume{23}(\bissue{6}),
+\bfpage{88}--\blpage{95}
+(\byear{2006})
+\doiurl{10.1109/MS.2006.147}
+\end{barticle}
+\endbibitem
+
+%%% 7
+\bibitem[\protect\citeauthoryear{Chen et~al.}{2021}]{chen2021}
+\begin{botherref}
+\oauthor{\bsnm{Chen}, \binits{M.}}, et al.:
+Evaluating large language models trained on code.
+arXiv preprint arXiv:2107.03374
+(2021)
+\end{botherref}
+\endbibitem
+
+%%% 8
+\bibitem[\protect\citeauthoryear{White et~al.}{2023}]{white2023}
+\begin{botherref}
+\oauthor{\bsnm{White}, \binits{J.}},
+\oauthor{\bsnm{Fu}, \binits{Q.}},
+\oauthor{\bsnm{Hays}, \binits{S.}},
+\oauthor{\bsnm{Sandborn}, \binits{M.}},
+\oauthor{\bsnm{Oleynik}, \binits{V.}}, et al.:
+A prompt pattern catalog to enhance prompt engineering with large language models.
+arXiv preprint arXiv:2302.11382
+(2023)
+\end{botherref}
+\endbibitem
+
+%%% 9
+\bibitem[\protect\citeauthoryear{Rahimi and Gervasi}{2023}]{rahimi2023}
+\begin{barticle}
+\bauthor{\bsnm{Rahimi}, \binits{M.}},
+\bauthor{\bsnm{Gervasi}, \binits{V.}}:
+\batitle{Natural language processing for requirements engineering: A systematic mapping study}.
+\bjtitle{IEEE Access}
+\bvolume{11},
+\bfpage{25130}--\blpage{25152}
+(\byear{2023})
+\doiurl{10.1109/ACCESS.2023.3251234}
+\end{barticle}
+\endbibitem
+
+%%% 10
+\bibitem[\protect\citeauthoryear{Sebban et~al.}{2024}]{sebban2024}
+\begin{botherref}
+\oauthor{\bsnm{Sebban}, \binits{M.}}, et al.:
+Large language models for software requirements engineering: Opportunities and challenges.
+Empirical Software Engineering
+(2024)
+\end{botherref}
+\endbibitem
+
+%%% 11
+\bibitem[\protect\citeauthoryear{Fucci et~al.}{2020}]{fucci2020}
+\begin{barticle}
+\bauthor{\bsnm{Fucci}, \binits{D.}},
+\bauthor{\bsnm{Palomares}, \binits{C.}},
+\bauthor{\bsnm{Franch}, \binits{X.}}:
+\batitle{Data-driven requirements engineering: Models and methods}.
+\bjtitle{Requirements Engineering}
+\bvolume{25},
+\bfpage{1}--\blpage{24}
+(\byear{2020})
+\doiurl{10.1007/s00766-019-00315-3}
+\end{barticle}
+\endbibitem
+
+%%% 12
+\bibitem[\protect\citeauthoryear{Liu et~al.}{2023}]{liu2023}
+\begin{botherref}
+\oauthor{\bsnm{Liu}, \binits{Y.}}, et al.:
+Synthetic data generation with large language models: Challenges and opportunities.
+arXiv preprint arXiv:2305.12867
+(2023)
+\end{botherref}
+\endbibitem
+
+%%% 13
+\bibitem[\protect\citeauthoryear{Chiang and Lee}{2023}]{chiang2023}
+\begin{botherref}
+\oauthor{\bsnm{Chiang}, \binits{D.}},
+\oauthor{\bsnm{Lee}, \binits{J.-U.}}:
+Large language models are reasoning teachers.
+arXiv preprint arXiv:2305.08328
+(2023)
+\end{botherref}
+\endbibitem
+
+%%% 14
+\bibitem[\protect\citeauthoryear{Wang et~al.}{2023}]{wang2023}
+\begin{botherref}
+\oauthor{\bsnm{Wang}, \binits{X.}}, et al.:
+Self-consistency improves chain of thought reasoning in language models.
+arXiv preprint arXiv:2203.11171
+(2023)
+\end{botherref}
+\endbibitem
+
+%%% 15
+\bibitem[\protect\citeauthoryear{Li et~al.}{2024}]{li2024}
+\begin{botherref}
+\oauthor{\bsnm{Li}, \binits{Y.}}, et al.:
+Consensus-based evaluation of large language model outputs.
+arXiv preprint arXiv:2401.01335
+(2024)
+\end{botherref}
+\endbibitem
+
+\end{thebibliography}

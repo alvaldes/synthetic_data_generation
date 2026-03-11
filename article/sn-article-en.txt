@@ -1,0 +1,175 @@
+  LocalLLM-DataForge: A Modular Pipeline for
+Synthetic User Story Decomposition Datasets with
+           LLM-as-a-Judge Validation
+
+                     Angel Luis Valdés Sánchez1 ,
+               Carlos Alberto Fernández y Fernández2*,
+                      Verónica Rodrı́guez López2
+  1
+    División de Estudios de Posgrado, Universidad Tecnológica de la
+Mixteca, Av. Dr. Modesto Seara Vázquez No. 1, Huajuapan de León,
+                        69004, Oaxaca, México.
+2*
+   Instituto de Computación, Universidad Tecnológica de la Mixteca,
+ Av. Dr. Modesto Seara Vázquez No. 1, Huajuapan de León, 69004,
+                            Oaxaca, México.
+
+
+        *Corresponding author(s). E-mail(s): caff@gs.utm.mx;
+ Contributing authors: alvaldes.dev@gmail.com; veromix@gs.utm.mx;
+
+
+                                    Abstract
+ Breaking user stories into concrete development tasks is a routine part of agile
+ projects, but one that relies heavily on human judgment. While automating this
+ step with machine learning is appealing, it often runs into two practical issues:
+ a lack of annotated data and the cost of cloud-based Large Language Models
+ (LLMs). This paper introduces LocalLLM-DataForge, a modular, DataFrame-
+ based framework for generating synthetic datasets using locally executed LLMs.
+ The system runs through Ollama, includes an intelligent caching layer to avoid
+ redundant computation, and applies automated quality checks inspired by LLM-
+ as-a-Judge approaches. Two evaluation strategies are explored: one assesses a
+ single generator against five explicit criteria, while the other compares outputs
+ from two generators and selects the stronger decomposition. Experiments on
+ the Salony dataset with models such as Llama 3.1 and Mistral suggest that
+ caching significantly shortens experimentation cycles and that the resulting task
+ decompositions remain logically consistent and broadly aligned with expert judg-
+ ment. Overall, the framework offers a reproducible approach for requirements
+ engineering without dependence on cloud services.
+
+
+
+                                        1
+     Keywords: User Story Decomposition, Synthetic Data Generation, Local LLMs,
+     Ollama, LLM-as-a-Judge, Agile Requirements Engineering
+
+
+
+
+1 Introduction
+User stories are one of the most widely used requirement artifacts in agile software
+development. Teams commonly rely on them to capture functional needs from the
+end-user perspective in a concise and accessible manner [1, 2]. In practice, their role
+goes beyond communication: user stories are routinely used to support planning, effort
+estimation, and day-to-day development activities. In particular, the decomposition
+of stories into concrete development tasks becomes critical during backlog refinement
+and sprint planning [3, 4]. Even so, this activity is still largely driven by manual effort
+and accumulated team experience.
+    When task decomposition is handled manually, a number of recurring issues tend
+to appear. Different team members may interpret the same user story in slightly dif-
+ferent ways, leading to inconsistent task granularity and implicit assumptions that are
+never fully documented. Important details can be overlooked, while other aspects are
+broken down too finely. Over time, these inconsistencies contribute to poorly struc-
+tured backlogs that complicate estimation and task assignment [5]. The problem is
+often amplified in large or distributed teams, where the absence of shared decomposi-
+tion practices weakens traceability and makes systematic automation in requirements
+engineering workflows more difficult [6].
+    Recent advances in Natural Language Processing (NLP), together with the rapid
+evolution of LLMs, have opened new possibilities for automating tasks that were tra-
+ditionally handled by software engineers [7, 8]. Prior studies have explored the use
+of LLMs for requirement classification, ambiguity detection, test case generation, and
+the derivation of development tasks from natural language descriptions [9, 10]. How-
+ever, most existing solutions rely on proprietary, cloud-based models. This reliance
+introduces practical concerns related to cost, data confidentiality, reproducibility, and
+long-term availability, both in research settings and industrial environments.
+    A common limitation across many LLM-based approaches is the lack of suitable
+datasets for training and evaluation. Public datasets focused specifically on user story
+decomposition remain scarce, largely due to the high cost of expert annotation and
+the sensitive nature of real-world requirements [11]. Synthetic data generation using
+LLMs has been proposed as a partial workaround. Still, many existing methods pro-
+vide limited insight into how generated outputs are validated. As a result, assessing
+semantic correctness, completeness, or logical consistency becomes challenging [12].
+Uncontrolled generation also increases the risk of hallucinations, which can undermine
+trust in the resulting datasets.
+    This paper introduces LocalLLM-DataForge, a modular framework designed to
+generate synthetic datasets for user story decomposition using locally executed LLMs.
+The framework is built around DataFrames to structure and manage intermediate
+results. It also integrates with Ollama to run modern open-source language models
+without relying on cloud services. One of its central components is an intelligent
+
+
+                                            2
+caching mechanism, which avoids repeated computations during iterative experiments
+and helps reduce execution time when exploring different generation settings.
+    Quality control is addressed through automated validation mechanisms.
+LocalLLM-DataForge applies LLM-as-a-Judge strategies to assess the generated task
+decompositions. Two evaluation approaches are considered. The first relies on a single
+generator and evaluates its outputs against explicit quality criteria, including clarity,
+atomicity, logical coherence, relevance, and completeness [13]. The second compares
+outputs produced by multiple generators and selects the most suitable decomposition.
+This comparative strategy leverages consensus principles known to improve reliability
+and reduce semantic errors in model outputs [14, 15].
+    This work makes three main contributions. First, it presents a fully local, exten-
+sible, and reproducible framework for generating synthetic datasets from user stories,
+explicitly addressing cost and privacy constraints. Second, it defines and opera-
+tionalizes automated LLM-as-a-Judge validation strategies tailored to requirements
+engineering artifacts. Third, it reports empirical results on the Salony dataset using
+several open-source LLMs, highlighting both efficiency gains from caching and quality
+improvements obtained through comparative model selection.
+    The remainder of this paper is structured as follows. Section 2 reviews related work
+on LLM-based automation in requirements engineering and synthetic data generation.
+Section 3 describes the architecture and core components of LocalLLM-DataForge.
+Section 4 presents the experimental setup and evaluation methodology. Section 5
+discusses the results, while Section 6 outlines conclusions and directions for future
+research.
+
+2 Related Work
+3 LocalLLM-DataForge Framework
+4 Methods
+5 Discussion
+6 Conclusion
+
+References
+ [1] Cohn, M.: User Stories Applied: For Agile Software Development. Addison-
+     Wesley, ??? (2004)
+
+ [2] Beck, K.: Extreme Programming Explained: Embrace Change. Addison-Wesley,
+     ??? (2001)
+
+ [3] Rubin, K.S.: Essential Scrum: A Practical Guide to the Most Popular Agile
+     Process. Addison-Wesley, ??? (2012)
+
+
+                                           3
+ [4] Schwaber, K., Sutherland, J.: The Scrum Guide. Scrum.org, ??? (2020)
+
+ [5] Lucassen, G., Dalpiaz, F., Werf, J.M.E., Brinkkemper, S.: Improving agile require-
+     ments: the quality user story framework and tool. Requirements Engineering
+     21(3), 383–403 (2016)
+
+ [6] Gorschek, T., Garre, P., Larsson, S., Wohlin, C.: A model for technology transfer
+     in practice. IEEE Software 23(6), 88–95 (2006)
+
+ [7] Chen, M., et al.: Evaluating large language models trained on code. arXiv preprint
+     arXiv:2107.03374 (2021)
+
+ [8] White, J., Fu, Q., Hays, S., Sandborn, M., Oleynik, V., et al.: A prompt pattern
+     catalog to enhance prompt engineering with large language models. arXiv preprint
+     arXiv:2302.11382 (2023)
+
+ [9] Rahimi, M., Gervasi, V.: Natural language processing for requirements engineer-
+     ing: A systematic mapping study. IEEE Access 11, 25130–25152 (2023)
+
+[10] Sebban, M., et al.: Large language models for software requirements engineering:
+     Opportunities and challenges. Empirical Software Engineering (2024)
+
+[11] Fucci, D., Palomares, C., Franch, X.: Data-driven requirements engineering:
+     Models and methods. Requirements Engineering 25, 1–24 (2020)
+
+[12] Liu, Y., et al.: Synthetic data generation with large language models: Challenges
+     and opportunities. arXiv preprint arXiv:2305.12867 (2023)
+
+[13] Chiang, D., Lee, J.-U.: Large language models are reasoning teachers. arXiv
+     preprint arXiv:2305.08328 (2023)
+
+[14] Wang, X., et al.: Self-consistency improves chain of thought reasoning in language
+     models. arXiv preprint arXiv:2203.11171 (2023)
+
+[15] Li, Y., et al.: Consensus-based evaluation of large language model outputs. arXiv
+     preprint arXiv:2401.01335 (2024)
+
+
+
+
+                                          4
+

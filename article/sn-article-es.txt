@@ -1,0 +1,199 @@
+LocalLLM-DataForge: Un Pipeline Modular para
+Conjuntos de Datos Sintéticos de Descomposición
+  de Historias de Usuario con Validación tipo
+                LLM-as-a-Judge
+
+                     Angel Luis Valdés Sánchez1 ,
+               Carlos Alberto Fernández y Fernández2*,
+                      Verónica Rodrı́guez López2
+ 1
+    División de Estudios de Posgrado, Universidad Tecnológica de la
+Mixteca, Av. Dr. Modesto Seara Vázquez No. 1, Huajuapan de León,
+                        69004, Oaxaca, México.
+2*
+   Instituto de Computación, Universidad Tecnológica de la Mixteca,
+ Av. Dr. Modesto Seara Vázquez No. 1, Huajuapan de León, 69004,
+                            Oaxaca, México.
+
+
+       *Corresponding author(s). E-mail(s): caff@gs.utm.mx;
+Contributing authors: alvaldes.dev@gmail.com; veromix@gs.utm.mx;
+
+
+                                     Abstract
+ Descomponer historias de usuario en tareas de desarrollo concretas es una
+ práctica habitual en los proyectos ágiles, aunque sigue siendo una actividad
+ que depende en gran medida del juicio humano. Si bien automatizar este paso
+ mediante técnicas de aprendizaje automático resulta atractivo, en la práctica
+ suele enfrentarse a dos problemas recurrentes: la escasez de datos anotados y
+ el costo asociado al uso de Grandes Modelos de Lenguaje (LLM, por sus siglas
+ en inglés) basados en la nube. Este trabajo presenta LocalLLM-DataForge, un
+ framework modular basado en DataFrames que permite la generación de conjun-
+ tos de datos sintéticos utilizando LLMs ejecutados de forma local. El sistema se
+ apoya en Ollama para la ejecución de los modelos, incorpora una capa de caché
+ inteligente para evitar cálculos redundantes y aplica verificaciones automáticas
+ de calidad inspiradas en enfoques de LLM como juez. Se exploran dos estrate-
+ gias de evaluación: una evalúa un único generador a partir de cinco criterios
+ explı́citos, mientras que la otra compara las salidas de dos generadores y selec-
+ ciona la descomposición más sólida. Los experimentos realizados sobre el conjunto
+
+
+                                          1
+      de datos Salony, utilizando modelos como Llama 3.1 y Mistral, sugieren que el
+      uso de caché reduce de forma significativa los ciclos de experimentación y que
+      las descomposiciones generadas mantienen coherencia lógica y una alineación
+      razonable con el criterio de expertos. En conjunto, el framework ofrece una aprox-
+      imación reproducible para la ingenierı́a de requisitos sin depender de servicios en
+      la nube.
+
+      Keywords: Descomposición de Historias de Usuario, Generación de Datos Sintéticos,
+      LLMs Locales, Ollama, LLM como Juez, Ingenierı́a de Requisitos Ágil
+
+
+
+
+1 Introducción
+Las historias de usuario son uno de los artefactos de requisitos más utilizados en el
+desarrollo de software ágil. Los equipos suelen apoyarse en ellas para capturar necesi-
+dades funcionales desde la perspectiva del usuario final de forma concisa y accesible
+[1, 2]. En la práctica, su función va más allá de la comunicación: las historias de usuario
+se emplean de manera habitual para apoyar la planificación, la estimación de esfuerzo
+y las actividades cotidianas de desarrollo. En particular, la descomposición de las his-
+torias en tareas de desarrollo concretas resulta crı́tica durante la refinación del backlog
+y la planificación de sprints [3, 4]. Aun ası́, esta actividad sigue dependiendo en gran
+medida del trabajo manual y de la experiencia acumulada del equipo.
+    Cuando la descomposición de tareas se realiza de forma manual, tienden a aparecer
+una serie de problemas recurrentes. Distintos miembros del equipo pueden interpretar
+una misma historia de usuario de maneras ligeramente diferentes, lo que da lugar a
+niveles inconsistentes de granularidad y a supuestos implı́citos que nunca llegan a doc-
+umentarse por completo. Algunos detalles relevantes pueden pasarse por alto, mientras
+que otros aspectos se descomponen en exceso. Con el tiempo, estas inconsistencias con-
+tribuyen a la creación de backlogs poco estructurados, lo que dificulta la estimación
+y la asignación de tareas [5]. El problema suele intensificarse en equipos grandes o
+distribuidos, donde la ausencia de prácticas compartidas de descomposición debilita
+la trazabilidad y complica la automatización sistemática de los flujos de trabajo en
+ingenierı́a de requisitos [6].
+    Los avances recientes en Procesamiento del Lenguaje Natural (NLP, por sus siglas
+en inglés), junto con la rápida evolución de los LLMs, han abierto nuevas posibilidades
+para automatizar tareas que tradicionalmente quedaban en manos de ingenieros de
+software [7, 8]. Trabajos previos han explorado el uso de LLM para la clasificación
+de requisitos, la detección de ambigüedades, la generación de casos de prueba y la
+derivación de tareas de desarrollo a partir de descripciones en lenguaje natural [9, 10].
+Sin embargo, la mayorı́a de las soluciones existentes dependen de modelos propietarios
+alojados en la nube. Esta dependencia introduce preocupaciones prácticas relacionadas
+con el costo, la confidencialidad de los datos, la reproducibilidad y la disponibilidad a
+largo plazo, tanto en contextos de investigación como industriales.
+    Una limitación compartida por muchos enfoques basados en LLM es la falta de
+conjuntos de datos adecuados para entrenamiento y evaluación. Los datasets públicos
+
+
+
+                                               2
+centrados especı́ficamente en la descomposición de historias de usuario siguen siendo
+escasos, en gran medida debido al elevado costo de la anotación por expertos y a
+la naturaleza sensible de los requisitos del mundo real [11]. La generación de datos
+sintéticos mediante LLM se ha propuesto como una solución parcial. No obstante,
+muchos de los métodos existentes ofrecen poca visibilidad sobre cómo se validan las
+salidas generadas. Como consecuencia, evaluar la corrección semántica, la completitud
+o la coherencia lógica resulta complicado [12]. Además, una generación poco controlada
+incrementa el riesgo de alucinaciones, lo que puede reducir la confianza en los conjuntos
+de datos resultantes.
+    Este trabajo presenta LocalLLM-DataForge, un framework modular diseñado para
+generar conjuntos de datos sintéticos orientados a la descomposición de historias
+de usuario utilizando LLMs ejecutados de forma local. El framework se apoya en
+DataFrames para estructurar y gestionar los resultados intermedios del proceso de
+generación. Asimismo, se integra con Ollama para ejecutar modelos de lenguaje de
+código abierto sin depender de servicios en la nube. Uno de sus componentes centrales
+es un mecanismo de caché inteligente, que evita cálculos repetidos durante experi-
+mentos iterativos y contribuye a reducir los tiempos de ejecución al explorar distintas
+configuraciones de generación.
+    El control de calidad se aborda mediante mecanismos de validación automática.
+LocalLLM-DataForge aplica estrategias de LLM como juez para evaluar las descom-
+posiciones de tareas generadas. Se consideran dos enfoques de evaluación. El primero
+se basa en un único generador y evalúa sus salidas a partir de criterios de calidad
+explı́citos, como claridad, atomicidad, coherencia lógica, relevancia y completitud [13].
+El segundo compara las salidas producidas por múltiples generadores y selecciona la
+descomposición más adecuada. Esta estrategia comparativa aprovecha principios de
+consenso que han demostrado mejorar la fiabilidad y reducir errores semánticos en las
+salidas de los modelos [14, 15].
+    Este trabajo realiza tres contribuciones principales. En primer lugar, presenta un
+framework completamente local, extensible y reproducible para la generación de con-
+juntos de datos sintéticos a partir de historias de usuario, abordando de forma explı́cita
+restricciones de costo y privacidad. En segundo lugar, define y operacionaliza estrate-
+gias automáticas de validación basadas en LLM como juez, adaptadas a artefactos de
+ingenierı́a de requisitos. Por último, reporta resultados empı́ricos sobre el conjunto de
+datos Salony utilizando varios LLM de código abierto, destacando tanto las mejoras de
+eficiencia derivadas del uso de caché como las mejoras de calidad obtenidas mediante
+la selección comparativa de modelos.
+    El resto del artı́culo se organiza de la siguiente manera. La Sección 2 revisa el tra-
+bajo relacionado sobre automatización basada en LLM en ingenierı́a de requisitos y
+generación de datos sintéticos. La Sección 3 describe la arquitectura y los componentes
+principales de LocalLLM-DataForge. La Sección 4 presenta la configuración experi-
+mental y la metodologı́a de evaluación. La Sección 5 discute los resultados obtenidos,
+mientras que la Sección 6 expone las conclusiones y las lı́neas de trabajo futuro.
+
+
+
+
+                                            3
+2 Related Work
+3 LocalLLM-DataForge Framework
+4 Methods
+5 Discussion
+6 Conclusion
+
+References
+ [1] Cohn, M.: User Stories Applied: For Agile Software Development. Addison-
+     Wesley, ??? (2004)
+
+ [2] Beck, K.: Extreme Programming Explained: Embrace Change. Addison-Wesley,
+     ??? (2001)
+
+ [3] Rubin, K.S.: Essential Scrum: A Practical Guide to the Most Popular Agile
+     Process. Addison-Wesley, ??? (2012)
+
+ [4] Schwaber, K., Sutherland, J.: The Scrum Guide. Scrum.org, ??? (2020)
+
+ [5] Lucassen, G., Dalpiaz, F., Werf, J.M.E., Brinkkemper, S.: Improving agile require-
+     ments: the quality user story framework and tool. Requirements Engineering
+     21(3), 383–403 (2016)
+
+ [6] Gorschek, T., Garre, P., Larsson, S., Wohlin, C.: A model for technology transfer
+     in practice. IEEE Software 23(6), 88–95 (2006)
+
+ [7] Chen, M., et al.: Evaluating large language models trained on code. arXiv preprint
+     arXiv:2107.03374 (2021)
+
+ [8] White, J., Fu, Q., Hays, S., Sandborn, M., Oleynik, V., et al.: A prompt pattern
+     catalog to enhance prompt engineering with large language models. arXiv preprint
+     arXiv:2302.11382 (2023)
+
+ [9] Rahimi, M., Gervasi, V.: Natural language processing for requirements engineer-
+     ing: A systematic mapping study. IEEE Access 11, 25130–25152 (2023)
+
+[10] Sebban, M., et al.: Large language models for software requirements engineering:
+     Opportunities and challenges. Empirical Software Engineering (2024)
+
+[11] Fucci, D., Palomares, C., Franch, X.: Data-driven requirements engineering:
+     Models and methods. Requirements Engineering 25, 1–24 (2020)
+
+
+
+                                          4
+[12] Liu, Y., et al.: Synthetic data generation with large language models: Challenges
+     and opportunities. arXiv preprint arXiv:2305.12867 (2023)
+
+[13] Chiang, D., Lee, J.-U.: Large language models are reasoning teachers. arXiv
+     preprint arXiv:2305.08328 (2023)
+
+[14] Wang, X., et al.: Self-consistency improves chain of thought reasoning in language
+     models. arXiv preprint arXiv:2203.11171 (2023)
+
+[15] Li, Y., et al.: Consensus-based evaluation of large language model outputs. arXiv
+     preprint arXiv:2401.01335 (2024)
+
+
+
+
+                                          5
+
