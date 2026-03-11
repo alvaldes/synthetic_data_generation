@@ -39,7 +39,7 @@ class OllamaJudgeStep(BaseStep):
         generation_kwargs: Optional[Dict[str, Any]] = None,
         ollama_host: str = "http://localhost:11434",
         max_retries: int = 3,
-        **kwargs
+        **kwargs,
     ):
         super().__init__(name, **kwargs)
         self.model_name = model_name
@@ -51,10 +51,7 @@ class OllamaJudgeStep(BaseStep):
         self.ollama_host = ollama_host
         self.max_retries = max_retries
         self.client = None
-        self.logger = setup_logger(
-            name=f"OllamaJudgeStep.{name}",
-            level=logging.INFO
-        )
+        self.logger = setup_logger(name=f"OllamaJudgeStep.{name}", level=logging.INFO)
 
     # -------- Propiedades requeridas --------
     @property
@@ -72,7 +69,7 @@ class OllamaJudgeStep(BaseStep):
             "validacion_total",
             "validacion_aprobado",
             "validacion_problemas",
-            "validacion_recomendaciones"
+            "validacion_recomendaciones",
         ]
 
     # -------- Ciclo de vida --------
@@ -154,7 +151,7 @@ RESPONDE ÚNICAMENTE CON ESTE JSON VÁLIDO (sin markdown, sin explicaciones):
         response = response.replace("```json", "").replace("```", "").strip()
 
         # Buscar JSON usando regex
-        json_pattern = r'\{.*\}'
+        json_pattern = r"\{.*\}"
         match = re.search(json_pattern, response, re.DOTALL)
         if match:
             return match.group(0)
@@ -168,24 +165,32 @@ RESPONDE ÚNICAMENTE CON ESTE JSON VÁLIDO (sin markdown, sin explicaciones):
             result = json.loads(cleaned_response)
 
             # Validate minimum required structure
-            required_fields = ['coherencia', 'completitud', 'viabilidad', 'formato', 'granularidad']
+            required_fields = [
+                "coherencia",
+                "completitud",
+                "viabilidad",
+                "formato",
+                "granularidad",
+            ]
             for field in required_fields:
-                if field not in result or 'puntuacion' not in result[field]:
+                if field not in result or "puntuacion" not in result[field]:
                     raise ValueError(f"Campo requerido faltante: {field}")
 
             # Calculate total score if not present
-            if 'puntuacion_total' not in result:
-                result['puntuacion_total'] = sum(
-                    result[field]['puntuacion'] for field in required_fields
+            if "puntuacion_total" not in result:
+                result["puntuacion_total"] = sum(
+                    result[field]["puntuacion"] for field in required_fields
                 )
 
             # Determine approval if not present
-            if 'aprobado' not in result:
-                result['aprobado'] = result['puntuacion_total'] >= self.approval_threshold
+            if "aprobado" not in result:
+                result["aprobado"] = (
+                    result["puntuacion_total"] >= self.approval_threshold
+                )
 
             # Asegurar campos opcionales
-            result.setdefault('problemas_criticos', [])
-            result.setdefault('recomendaciones', [])
+            result.setdefault("problemas_criticos", [])
+            result.setdefault("recomendaciones", [])
 
             return result
 
@@ -195,22 +200,23 @@ RESPONDE ÚNICAMENTE CON ESTE JSON VÁLIDO (sin markdown, sin explicaciones):
 
             # Retornar resultado de fallo
             return {
-                'coherencia': {'puntuacion': 0, 'justificacion': 'Error de parsing'},
-                'completitud': {'puntuacion': 0, 'justificacion': 'Error de parsing', 'tareas_faltantes': []},
-                'viabilidad': {'puntuacion': 0, 'justificacion': 'Error de parsing'},
-                'formato': {'puntuacion': 0, 'justificacion': 'Error de parsing'},
-                'granularidad': {'puntuacion': 0, 'justificacion': 'Error de parsing'},
-                'puntuacion_total': 0,
-                'aprobado': False,
-                'problemas_criticos': ['Error en parsing de respuesta del juez'],
-                'recomendaciones': ['Revisar manualmente']
+                "coherencia": {"puntuacion": 0, "justificacion": "Error de parsing"},
+                "completitud": {
+                    "puntuacion": 0,
+                    "justificacion": "Error de parsing",
+                    "tareas_faltantes": [],
+                },
+                "viabilidad": {"puntuacion": 0, "justificacion": "Error de parsing"},
+                "formato": {"puntuacion": 0, "justificacion": "Error de parsing"},
+                "granularidad": {"puntuacion": 0, "justificacion": "Error de parsing"},
+                "puntuacion_total": 0,
+                "aprobado": False,
+                "problemas_criticos": ["Error en parsing de respuesta del juez"],
+                "recomendaciones": ["Revisar manualmente"],
             }
 
     def _validate_with_retry(
-        self,
-        historia_usuario: str,
-        tareas_generadas: str,
-        retry_count: int = 0
+        self, historia_usuario: str, tareas_generadas: str, retry_count: int = 0
     ) -> Optional[Dict[str, Any]]:
         """Llama al modelo juez con reintentos en caso de error."""
         try:
@@ -221,40 +227,58 @@ RESPONDE ÚNICAMENTE CON ESTE JSON VÁLIDO (sin markdown, sin explicaciones):
                 messages=[{"role": "user", "content": prompt}],
                 stream=False,
                 format="json",
-                options=self.generation_kwargs
+                options=self.generation_kwargs,
             )
 
-            raw_content = response['message']['content']
+            raw_content = response["message"]["content"]
             validation_result = self._parse_validation_result(raw_content)
             return validation_result
 
         except ollama.ResponseError as e:
             self.logger.warning(f"Ollama API error during validation: {e.error}")
             if e.status_code == 404:
-                self.logger.error(f"Judge model {self.model_name} not found. Try: ollama pull {self.model_name}")
+                self.logger.error(
+                    f"Judge model {self.model_name} not found. Try: ollama pull {
+                        self.model_name
+                    }"
+                )
             if retry_count < self.max_retries:
-                wait_time = 2 ** retry_count  # exponential backoff
+                wait_time = 2**retry_count  # exponential backoff
                 time.sleep(wait_time)
-                return self._validate_with_retry(historia_usuario, tareas_generadas, retry_count + 1)
+                return self._validate_with_retry(
+                    historia_usuario, tareas_generadas, retry_count + 1
+                )
             else:
-                self.logger.error(f"Judge validation failed after {self.max_retries} retries")
+                self.logger.error(
+                    f"Judge validation failed after {self.max_retries} retries"
+                )
                 return None
         except ConnectionError as e:
             self.logger.error(f"Connection error during validation: {e}")
             if retry_count < self.max_retries:
-                wait_time = 2 ** retry_count
+                wait_time = 2**retry_count
                 time.sleep(wait_time)
-                return self._validate_with_retry(historia_usuario, tareas_generadas, retry_count + 1)
+                return self._validate_with_retry(
+                    historia_usuario, tareas_generadas, retry_count + 1
+                )
             else:
-                self.logger.error("Ollama server appears to be down. Check with: ollama serve")
+                self.logger.error(
+                    "Ollama server appears to be down. Check with: ollama serve"
+                )
                 return None
         except Exception as e:
             if retry_count < self.max_retries:
-                wait_time = 2 ** retry_count
+                wait_time = 2**retry_count
                 time.sleep(wait_time)
-                return self._validate_with_retry(historia_usuario, tareas_generadas, retry_count + 1)
+                return self._validate_with_retry(
+                    historia_usuario, tareas_generadas, retry_count + 1
+                )
             else:
-                self.logger.error(f"Unexpected error in judge validation after {self.max_retries} retries: {e}")
+                self.logger.error(
+                    f"Unexpected error in judge validation after {
+                        self.max_retries
+                    } retries: {e}"
+                )
                 return None
 
     def _process_batch(self, batch_df: pd.DataFrame) -> pd.DataFrame:
@@ -270,33 +294,62 @@ RESPONDE ÚNICAMENTE CON ESTE JSON VÁLIDO (sin markdown, sin explicaciones):
             if validation is None:
                 # Usar valores por defecto en caso de error total
                 validation = {
-                    'coherencia': {'puntuacion': 0, 'justificacion': 'Error de conexión'},
-                    'completitud': {'puntuacion': 0, 'justificacion': 'Error de conexión', 'tareas_faltantes': []},
-                    'viabilidad': {'puntuacion': 0, 'justificacion': 'Error de conexión'},
-                    'formato': {'puntuacion': 0, 'justificacion': 'Error de conexión'},
-                    'granularidad': {'puntuacion': 0, 'justificacion': 'Error de conexión'},
-                    'puntuacion_total': 0,
-                    'aprobado': False,
-                    'problemas_criticos': ['Error de conexión con modelo'],
-                    'recomendaciones': ['Reintentar validación']
+                    "coherencia": {
+                        "puntuacion": 0,
+                        "justificacion": "Error de conexión",
+                    },
+                    "completitud": {
+                        "puntuacion": 0,
+                        "justificacion": "Error de conexión",
+                        "tareas_faltantes": [],
+                    },
+                    "viabilidad": {
+                        "puntuacion": 0,
+                        "justificacion": "Error de conexión",
+                    },
+                    "formato": {"puntuacion": 0, "justificacion": "Error de conexión"},
+                    "granularidad": {
+                        "puntuacion": 0,
+                        "justificacion": "Error de conexión",
+                    },
+                    "puntuacion_total": 0,
+                    "aprobado": False,
+                    "problemas_criticos": ["Error de conexión con modelo"],
+                    "recomendaciones": ["Reintentar validación"],
                 }
 
-            self.logger.info(f"Validación para fila {row.name}: aprobado={validation['aprobado']}, total={validation['puntuacion_total']}")
+            self.logger.info(
+                f"Validación para fila {row.name}: aprobado={
+                    validation['aprobado']
+                }, total={validation['puntuacion_total']}"
+            )
             results.append(validation)
 
         # Create result DataFrame with all validation columns
         result_df = batch_df.copy()
 
         # Add validation columns
-        result_df["validacion_coherencia"] = [r['coherencia']['puntuacion'] for r in results]
-        result_df["validacion_completitud"] = [r['completitud']['puntuacion'] for r in results]
-        result_df["validacion_viabilidad"] = [r['viabilidad']['puntuacion'] for r in results]
-        result_df["validacion_formato"] = [r['formato']['puntuacion'] for r in results]
-        result_df["validacion_granularidad"] = [r['granularidad']['puntuacion'] for r in results]
-        result_df["validacion_total"] = [r['puntuacion_total'] for r in results]
-        result_df["validacion_aprobado"] = [r['aprobado'] for r in results]
-        result_df["validacion_problemas"] = [str(r['problemas_criticos']) for r in results]
-        result_df["validacion_recomendaciones"] = [str(r['recomendaciones']) for r in results]
+        result_df["validacion_coherencia"] = [
+            r["coherencia"]["puntuacion"] for r in results
+        ]
+        result_df["validacion_completitud"] = [
+            r["completitud"]["puntuacion"] for r in results
+        ]
+        result_df["validacion_viabilidad"] = [
+            r["viabilidad"]["puntuacion"] for r in results
+        ]
+        result_df["validacion_formato"] = [r["formato"]["puntuacion"] for r in results]
+        result_df["validacion_granularidad"] = [
+            r["granularidad"]["puntuacion"] for r in results
+        ]
+        result_df["validacion_total"] = [r["puntuacion_total"] for r in results]
+        result_df["validacion_aprobado"] = [r["aprobado"] for r in results]
+        result_df["validacion_problemas"] = [
+            str(r["problemas_criticos"]) for r in results
+        ]
+        result_df["validacion_recomendaciones"] = [
+            str(r["recomendaciones"]) for r in results
+        ]
 
         return result_df
 
@@ -307,12 +360,18 @@ RESPONDE ÚNICAMENTE CON ESTE JSON VÁLIDO (sin markdown, sin explicaciones):
         # Verify that columns exist and have valid data
         for col in [self.historia_usuario_column, self.tareas_generadas_column]:
             if col not in df.columns:
-                raise ValueError(f"Columna requerida '{col}' no encontrada en DataFrame")
+                raise ValueError(
+                    f"Columna requerida '{col}' no encontrada en DataFrame"
+                )
 
         # Filtrar filas con datos faltantes
-        valid_rows = df.dropna(subset=[self.historia_usuario_column, self.tareas_generadas_column])
+        valid_rows = df.dropna(
+            subset=[self.historia_usuario_column, self.tareas_generadas_column]
+        )
         if len(valid_rows) < len(df):
-            self.logger.warning(f"Omitiendo {len(df) - len(valid_rows)} filas con datos faltantes")
+            self.logger.warning(
+                f"Omitiendo {len(df) - len(valid_rows)} filas con datos faltantes"
+            )
 
         # Procesar en batches
         with tqdm(total=len(valid_rows), desc=f"Validating {self.name}") as pbar:
@@ -322,3 +381,4 @@ RESPONDE ÚNICAMENTE CON ESTE JSON VÁLIDO (sin markdown, sin explicaciones):
                 pbar.update(len(batch))
 
         return pd.concat(results, ignore_index=False)
+
