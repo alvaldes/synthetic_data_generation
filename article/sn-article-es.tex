@@ -68,28 +68,10 @@ con Validación tipo LLM-as-a-Judge}
     \city{Huajuapan de León}, \postcode{69004},
     \state{Oaxaca}, \country{México}}}
 
-\abstract{Descomponer historias de usuario en tareas de desarrollo concretas es una
-práctica habitual en los proyectos ágiles, aunque sigue siendo una actividad
-que depende en gran medida del juicio humano. Si bien automatizar este paso
-mediante técnicas de aprendizaje automático resulta atractivo, en la práctica
-suele enfrentarse a dos problemas recurrentes: la escasez de datos anotados y
-el costo asociado al uso de LLMs basados en la nube. Este trabajo presenta LocalLLM-DataForge, un
-framework modular basado en DataFrames que permite la generación de conjuntos
-de datos sintéticos utilizando LLMs ejecutados de forma local. El sistema se
-apoya en Ollama para la ejecución de los modelos, incorpora una capa de caché
-inteligente para evitar cálculos redundantes y aplica verificaciones automáticas
-de calidad inspiradas en enfoques de LLM como juez. Se exploran dos estrategias
-de evaluación: una evalúa un único generador a partir de cinco criterios
-explícitos, mientras que la otra compara las salidas de dos generadores y selecciona
-la descomposición más sólida. Los experimentos realizados sobre el conjunto de
-datos Salony, utilizando modelos como Llama 3.1 y Mistral, sugieren que el uso
-de caché reduce de forma significativa los ciclos de experimentación y que las
-descomposiciones generadas mantienen coherencia lógica y una alineación razonable
-con el criterio de expertos. En conjunto, el framework ofrece una aproximación
-reproducible para la ingeniería de requisitos sin depender de servicios en la nube.}
+\abstract{La descomposición de historias de usuario en tareas de desarrollo es una práctica habitual en los proyectos ágiles; sin embargo, continúa siendo un proceso altamente dependiente del juicio humano. Los intentos de automatizar esta actividad mediante técnicas de aprendizaje automático suelen enfrentar dos limitaciones recurrentes: la escasez de conjuntos de datos anotados y la dependencia de modelos de lenguaje basados en servicios en la nube. Este trabajo presenta \textit{LocalLLM-DataForge}, un framework modular basado en DataFrames que permite generar conjuntos de datos sintéticos para la descomposición de historias de usuario utilizando modelos de lenguaje ejecutados localmente. El sistema se integra con Ollama para la ejecución de modelos, incorpora mecanismos de verificación automática de calidad inspirados en enfoques de \textit{LLM-as-a-judge} y permite experimentar con diferentes configuraciones de generación y evaluación. La propuesta se evaluó mediante experimentos realizados sobre el conjunto de datos Salony utilizando modelos como Llama 3.1 y Mistral. Se exploraron dos estrategias de evaluación: una basada en la valoración de un único generador a partir de criterios explícitos de calidad y otra basada en la comparación entre generadores para seleccionar la descomposición más sólida. Los resultados sugieren que las descomposiciones generadas presentan coherencia lógica y una alineación consistente con el criterio de expertos, lo que indica que el uso de LLMs locales puede constituir una alternativa viable para apoyar la generación de datasets en investigación sobre ingeniería de requisitos.}
 
-\keywords{Descomposición de Historias de Usuario, Generación de Datos Sintéticos,
-LLMs Locales, Ollama, LLM como Juez, Ingeniería de Requisitos Ágil}
+\keywords{Requirements engineering, Natural language processing, Large language models,
+Synthetic data generation, Task decomposition, Automated evaluation}
 
 \maketitle
 
@@ -109,7 +91,7 @@ Cuando la descomposición de tareas se realiza de forma manual, tienden a aparec
 una serie de problemas recurrentes. Distintos miembros del equipo pueden interpretar
 una misma historia de usuario de maneras ligeramente diferentes, lo que da lugar a
 niveles inconsistentes de granularidad y a supuestos implícitos que nunca llegan a documentarse
-por completo. Algunos detalles relevantes pueden pasarse por alto, mientras
+por completo. Algunos detalles relevantes pueden pasarse por alto (e.g., restricciones funcionales implícitas), mientras
 que otros aspectos se descomponen en exceso. Con el tiempo, estas inconsistencias contribuyen
 a la creación de backlogs poco estructurados, lo que dificulta la estimación
 y la asignación de tareas \cite{lucassen2016}. El problema suele intensificarse en equipos grandes o
@@ -140,7 +122,7 @@ o la coherencia lógica resulta complicado \cite{liu2023}. Además, una generaci
 incrementa el riesgo de alucinaciones, lo que puede reducir la confianza en los conjuntos
 de datos resultantes.
 
-Este trabajo presenta LocalLLM-DataForge, un framework modular diseñado para
+Se presenta LocalLLM-DataForge, un framework modular diseñado para
 generar conjuntos de datos sintéticos orientados a la descomposición de historias
 de usuario utilizando LLMs ejecutados de forma local. El framework se apoya en
 DataFrames para estructurar y gestionar los resultados intermedios del proceso de
@@ -152,9 +134,9 @@ configuraciones de generación.
 
 El control de calidad se aborda mediante mecanismos de validación automática.
 LocalLLM-DataForge aplica estrategias de LLM como juez para evaluar las descomposiciones
-de tareas generadas. Se consideran dos enfoques de evaluación. El primero
+de tareas generadas. Se consideran dos enfoques de evaluación, el primero
 se basa en un único generador y evalúa sus salidas a partir de criterios de calidad
-explícitos, como claridad, atomicidad, coherencia lógica, relevancia y completitud \cite{chiang2023}.
+explícitos (i.e., claridad, atomicidad, coherencia lógica, relevancia y completitud) \cite{chiang2023}.
 El segundo compara las salidas producidas por múltiples generadores y selecciona la
 descomposición más adecuada. Esta estrategia comparativa aprovecha principios de
 consenso que han demostrado mejorar la fiabilidad y reducir errores semánticos en las
@@ -165,10 +147,12 @@ framework completamente local, extensible y reproducible para la generación de 
 de datos sintéticos a partir de historias de usuario, abordando de forma explícita
 restricciones de costo y privacidad. En segundo lugar, define y operacionaliza estrategias
 automáticas de validación basadas en LLM como juez, adaptadas a artefactos de
-ingeniería de requisitos. Por último, reporta resultados empíricos sobre el conjunto de
-datos Salony utilizando varios LLM de código abierto, destacando tanto las mejoras de
-eficiencia derivadas del uso de caché como las mejoras de calidad obtenidas mediante
-la selección comparativa de modelos.
+ingeniería de requisitos. 
+
+Para evaluar la viabilidad del enfoque propuesto, se realizan experimentos sobre el
+conjunto de datos Salony utilizando varios LLM de código abierto. Los resultados
+permiten analizar tanto la calidad de las descomposiciones generadas como el
+comportamiento de las estrategias de evaluación comparativa entre modelos.
 
 El resto del artículo se organiza de la siguiente manera. La Sección~\ref{sec2} revisa el trabajo
 relacionado sobre automatización basada en LLM en ingeniería de requisitos y generación
@@ -239,6 +223,7 @@ En conjunto, la metodología fue diseñada para ser modular, reproducible y ejec
 \item Contribución de autores: Todos los autores contribuyeron al diseño y desarrollo del framework. A.L.V.S. lideró la implementación y los experimentos. C.A.F.F. y V.R.L. supervisaron la investigación y contribuyeron a la metodología.
 \end{itemize}
 
+\newpage
 \bibliography{sn-bibliography}
 
 \end{document}
