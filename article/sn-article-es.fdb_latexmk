@@ -1,13 +1,13 @@
 # Fdb version 4
-["bibtex sn-article-es"] 1773248238.91282 "sn-article-es.aux" "sn-article-es.bbl" "sn-article-es" 1773621881.0425 0
-  "./sn-bibliography.bib" 1772469258.80426 5351 f1944b3f11a7f941b8e2dfb52bf02807 ""
+["bibtex sn-article-es"] 1773785982.47282 "sn-article-es.aux" "sn-article-es.bbl" "sn-article-es" 1773785982.61923 0
+  "./sn-bibliography.bib" 1773785980.48127 11545 8dcd1aa7ca382c14ec9a285d743a7348 ""
   "./sn-mathphys-num.bst" 1772471486.05007 64164 943df446db725f71d6bb625fc0d6f4fc ""
-  "sn-article-es.aux" 1773621880.74207 2377 71d7b99ba45324b4ba56f0edc569e797 "pdflatex"
+  "sn-article-es.aux" 1773783942.72682 5269 5727fcb7b73de56b8719b0fee48f6386 "pdflatex"
   (generated)
   "sn-article-es.bbl"
   "sn-article-es.blg"
   (rewritten before read)
-["pdflatex"] 1773621879.93825 "sn-article-es.tex" "sn-article-es.pdf" "sn-article-es" 1773621881.04263 0
+["pdflatex"] 1773783941.77092 "sn-article-es.tex" "sn-article-es.pdf" "sn-article-es" 1773785982.61928 0
   "/usr/local/texlive/2026/texmf-dist/fonts/enc/dvips/cm-super/cm-super-ts1.enc" 1136849721 2900 1537cc8184ad1792082cd229ecc269f4 ""
   "/usr/local/texlive/2026/texmf-dist/fonts/map/fontname/texfonts.map" 1577235249 3524 cb3e574dea2d1052e39280babc910dc8 ""
   "/usr/local/texlive/2026/texmf-dist/fonts/tfm/jknappen/ec/tcrm1000.tfm" 1136768653 1536 e07581a4bb3136ece9eeb4c3ffab8233 ""
@@ -148,10 +148,11 @@
   "/usr/local/texlive/2026/texmf-var/fonts/map/pdftex/updmap/pdftex.map" 1773607367 5541377 04880c840ca220163a28f1a3af0ee662 ""
   "/usr/local/texlive/2026/texmf-var/web2c/pdftex/pdflatex.fmt" 1773607353 3636761 16fc6b309df5a4edac5b0cd32d8a7488 ""
   "/usr/local/texlive/2026/texmf.cnf" 1772409725 577 648cd9f92f9c0eac486f4c71c85cfbbe ""
-  "sn-article-es.aux" 1773621880.74207 2377 71d7b99ba45324b4ba56f0edc569e797 "pdflatex"
-  "sn-article-es.bbl" 1773248239.09456 7129 0290a5a11195443319937db4743f4c5e "bibtex sn-article-es"
-  "sn-article-es.out" 1773621880.74482 822 9d492103aaee46f4a16b69979155bbc7 "pdflatex"
-  "sn-article-es.tex" 1773621878.52242 23275 99162f7ec8d624f9253247bfa3d02239 ""
+  "images/dataforge_architecture.png.png" 1773780113.44982 79277 233126bd03ec830da319f27b94a43218 ""
+  "sn-article-es.aux" 1773783942.72682 5269 5727fcb7b73de56b8719b0fee48f6386 "pdflatex"
+  "sn-article-es.bbl" 1773785982.61613 14790 d75aedbe63fc74f4f3251596b4544582 "bibtex sn-article-es"
+  "sn-article-es.out" 1773783942.72772 1725 224c06ced398e37ec01e80afaa990289 "pdflatex"
+  "sn-article-es.tex" 1773783941.46377 39236 c8422b2d1dcf82d61e95de390a40dd72 ""
   "sn-jnl.cls" 1734062471 55857 c14ef9d34b3d95356940eaf177aff85f ""
   (generated)
   "sn-article-es.aux"

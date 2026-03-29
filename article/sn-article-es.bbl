@@ -1,6 +1,6 @@
 %% BioMed_Central_Bib_Style_v1.01
 
-\begin{thebibliography}{15}
+\begin{thebibliography}{38}
 % BibTex style file: bmc-mathphys.bst (version 2.1), 2014-07-24
 \ifx \bisbn   \undefined \def \bisbn  #1{ISBN #1}\fi
 \ifx \binits  \undefined \def \binits#1{#1}\fi
@@ -218,6 +218,265 @@ arXiv preprint arXiv:2203.11171
 Consensus-based evaluation of large language model outputs.
 arXiv preprint arXiv:2401.01335
 (2024)
+\end{botherref}
+\endbibitem
+
+%%% 16
+\bibitem[\protect\citeauthoryear{Hematt et~al.}{2025}]{hematt2025}
+\begin{botherref}
+\oauthor{\bsnm{Hematt}, \binits{A.}},
+\oauthor{\bsnm{Ruhe}, \binits{G.}},
+\oauthor{\bsnm{M{\"a}ntyl{\"a}}, \binits{M.}}:
+Leveraging large language models for requirements engineering: Opportunities and challenges.
+Empirical Software Engineering
+(2025)
+\end{botherref}
+\endbibitem
+
+%%% 17
+\bibitem[\protect\citeauthoryear{Zadenoori and Borg}{2025}]{zadenoori2025}
+\begin{botherref}
+\oauthor{\bsnm{Zadenoori}, \binits{M.}},
+\oauthor{\bsnm{Borg}, \binits{M.}}:
+Exploring the use of large language models for automated requirements analysis.
+IEEE Software
+(2025)
+\end{botherref}
+\endbibitem
+
+%%% 18
+\bibitem[\protect\citeauthoryear{Sami and Knauss}{2024}]{sami2024}
+\begin{bchapter}
+\bauthor{\bsnm{Sami}, \binits{A.}},
+\bauthor{\bsnm{Knauss}, \binits{E.}}:
+\bctitle{Using large language models to support requirements engineering activities}.
+In: \bbtitle{Proceedings of the IEEE International Requirements Engineering Conference (RE)}.
+\bpublisher{IEEE}, \blocation{???}
+(\byear{2024})
+\end{bchapter}
+\endbibitem
+
+%%% 19
+\bibitem[\protect\citeauthoryear{Proci et~al.}{2025}]{proci2025}
+\begin{botherref}
+\oauthor{\bsnm{Proci}, \binits{M.}},
+\oauthor{\bsnm{Ferrari}, \binits{A.}},
+\oauthor{\bsnm{Franch}, \binits{X.}}:
+Ai-assisted requirements engineering with large language models: A systematic study.
+Information and Software Technology
+(2025)
+\end{botherref}
+\endbibitem
+
+%%% 20
+\bibitem[\protect\citeauthoryear{Long et~al.}{2024}]{long2024}
+\begin{botherref}
+\oauthor{\bsnm{Long}, \binits{X.}},
+\oauthor{\bsnm{Chen}, \binits{Y.}},
+\oauthor{\bsnm{Zhao}, \binits{R.}}:
+Synthetic data generation using large language models: Advances and challenges.
+arXiv preprint arXiv:2406.10215
+(2024)
+\end{botherref}
+\endbibitem
+
+%%% 21
+\bibitem[\protect\citeauthoryear{Fsidi and Al-Khateeb}{2025}]{fsidi2025}
+\begin{botherref}
+\oauthor{\bsnm{Fsidi}, \binits{A.}},
+\oauthor{\bsnm{Al-Khateeb}, \binits{H.}}:
+Synthetic data generation for digital forensics using large language models.
+Forensic Science International: Digital Investigation
+(2025)
+\end{botherref}
+\endbibitem
+
+%%% 22
+\bibitem[\protect\citeauthoryear{Ma et~al.}{2025}]{ma2025}
+\begin{barticle}
+\bauthor{\bsnm{Ma}, \binits{H.}},
+\bauthor{\bsnm{Lu}, \binits{Y.}},
+\bauthor{\bsnm{Xiao}, \binits{Z.}},
+\bauthor{\bsnm{Feng}, \binits{J.}}:
+\batitle{Sdd-lawllm: Synthetic data driven fine-tuning of large language models for legal systems}.
+\bjtitle{Electronics}
+\bvolume{14}(\bissue{4}),
+\bfpage{742}
+(\byear{2025})
+\end{barticle}
+\endbibitem
+
+%%% 23
+\bibitem[\protect\citeauthoryear{Do et~al.}{2025}]{daly2025}
+\begin{botherref}
+\oauthor{\bsnm{Do}, \binits{H.J.}},
+\oauthor{\bsnm{Ashktorab}, \binits{Z.}},
+\oauthor{\bsnm{Gajcin}, \binits{J.}}, et al.:
+Generate, evaluate, iterate: Synthetic data for human-in-the-loop refinement of llm judges.
+arXiv preprint arXiv:2511.04478
+(2025)
+\end{botherref}
+\endbibitem
+
+%%% 24
+\bibitem[\protect\citeauthoryear{Eigler and Schmidt}{2026}]{eigler2026}
+\begin{botherref}
+\oauthor{\bsnm{Eigler}, \binits{L.}},
+\oauthor{\bsnm{Schmidt}, \binits{F.}}:
+Evaluating natural language generation with llm-as-a-judge approaches.
+Transactions of the Association for Computational Linguistics
+(2026)
+\end{botherref}
+\endbibitem
+
+%%% 25
+\bibitem[\protect\citeauthoryear{authors}{2023}]{dataflow_model}
+\begin{botherref}
+\oauthor{\bsnm{authors}, \binits{J.}}:
+Product lines of dataflows.
+Journal of Systems and Software
+(2023)
+\end{botherref}
+\endbibitem
+
+%%% 26
+\bibitem[\protect\citeauthoryear{Liang et~al.}{2025}]{dataflow_llm}
+\begin{botherref}
+\oauthor{\bsnm{Liang}, \binits{H.}}, et al.:
+Dataflow: An llm-driven framework for unified data preparation and workflow automation.
+arXiv preprint arXiv:2512.16676
+(2025)
+\end{botherref}
+\endbibitem
+
+%%% 27
+\bibitem[\protect\citeauthoryear{Zhu et~al.}{2025}]{llm_pipeline_eval}
+\begin{botherref}
+\oauthor{\bsnm{Zhu}, \binits{C.}}, et al.:
+Raffles: Reasoning-based attribution of faults for llm systems.
+arXiv preprint arXiv:2509.06822
+(2025)
+\end{botherref}
+\endbibitem
+
+%%% 28
+\bibitem[\protect\citeauthoryear{}{2025}]{pipes_filters}
+\begin{botherref}
+Mlops pipeline generation for reinforcement learning: A low-code approach using large language models.
+Journal of Systems and Software
+(2025)
+\end{botherref}
+\endbibitem
+
+%%% 29
+\bibitem[\protect\citeauthoryear{Schnabel et~al.}{2025}]{llm_multistage}
+\begin{bchapter}
+\bauthor{\bsnm{Schnabel}, \binits{J.A.}}, \betal:
+\bctitle{Multi-stage large language model pipelines can outperform gpt-4o in relevance assessment}.
+In: \bbtitle{Proceedings of The Web Conference}
+(\byear{2025})
+\end{bchapter}
+\endbibitem
+
+%%% 30
+\bibitem[\protect\citeauthoryear{Gu et~al.}{2024}]{llm_judge_survey}
+\begin{botherref}
+\oauthor{\bsnm{Gu}, \binits{J.}}, et al.:
+A survey on llm-as-a-judge.
+arXiv preprint arXiv:2411.15594
+(2024)
+\end{botherref}
+\endbibitem
+
+%%% 31
+\bibitem[\protect\citeauthoryear{Kivim{\"a}ki}{2025}]{local_llm_privacy}
+\begin{botherref}
+\oauthor{\bsnm{Kivim{\"a}ki}, \binits{T.}}:
+Usability Evaluation of Local Large Language Models
+(2025)
+\end{botherref}
+\endbibitem
+
+%%% 32
+\bibitem[\protect\citeauthoryear{Carammia et~al.}{2024}]{local_llm_reproducibility}
+\begin{botherref}
+\oauthor{\bsnm{Carammia}, \binits{M.}},
+\oauthor{\bsnm{Iacus}, \binits{S.M.}},
+\oauthor{\bsnm{Porro}, \binits{G.}}:
+Rethinking scale: The efficacy of fine-tuned open-source llms in reproducible research.
+arXiv preprint arXiv:2411.00890
+(2024)
+\end{botherref}
+\endbibitem
+
+%%% 33
+\bibitem[\protect\citeauthoryear{Vatsal and Dubey}{2024}]{prompt_survey}
+\begin{botherref}
+\oauthor{\bsnm{Vatsal}, \binits{S.}},
+\oauthor{\bsnm{Dubey}, \binits{H.}}:
+A survey of prompt engineering methods in large language models for different nlp tasks.
+arXiv preprint arXiv:2407.12994
+(2024)
+\end{botherref}
+\endbibitem
+
+%%% 34
+\bibitem[\protect\citeauthoryear{}{2023}]{prompt_engineering_review}
+\begin{botherref}
+Unleashing the potential of prompt engineering for large language models.
+arXiv preprint arXiv:2310.14735
+(2023)
+\end{botherref}
+\endbibitem
+
+%%% 35
+\bibitem[\protect\citeauthoryear{Elnashar et~al.}{2025}]{structured_prompting}
+\begin{botherref}
+\oauthor{\bsnm{Elnashar}, \binits{A.}},
+\oauthor{\bsnm{White}, \binits{J.}},
+\oauthor{\bsnm{Schmidt}, \binits{D.}}:
+Prompt engineering for structured data: A comparative evaluation of styles and llm performance.
+Artificial Intelligence and Autonomous Systems
+(2025)
+\end{botherref}
+\endbibitem
+
+%%% 36
+\bibitem[\protect\citeauthoryear{Luo}{2025}]{llm_judge_frontiers_2025}
+\begin{botherref}
+\oauthor{\bsnm{Luo}, \binits{e.a.}}:
+Llm-as-a-judge: Automated evaluation of search query parsing using large language models.
+Frontiers in Big Data
+(2025)
+\end{botherref}
+\endbibitem
+
+%%% 37
+\bibitem[\protect\citeauthoryear{Guerdan et~al.}{2025}]{guerdan2025llmjudge}
+\begin{bchapter}
+\bauthor{\bsnm{Guerdan}, \binits{L.}},
+\bauthor{\bsnm{Barocas}, \binits{S.}},
+\bauthor{\bsnm{Holstein}, \binits{K.}},
+\bauthor{\bsnm{Wallach}, \binits{H.}},
+\bauthor{\bsnm{Wu}, \binits{Z.S.}},
+\bauthor{\bsnm{Chouldechova}, \binits{A.}}:
+\bctitle{Validating llm-as-a-judge systems under rating indeterminacy}.
+In: \bbtitle{NeurIPS}
+(\byear{2025})
+\end{bchapter}
+\endbibitem
+
+%%% 38
+\bibitem[\protect\citeauthoryear{Wang et~al.}{2025}]{wang2025trustjudge}
+\begin{botherref}
+\oauthor{\bsnm{Wang}, \binits{Y.}},
+\oauthor{\bsnm{Song}, \binits{Y.}},
+\oauthor{\bsnm{Zhu}, \binits{T.}},
+\oauthor{\bsnm{Zhang}, \binits{X.}},
+\oauthor{\bsnm{Yu}, \binits{Z.}}, et al.:
+Trustjudge: Inconsistencies of llm-as-a-judge and how to alleviate them.
+arXiv preprint arXiv:2509.21117
+(2025)
 \end{botherref}
 \endbibitem
 
