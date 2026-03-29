@@ -1,6 +1,6 @@
 %% BioMed_Central_Bib_Style_v1.01
 
-\begin{thebibliography}{38}
+\begin{thebibliography}{47}
 % BibTex style file: bmc-mathphys.bst (version 2.1), 2014-07-24
 \ifx \bisbn   \undefined \def \bisbn  #1{ISBN #1}\fi
 \ifx \binits  \undefined \def \binits#1{#1}\fi
@@ -452,6 +452,90 @@ Frontiers in Big Data
 \endbibitem
 
 %%% 37
+\bibitem[\protect\citeauthoryear{{PPC Expo}}{2024}]{likert10granularity}
+\begin{botherref}
+\oauthor{\bsnm{{PPC Expo}}}:
+10-point Likert Scale: A Guide to Survey Success.
+Available online
+(2024)
+\end{botherref}
+\endbibitem
+
+%%% 38
+\bibitem[\protect\citeauthoryear{Preston and Colman}{2000}]{likertscalecomparison}
+\begin{barticle}
+\bauthor{\bsnm{Preston}, \binits{C.C.}},
+\bauthor{\bsnm{Colman}, \binits{A.M.}}:
+\batitle{Optimal number of response categories in rating scales: reliability, validity, discriminating power, and respondent preferences}.
+\bjtitle{Acta Psychologica}
+\bvolume{104}(\bissue{1}),
+\bfpage{1}--\blpage{15}
+(\byear{2000})
+\doiurl{10.1016/S0001-6918(99)00050-5}
+\end{barticle}
+\endbibitem
+
+%%% 39
+\bibitem[\protect\citeauthoryear{Jebb et~al.}{2021}]{likertreview2021}
+\begin{barticle}
+\bauthor{\bsnm{Jebb}, \binits{A.T.}},
+\bauthor{\bsnm{Ng}, \binits{V.}},
+\bauthor{\bsnm{Tay}, \binits{L.}}:
+\batitle{A review of key likert scale development advances: 1995--2019}.
+\bjtitle{Frontiers in Psychology}
+\bvolume{12},
+\bfpage{637547}
+(\byear{2021})
+\doiurl{10.3389/fpsyg.2021.637547}
+\end{barticle}
+\endbibitem
+
+%%% 40
+\bibitem[\protect\citeauthoryear{Taherdoost}{2019}]{likertscalecomparison2}
+\begin{botherref}
+\oauthor{\bsnm{Taherdoost}, \binits{H.}}:
+Likert scale in research: Problems and prospects.
+International Journal of Academic Research in Management
+(2019)
+\end{botherref}
+\endbibitem
+
+%%% 41
+\bibitem[\protect\citeauthoryear{Wu and Leung}{2017}]{likert5to7range}
+\begin{barticle}
+\bauthor{\bsnm{Wu}, \binits{H.}},
+\bauthor{\bsnm{Leung}, \binits{S.-O.}}:
+\batitle{Can likert scales be treated as interval scales?}
+\bjtitle{Journal of Social Service Research}
+\bvolume{43}(\bissue{4}),
+\bfpage{527}--\blpage{532}
+(\byear{2017})
+\doiurl{10.1080/01488376.2017.1329775}
+\end{barticle}
+\endbibitem
+
+%%% 42
+\bibitem[\protect\citeauthoryear{Dawes}{2008}]{dawes2008}
+\begin{barticle}
+\bauthor{\bsnm{Dawes}, \binits{J.}}:
+\batitle{Do data characteristics change according to the number of scale points used?}
+\bjtitle{International Journal of Market Research}
+\bvolume{51}(\bissue{1}),
+\bfpage{61}--\blpage{104}
+(\byear{2008})
+\end{barticle}
+\endbibitem
+
+%%% 43
+\bibitem[\protect\citeauthoryear{{ISO/IEC/IEEE}}{2018}]{iso29148}
+\begin{botherref}
+\oauthor{\bsnm{{ISO/IEC/IEEE}}}:
+ISO/IEC/IEEE 29148:2018 Systems and Software Engineering -- Life Cycle Processes -- Requirements Engineering.
+International Organization for Standardization
+\end{botherref}
+\endbibitem
+
+%%% 44
 \bibitem[\protect\citeauthoryear{Guerdan et~al.}{2025}]{guerdan2025llmjudge}
 \begin{bchapter}
 \bauthor{\bsnm{Guerdan}, \binits{L.}},
@@ -466,7 +550,26 @@ In: \bbtitle{NeurIPS}
 \end{bchapter}
 \endbibitem
 
-%%% 38
+%%% 45
+\bibitem[\protect\citeauthoryear{Djulbegovic et~al.}{2024}]{thresholddecision}
+\begin{botherref}
+\oauthor{\bsnm{Djulbegovic}, \binits{B.}}, et al.:
+Thresholds and decision-making in clinical and research contexts.
+BMC Medical Informatics and Decision Making
+(2024)
+\end{botherref}
+\endbibitem
+
+%%% 46
+\bibitem[\protect\citeauthoryear{{Consumer Council for Water}}{2013}]{threshold70}
+\begin{botherref}
+\oauthor{\bsnm{{Consumer Council for Water}}}:
+Research into threshold of acceptability
+(2013)
+\end{botherref}
+\endbibitem
+
+%%% 47
 \bibitem[\protect\citeauthoryear{Wang et~al.}{2025}]{wang2025trustjudge}
 \begin{botherref}
 \oauthor{\bsnm{Wang}, \binits{Y.}},
