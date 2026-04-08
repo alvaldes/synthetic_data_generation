@@ -1,5 +1,6 @@
 import json
 import logging
+import re
 import pandas as pd
 from typing import Dict, List, Optional, Any
 import ollama
@@ -134,38 +135,86 @@ class ComparisonJudgeStep(BaseStep):
 
         return response
 
+    def _repair_json(self, json_str: str) -> str:
+        """
+        Attempt to repair common JSON errors from LLM output.
+
+        Fixes:
+        - Missing commas between fields
+        - Unclosed strings
+        - Unescaped quotes within strings
+        - Trailing content after JSON
+        """
+        # First, extract JSON boundaries
+        json_str = self._clean_json_response(json_str)
+
+        # Fix 1: Add missing commas between string fields
+        # Pattern: "field": "value" "next_field": -> "field": "value", "next_field":
+        json_str = re.sub(r'"\s+"(\w+)":', r'", "\1":', json_str)
+
+        # Fix 2: Add missing commas after numbers before string fields
+        # Pattern: "field": 123 "next_field": -> "field": 123, "next_field":
+        json_str = re.sub(r'(\d+)\s+"(\w+)":', r'\1, "\2":', json_str)
+
+        # Fix 3: Add missing commas after closing braces before string fields
+        # Pattern: } "next_field": -> }, "next_field":
+        json_str = re.sub(r'}\s+"(\w+)":', r'}, "\1":', json_str)
+
+        # Fix 4: Add missing commas after closing brackets before string fields
+        # Pattern: ] "next_field": -> ], "next_field":
+        json_str = re.sub(r']\s+"(\w+)":', r'], "\1":', json_str)
+
+        # Fix 5: Fix unescaped quotes within string values
+        # This is tricky - we need to find strings and escape internal quotes
+        def escape_internal_quotes(match):
+            content = match.group(1)
+            # Escape backslashes first, then quotes
+            content = content.replace('\\', '\\\\').replace('"', '\\"')
+            return f'"{content}"'
+
+        # Match strings that are values (after colon)
+        json_str = re.sub(r':\s*"([^"\\]*(?:\\.[^"\\]*)*)"', escape_internal_quotes, json_str)
+
+        # Fix 6: Close unclosed strings by finding patterns like: "value
+        # at end of line followed by comma or newline
+        # Pattern: "text without closing quote followed by , or newline
+        json_str = re.sub(r'"([^"\\]*(?:\\.[^"\\]*)*)([,\n\r])', lambda m: f'"{m.group(1)}"{m.group(2)}' if not m.group(1).endswith('"') else f'"{m.group(1)}"{m.group(2)}', json_str)
+
+        # Fix 7: Remove trailing commas before closing braces/brackets
+        json_str = re.sub(r',\s*}', '}', json_str)
+        json_str = re.sub(r',\s*]', ']', json_str)
+
+        # Fix 8: Normalize whitespace around colons and commas
+        json_str = re.sub(r'\s*,\s*', ', ', json_str)
+        json_str = re.sub(r'\s*:\s*', ': ', json_str)
+
+        return json_str
+
     def _parse_judge_response(self, raw_response: str) -> Dict:
-        """Parse the judge response JSON with robust error handling."""
+        """Parse the judge response JSON with robust error handling and repair."""
+        cleaned_response = self._clean_json_response(raw_response)
+
+        # Try parsing directly first
         try:
-            cleaned_response = self._clean_json_response(raw_response)
             result = json.loads(cleaned_response)
+            return self._validate_and_normalize_judge_result(result)
+        except json.JSONDecodeError as e:
+            logging.warning(f"Initial JSON parse failed: {e}")
+            logging.debug(f"Raw response (first 500 chars): {raw_response[:500]}")
 
-            # Validate required structure
-            required_top_level = ['breakdown_a', 'breakdown_b', 'winner', 'reason']
-            for field in required_top_level:
-                if field not in result:
-                    raise ValueError(f"Missing required field: {field}")
+        # Try repaired JSON
+        try:
+            repaired_response = self._repair_json(cleaned_response)
+            logging.debug(f"Repaired JSON (first 500 chars): {repaired_response[:500]}")
 
-            # Validate breakdown structure
-            for breakdown_key in ['breakdown_a', 'breakdown_b']:
-                breakdown = result[breakdown_key]
-                if 'total_score' not in breakdown:
-                    # Calculate total if missing
-                    score_fields = ['completeness', 'clarity', 'actionability', 'logical_structure', 'granularity']
-                    total = sum(breakdown.get(field, 0) for field in score_fields)
-                    breakdown['total_score'] = total
+            result = json.loads(repaired_response)
+            logging.info("Successfully parsed JSON after repair")
+            return self._validate_and_normalize_judge_result(result)
 
-            # Ensure winner is valid
-            if result['winner'] not in ['A', 'B']:
-                # Default to A if invalid
-                result['winner'] = 'A'
-                result['reason'] = "Invalid winner designation, defaulting to A"
-
-            return result
-
-        except (json.JSONDecodeError, ValueError) as e:
-            logging.warning(f"Failed to parse judge response: {e}")
-            logging.warning(f"Raw response: {raw_response}")
+        except json.JSONDecodeError as e:
+            logging.warning(f"Failed to parse repaired JSON: {e}")
+            logging.warning(f"Raw response (first 1000 chars): {raw_response[:1000]}")
+            logging.warning(f"Repaired response (first 1000 chars): {repaired_response[:1000]}")
 
             # Return fallback structure
             return {
@@ -174,6 +223,31 @@ class ComparisonJudgeStep(BaseStep):
                 "winner": "A",
                 "reason": f"Failed to parse judge response: {e}"
             }
+
+    def _validate_and_normalize_judge_result(self, result: Dict) -> Dict:
+        """Validate and normalize the parsed judge result."""
+        # Validate required structure
+        required_top_level = ['breakdown_a', 'breakdown_b', 'winner', 'reason']
+        for field in required_top_level:
+            if field not in result:
+                raise ValueError(f"Missing required field: {field}")
+
+        # Validate breakdown structure
+        for breakdown_key in ['breakdown_a', 'breakdown_b']:
+            breakdown = result[breakdown_key]
+            if 'total_score' not in breakdown:
+                # Calculate total if missing
+                score_fields = ['completeness', 'clarity', 'actionability', 'logical_structure', 'granularity']
+                total = sum(breakdown.get(field, 0) for field in score_fields)
+                breakdown['total_score'] = total
+
+        # Ensure winner is valid
+        if result['winner'] not in ['A', 'B']:
+            # Default to A if invalid
+            result['winner'] = 'A'
+            result['reason'] = "Invalid winner designation, defaulting to A"
+
+        return result
 
     def _judge_comparison(self, input_text: str, output_a: str, output_b: str) -> Dict:
         """Use LLM to judge which output is better."""
