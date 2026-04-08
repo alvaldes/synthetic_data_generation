@@ -225,8 +225,21 @@ def run_dual_generator_pipeline(
         use_cache: Whether to use caching
     """
 
-    # Set up logging
-    logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
+    # Set up logging with both console and file output
+    log_file = Path(output_csv).with_suffix('.log')
+
+    # Configure logging to write to both console and file
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(asctime)s - %(levelname)s: %(message)s',
+        datefmt='%Y-%m-%d %H:%M:%S',
+        handlers=[
+            logging.StreamHandler(),  # Console output
+            logging.FileHandler(log_file, mode='w', encoding='utf-8')  # File output
+        ]
+    )
+
+    logging.info(f"Logging to: {log_file}")
 
     # Validate inputs
     validate_inputs(model_a, model_b, judge_model, batch_size, temperature_a, temperature_b)
