@@ -99,7 +99,7 @@ htmlcov/
 .nox/
 
 # Output files
-*.csv
+# *.csv
 *.xlsx
 *.json
 *.parquet
@@ -110,7 +110,7 @@ htmlcov/
 failures/
 
 # Logs
-*.log
+# *.log
 logs/
 
 # OS
@@ -137,7 +137,7 @@ data/*.xlsx
 !data/.gitkeep
 
 # Example outputs (keep only source .py files)
-examples/*.csv
+# examples/*.csv
 examples/*.xlsx
 examples/*.json
 examples/*.parquet
