@@ -158,8 +158,9 @@ El resto del artículo se organiza de la siguiente manera. La Sección~\ref{sec2
 relacionado sobre automatización basada en LLM en ingeniería de requisitos y generación
 de datos sintéticos. La Sección~\ref{sec3} describe la arquitectura y los componentes
 principales de LocalLLM-DataForge. La Sección~\ref{sec4} presenta la configuración experimental
-y la metodología de evaluación. La Sección~\ref{sec5} discute los resultados obtenidos,
-mientras que la Sección~\ref{sec6} expone las conclusiones y las líneas de trabajo futuro.
+y la metodología de evaluación. La Sección~\ref{sec5} presenta los resultados obtenidos.
+La Sección~\ref{sec6} discute los hallazgos y sus implicaciones, mientras que la Sección~\ref{sec7}
+expone las conclusiones y las líneas de trabajo futuro.
 
 \section{Trabajos Relacionados}\label{sec2}
 
@@ -184,19 +185,50 @@ El framework se estructura como un pipeline de procesamiento basado en DataFrame
 
 La elección de un modelo basado en DataFrames responde a la necesidad de manejar simultáneamente múltiples versiones de los artefactos generados. En particular, cada historia de usuario puede dar lugar a diversas descomposiciones producidas por distintos modelos o configuraciones, las cuales son almacenadas como columnas independientes dentro de la misma estructura. Esta organización permite realizar comparaciones sistemáticas sin requerir estructuras externas adicionales ni procesos de sincronización complejos.
 
-El flujo general del sistema sigue cuatro etapas principales: (1) carga de datos, (2) generación de artefactos, (3) comparación y evaluación, y (4) almacenamiento de resultados. Estas etapas no se implementan como bloques monolíticos, sino como componentes desacoplados que operan sobre el mismo DataFrame, lo que permite reorganizar, extender o reemplazar partes del pipeline sin afectar el resto del sistema.
+El flujo general del sistema sigue cinco etapas principales: (1) carga de datos, (2) generación de artefactos, (3) comparación y evaluación, (4) obtención de métricas, y (5) almacenamiento de resultados. Estas etapas no se implementan como bloques monolíticos, sino como componentes desacoplados que operan sobre el mismo DataFrame, lo que permite reorganizar, extender o reemplazar partes del pipeline sin afectar el resto del sistema.
 
 Un aspecto clave de la arquitectura es la separación explícita entre generación y evaluación. Mientras que los modelos generadores se encargan de producir descomposiciones a partir de historias de usuario, el componente evaluador opera de forma independiente para analizar la calidad de dichas salidas bajo criterios estructurados. Esta separación permite experimentar con configuraciones heterogéneas de modelos sin introducir sesgos en la evaluación, además de facilitar la incorporación de nuevos mecanismos de validación en futuras extensiones del framework.
 
-La Figura~\ref{fig:dataforge_architecture} ilustra la arquitectura general del sistema. El flujo inicia con la carga del dataset de historias de usuario, seguido por una etapa de generación paralela en la que múltiples modelos producen descomposiciones independientes bajo configuraciones diferenciadas. Posteriormente, un componente evaluador basado en el paradigma LLM-as-a-Judge compara las salidas generadas y asigna métricas estructuradas de calidad. Finalmente, los resultados son integrados en el DataFrame de salida, permitiendo su análisis posterior de forma sistemática.
+La Figura~\ref{fig:dataforge_architecture} representa el comportamiento general del sistema modelado mediante un diagrama de actividad UML, permitiendo representar explícitamente el flujo de procesamiento y la ejecución paralela de los modelos generadores. Este inicia con la carga del dataset de historias de usuario, seguido por una etapa de generación paralela en la que múltiples modelos producen descomposiciones independientes bajo configuraciones diferenciadas. Posteriormente, un componente evaluador basado en el paradigma \textit{LLM-as-a-Judge} compara las salidas generadas y asigna las métricas calculadas. Finalmente, los resultados son integrados en el DataFrame de salida, permitiendo su análisis posterior de forma sistemática.
 
 Este diseño arquitectónico prioriza la modularidad, la transparencia en el flujo de datos y la capacidad de experimentación controlada, aspectos fundamentales en estudios orientados a evaluar el comportamiento de modelos de lenguaje en tareas de ingeniería de requisitos.
+
+% diagram_en.png
+%
+% @startuml
+% start
+% :Load User Stories Dataset;
+% fork
+%   :Generate Decomposition (Model 1);
+% fork again
+%   :Generate Decomposition (Model N);
+% end fork
+% :LLM-as-a-Judge Evaluation;
+% :Compute Metrics;
+% :Integrate Results into Final DataFrames;
+% stop
+% @enduml
+
+% diagram_es.png
+% @startuml
+% start
+% :Cargar Dataset de Historias de Usuario;
+% fork
+%   :Generar Decomposición (Modelo 1);
+% fork again
+%   :Generar Decomposición (Modelo N);
+% end fork
+% :Evaluación LLM-as-a-Judge;
+% :Obtención de Métricas;
+% :Integrar Resultados en DataFrames Finales;
+% stop
+% @enduml
 
 % TODO: Actualizar el diagrama de arquitectura a UML
 \begin{figure}[t]
 \centering
-\includegraphics[width=\columnwidth]{images/dataforge_architecture.png}
-\caption{Arquitectura del framework LocalLLM-DataForge.}
+\includegraphics[width=\columnwidth]{images/diagram_es.png}
+\caption{Diagrama de actividad UML del framework LocalLLM-DataForge.}
 \label{fig:dataforge_architecture}
 \end{figure}
 
@@ -246,9 +278,12 @@ En las tareas de generación, los prompts están diseñados para producir descom
 
 Adicionalmente, el uso de prompts estandarizados entre diferentes modelos permite realizar comparaciones más justas y controladas, evitando sesgos derivados de ajustes específicos para cada modelo. La literatura reciente ha señalado que la consistencia en el diseño de prompts es un factor crítico para garantizar la validez de evaluaciones comparativas entre LLMs, ya que pequeñas variaciones en la formulación pueden impactar significativamente los resultados obtenidos \cite{structured_prompting}. En este sentido, el framework adopta un enfoque uniforme en la definición de prompts, asegurando que las diferencias observadas en las salidas se deban principalmente a las características de los modelos y no a variaciones en las instrucciones proporcionadas.
 
+%TODO: Más adelante mostrar el diseño de prompts con ejemplos reales. en 3.5 se habló de manera abstracta. Incluir al menos un fragmento del prompt de generación y uno del prompt del juez (en forma de figura o listado)
+%
 Es por esto que el diseño de prompts en LocalLLM-DataForge no se limita a una tarea de configuración, sino que constituye un elemento fundamental del proceso experimental, al actuar como interfaz de control entre el investigador y el modelo. Este enfoque permite ejercer un control fino sobre la generación y evaluación de artefactos, alineándose con tendencias recientes que conciben el prompt engineering como una capa de abstracción clave en sistemas basados en modelos de lenguaje.
 
 \section{Marco Metodológico}\label{sec4}
+%TODO: Desarrollar la validación humana. Cuando se tenga, mencionar que evaluadores humanos revisaron una muestra representativa, especificar: por ejemplo, perfil de los evaluadores, métricas de acuerdo (e.g., Cohen's Kappa) y hallazgos.
 
 La herramienta LocalLLM-DataForge se empleó para diseñar y ejecutar un estudio exploratorio de carácter experimental orientado a evaluar la viabilidad de la descomposición sintética automática de historias de usuario mediante modelos de lenguaje ejecutados localmente. El objetivo principal del experimento no fue entrenar modelos predictivos, sino analizar la capacidad generativa de distintos modelos LLMs y la efectividad de un esquema de evaluación automatizado basado en el paradigma \textit{LLM-as-a-Judge}.
 
@@ -281,11 +316,104 @@ El procedimiento experimental se ejecutó en múltiples iteraciones, variando co
 
 Este enfoque metodológico permite no solo estructurar el proceso de generación y evaluación de artefactos, sino también establecer una base sistemática para la comparación de configuraciones de modelos bajo condiciones controladas. Siendo así que proporciona un marco experimental reproducible para analizar la viabilidad del uso de modelos de lenguaje en la descomposición de artefactos de ingeniería de requisitos.
 
-\section{Discusión}\label{sec5}
+\section{Resultados}\label{sec5}
+% TODO: incluir tablas con estadísticos descriptivos por generador y por criterio.
+
+Con el objetivo de evaluar el comportamiento del \textit{framework} propuesto bajo distintas configuraciones de modelos de lenguaje, se diseñaron cuatro pruebas experimentales independientes. Cada prueba se estructuró en torno a la comparación entre dos modelos generadores de descomposiciones de historias de usuario (G1 y G2), junto con un modelo evaluador que actuó bajo el paradigma \textit{LLM-as-a-Judge}.
+
+En cada configuración, ambos generadores procesaron el mismo conjunto de historias de usuario, produciendo descomposiciones alternativas para cada instancia. Posteriormente, el modelo evaluador analizó ambas salidas y asignó puntuaciones en los cinco criterios de calidad: coherencia, completitud, viabilidad, formato y granularidad, conforme a la metodología descrita en la Sección~\ref{sec4}. Adicionalmente, el evaluador determinó un ganador entre las dos alternativas, permitiendo no solo un análisis cuantitativo basado en puntuaciones, sino también una comparación directa entre modelos.
+
+Las cuatro pruebas se diseñaron variando tanto los modelos generadores como el modelo evaluador, con el fin de analizar el impacto de estas configuraciones en la calidad de las descomposiciones generadas. En particular, se consideraron modelos con diferentes tamaños, arquitecturas y configuraciones de generación, lo que permitió observar comportamientos contrastantes en términos de consistencia, diversidad y alineación con los criterios de evaluación.
+
+Para cada prueba se calcularon métricas agregadas, incluyendo puntuación promedio, desviación estándar, tasa de aprobación (definida como el porcentaje de instancias que superan el umbral de calidad establecido) y tasa de victoria en comparaciones directas. Asimismo, se realizó un análisis desagregado por criterio, con el objetivo de identificar fortalezas y debilidades específicas en las descomposiciones generadas por cada modelo.
+
+Finalmente, los resultados se analizan tanto a nivel individual por prueba como de manera comparativa entre configuraciones, permitiendo evaluar patrones consistentes, posibles sesgos del modelo evaluador y diferencias entre evaluación cuantitativa y selección directa del mejor resultado.
+
+\subsubsection{Test 1: Llama 3.1 8B vs Mistral 7B (Juez Qwen3 14B)}
+
+Esta prueba compara el desempeño de los modelos llama3.1:8b (G1) y mistral:7b (G2) en la generación de descomposiciones de historias de usuario, utilizando qwen3:14b como modelo evaluador bajo el esquema \textit{LLM-as-a-Judge}.
+
+\paragraph{Resultados agregados}
+
+\begin{table}[h]
+\centering
+\caption{Resultados agregados del Test 1}
+\begin{tabular}{lcc}
+\toprule
+Métrica & G1 (Llama 3.1 8B) & G2 (Mistral 7B) \\
+\midrule
+Puntuación promedio & 33.39 & 33.81 \\
+Desviación estándar & 9.19 & 9.94 \\
+Tasa de aprobación (\%) & 46.36 & 46.80 \\
+Tasa de victoria (\%) & 74.45 & 25.55 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Los resultados muestran que ambos modelos presentan un desempeño global muy similar en términos de puntuación promedio (33.39 vs 33.81) y tasa de aprobación (46.36\% vs 46.80\%). Asimismo, las desviaciones estándar relativamente altas (9.19 y 9.94) indican una variabilidad considerable en la calidad de las descomposiciones generadas, lo cual sugiere que ambos modelos producen resultados heterogéneos dependiendo de la historia de usuario procesada.
+
+No obstante, se observa una diferencia significativa en la tasa de victoria, donde Llama 3.1 8B es seleccionado como mejor alternativa en el 74.45\% de los casos, a pesar de no presentar una ventaja clara en las métricas cuantitativas. Esta discrepancia evidencia una divergencia entre la evaluación basada en puntuaciones agregadas y la decisión comparativa del modelo evaluador.
+
+\paragraph{Análisis por criterio}
+% claridad, atomicidad, coherencia lógica, relevancia y completitud)
+% coherencia, completitud, viabilidad, formato y granularidad
+
+\begin{table}[h]
+\centering
+\caption{Puntuación promedio por criterio en el Test 1}
+\begin{tabular}{lcc}
+\toprule
+Criterio & G1 (Llama 3.1 8B) & G2 (Mistral 7B) \\
+\midrule
+Completitud & 4.09 & 4.11 \\
+Claridad & 4.08 & 4.15 \\
+Accionabilidad & 3.88 & 4.07 \\
+Estructura lógica & 4.12 & 3.92 \\
+Granularidad & 3.61 & 3.84 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+El análisis por criterio permite profundizar en esta diferencia. Mistral 7B obtiene puntuaciones ligeramente superiores en completitud, claridad, accionabilidad y granularidad, lo que sugiere una tendencia hacia descomposiciones más completas, detalladas y orientadas a la ejecución. En contraste, Llama 3.1 8B presenta una ventaja en el criterio de estructura lógica (4.12 vs 3.92), indicando una mejor organización interna y coherencia estructural en las tareas generadas.
+
+Estos resultados sugieren que el modelo evaluador podría estar asignando un mayor peso implícito a la estructura lógica de las descomposiciones al momento de seleccionar un ganador, incluso cuando otros criterios presentan valores inferiores. Este comportamiento es consistente con observaciones recientes en el paradigma \textit{LLM-as-a-Judge}, donde los modelos evaluadores no necesariamente siguen una agregación estrictamente lineal de los criterios definidos, sino que incorporan juicios globales basados en la calidad percibida de las salidas.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=\columnwidth]{images/barplot_criteria_test1.png}
+\caption{Comparación de puntuaciones promedio por criterio entre ambos modelos en el Test 1.}
+\label{fig:test1_criteria}
+\end{figure}
+
+La Figura~\ref{fig:test1_criteria} confirma visualmente que las diferencias entre modelos son relativamente pequeñas en la mayoría de los criterios, aunque se observa una ligera ventaja de Mistral 7B en aspectos relacionados con la claridad y la accionabilidad, mientras que Llama 3.1 8B destaca en estructura lógica.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=\columnwidth]{images/boxplot_scores_test1.png}
+\caption{Distribución de puntuaciones totales para ambos modelos en el Test 1.}
+\label{fig:test1_boxplot}
+\end{figure}
+
+Por otro lado, la Figura~\ref{fig:test1_boxplot} muestra que las distribuciones de puntuaciones de ambos modelos presentan un alto grado de solapamiento, lo que indica que sus desempeños son comparables en términos globales. No obstante, se observa una mayor dispersión en las puntuaciones de Mistral 7B, lo cual sugiere una mayor variabilidad en la calidad de sus salidas.
+
+% \paragraph{Discusión de resultados}
+
+Los resultados del Test 1 revelan una discrepancia clara entre las métricas cuantitativas agregadas y la decisión comparativa del modelo evaluador. Aunque ambos modelos presentan puntuaciones promedio y tasas de aprobación prácticamente equivalentes, la tasa de victoria favorece de manera significativa a Llama 3.1 8B.
+
+Este comportamiento sugiere que el modelo evaluador no opera únicamente mediante una agregación lineal de los criterios definidos, sino que incorpora juicios comparativos globales al momento de seleccionar la mejor descomposición. En particular, el análisis por criterio indica que Llama 3.1 8B presenta una ventaja en estructura lógica, mientras que Mistral 7B obtiene mejores resultados en criterios como claridad, accionabilidad y granularidad.
+
+La preferencia sistemática por Llama 3.1 8B sugiere la existencia de un peso implícito diferencial asignado a la estructura lógica dentro del proceso de evaluación, lo que indica que la coherencia organizativa de las tareas puede influir de manera desproporcionada en la decisión final del evaluador.
+
+En conjunto, estos resultados evidencian que la evaluación basada en \textit{LLM-as-a-Judge} puede capturar dimensiones cualitativas que no se reflejan completamente en las métricas numéricas. Asimismo, resaltan la importancia de combinar análisis cuantitativos con comparaciones directas entre modelos, ya que ambos enfoques pueden conducir a interpretaciones diferentes sobre el desempeño de los sistemas evaluados.
+
+
+\section{Discusión}\label{sec6}
 
 % TODO: completar discusión de resultados
+%
+% TODO: Considerar dentro de la discusión : discutir validez interna (el juez mide lo que dice medir?), validez externa (los resultados generalizan más allá del dataset?) y validez de constructo (los cinco criterios capturan suficientemente la calidad de una descomposición?)
 
-\section{Conclusión}\label{sec6}
+\section{Conclusión}\label{sec7}
 
 % TODO: completar conclusiones y trabajo futuro
 
@@ -297,15 +425,15 @@ Este enfoque metodológico permite no solo estructurar el proceso de generación
 
 \section*{Declaraciones}
 
-\begin{itemize}
-\item Financiamiento: No aplica
-\item Conflicto de intereses: Los autores declaran no tener conflictos de interés.
-\item Aprobación ética y consentimiento de participación: No aplica
-\item Consentimiento para publicación: No aplica
-\item Disponibilidad de datos: Los conjuntos de datos y el código del pipeline están disponibles en el repositorio del proyecto.
-\item Disponibilidad de código: El código fuente de LocalLLM-DataForge está disponible públicamente.
-\item Contribución de autores: Todos los autores contribuyeron al diseño y desarrollo del framework. A.L.V.S. lideró la implementación y los experimentos. C.A.F.F. y V.R.L. supervisaron la investigación y contribuyeron a la metodología.
-\end{itemize}
+% \begin{itemize}
+% \item Financiamiento: No aplica
+% \item Conflicto de intereses: Los autores declaran no tener conflictos de interés.
+% \item Aprobación ética y consentimiento de participación: No aplica
+% \item Consentimiento para publicación: No aplica
+% \item Disponibilidad de datos: Los conjuntos de datos y el código del pipeline están disponibles en el repositorio del proyecto.
+% \item Disponibilidad de código: El código fuente de LocalLLM-DataForge está disponible públicamente.
+% \item Contribución de autores: Todos los autores contribuyeron al diseño y desarrollo del framework. A.L.V.S. lideró la implementación y los experimentos. C.A.F.F. y V.R.L. supervisaron la investigación y contribuyeron a la metodología.
+% \end{itemize}
 
 \newpage
 \bibliography{sn-bibliography}
