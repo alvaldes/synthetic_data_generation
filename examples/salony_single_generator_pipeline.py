@@ -250,9 +250,7 @@ def run_salony_pipeline(
     # Validate user story format
     pipeline.add_step(
         ValidateUserStories(
-            name="validate_format",
-            story_column="input",
-            case_sensitive=False
+            name="validate_format", story_column="input", case_sensitive=False
         )
     )
 

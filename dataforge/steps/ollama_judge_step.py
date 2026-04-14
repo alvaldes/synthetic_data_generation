@@ -117,24 +117,24 @@ Evalúa las tareas generadas según estos criterios:
 RESPONDE ÚNICAMENTE CON ESTE JSON VÁLIDO (sin markdown, sin explicaciones):
 
 {{
-  "coherencia": {{
+  "coherence": {{
     "puntuacion": 0-10,
     "justificacion": "texto"
   }},
-  "completitud": {{
+  "completeness": {{
     "puntuacion": 0-10,
     "justificacion": "texto",
     "tareas_faltantes": []
   }},
-  "viabilidad": {{
+  "feasibility": {{
     "puntuacion": 0-10,
     "justificacion": "texto"
   }},
-  "formato": {{
+  "format": {{
     "puntuacion": 0-10,
     "justificacion": "texto"
   }},
-  "granularidad": {{
+  "granularity": {{
     "puntuacion": 0-10,
     "justificacion": "texto"
   }},
@@ -166,11 +166,11 @@ RESPONDE ÚNICAMENTE CON ESTE JSON VÁLIDO (sin markdown, sin explicaciones):
 
             # Validate minimum required structure
             required_fields = [
-                "coherencia",
-                "completitud",
-                "viabilidad",
-                "formato",
-                "granularidad",
+                "coherence",
+                "completeness",
+                "feasibility",
+                "format",
+                "granularity",
             ]
             for field in required_fields:
                 if field not in result or "puntuacion" not in result[field]:
@@ -200,15 +200,15 @@ RESPONDE ÚNICAMENTE CON ESTE JSON VÁLIDO (sin markdown, sin explicaciones):
 
             # Retornar resultado de fallo
             return {
-                "coherencia": {"puntuacion": 0, "justificacion": "Error de parsing"},
-                "completitud": {
+                "coherence": {"puntuacion": 0, "justificacion": "Error de parsing"},
+                "completeness": {
                     "puntuacion": 0,
                     "justificacion": "Error de parsing",
                     "tareas_faltantes": [],
                 },
-                "viabilidad": {"puntuacion": 0, "justificacion": "Error de parsing"},
-                "formato": {"puntuacion": 0, "justificacion": "Error de parsing"},
-                "granularidad": {"puntuacion": 0, "justificacion": "Error de parsing"},
+                "feasibility": {"puntuacion": 0, "justificacion": "Error de parsing"},
+                "format": {"puntuacion": 0, "justificacion": "Error de parsing"},
+                "granularity": {"puntuacion": 0, "justificacion": "Error de parsing"},
                 "puntuacion_total": 0,
                 "aprobado": False,
                 "problemas_criticos": ["Error en parsing de respuesta del juez"],
@@ -294,21 +294,21 @@ RESPONDE ÚNICAMENTE CON ESTE JSON VÁLIDO (sin markdown, sin explicaciones):
             if validation is None:
                 # Usar valores por defecto en caso de error total
                 validation = {
-                    "coherencia": {
+                    "coherence": {
                         "puntuacion": 0,
                         "justificacion": "Error de conexión",
                     },
-                    "completitud": {
+                    "completeness": {
                         "puntuacion": 0,
                         "justificacion": "Error de conexión",
                         "tareas_faltantes": [],
                     },
-                    "viabilidad": {
+                    "feasibility": {
                         "puntuacion": 0,
                         "justificacion": "Error de conexión",
                     },
-                    "formato": {"puntuacion": 0, "justificacion": "Error de conexión"},
-                    "granularidad": {
+                    "format": {"puntuacion": 0, "justificacion": "Error de conexión"},
+                    "granularity": {
                         "puntuacion": 0,
                         "justificacion": "Error de conexión",
                     },
@@ -330,17 +330,17 @@ RESPONDE ÚNICAMENTE CON ESTE JSON VÁLIDO (sin markdown, sin explicaciones):
 
         # Add validation columns
         result_df["validacion_coherencia"] = [
-            r["coherencia"]["puntuacion"] for r in results
+            r["coherence"]["puntuacion"] for r in results
         ]
         result_df["validacion_completitud"] = [
-            r["completitud"]["puntuacion"] for r in results
+            r["completeness"]["puntuacion"] for r in results
         ]
         result_df["validacion_viabilidad"] = [
-            r["viabilidad"]["puntuacion"] for r in results
+            r["feasibility"]["puntuacion"] for r in results
         ]
-        result_df["validacion_formato"] = [r["formato"]["puntuacion"] for r in results]
+        result_df["validacion_formato"] = [r["format"]["puntuacion"] for r in results]
         result_df["validacion_granularidad"] = [
-            r["granularidad"]["puntuacion"] for r in results
+            r["granularity"]["puntuacion"] for r in results
         ]
         result_df["validacion_total"] = [r["puntuacion_total"] for r in results]
         result_df["validacion_aprobado"] = [r["aprobado"] for r in results]

@@ -38,7 +38,7 @@ class ComparisonJudgeStep(BaseStep):
         system_prompt: str = "You are an expert evaluator who compares different outputs and selects the best one based on quality criteria.",
         batch_size: int = 1,  # Smaller batches for judge due to longer prompts
         generation_kwargs: Optional[Dict[str, Any]] = None,
-        **kwargs
+        **kwargs,
     ):
         """
         Initialize the comparison judge step.
@@ -81,16 +81,16 @@ class ComparisonJudgeStep(BaseStep):
             "judge_score_a_total",
             "judge_score_b_total",
             # Individual criteria scores for A
+            "judge_score_a_coherence",
             "judge_score_a_completeness",
-            "judge_score_a_clarity",
-            "judge_score_a_actionability",
-            "judge_score_a_logical_structure",
+            "judge_score_a_feasibility",
+            "judge_score_a_format",
             "judge_score_a_granularity",
             # Individual criteria scores for B
+            "judge_score_b_coherence",
             "judge_score_b_completeness",
-            "judge_score_b_clarity",
-            "judge_score_b_actionability",
-            "judge_score_b_logical_structure",
+            "judge_score_b_feasibility",
+            "judge_score_b_format",
             "judge_score_b_granularity",
             # Qualitative feedback
             "judge_strengths_a",
@@ -102,7 +102,7 @@ class ComparisonJudgeStep(BaseStep):
             "judge_reason",
             "selected_output",
             # Timing metadata
-            "judge_time"
+            "judge_time",
         ]
 
     def load(self) -> None:
@@ -127,11 +127,11 @@ class ComparisonJudgeStep(BaseStep):
         response = response.replace("```json", "").replace("```", "").strip()
 
         # Find JSON object boundaries
-        start = response.find('{')
-        end = response.rfind('}')
+        start = response.find("{")
+        end = response.rfind("}")
 
         if start != -1 and end != -1 and end > start:
-            return response[start:end+1]
+            return response[start : end + 1]
 
         return response
 
@@ -169,24 +169,32 @@ class ComparisonJudgeStep(BaseStep):
         def escape_internal_quotes(match):
             content = match.group(1)
             # Escape backslashes first, then quotes
-            content = content.replace('\\', '\\\\').replace('"', '\\"')
+            content = content.replace("\\", "\\\\").replace('"', '\\"')
             return f'"{content}"'
 
         # Match strings that are values (after colon)
-        json_str = re.sub(r':\s*"([^"\\]*(?:\\.[^"\\]*)*)"', escape_internal_quotes, json_str)
+        json_str = re.sub(
+            r':\s*"([^"\\]*(?:\\.[^"\\]*)*)"', escape_internal_quotes, json_str
+        )
 
         # Fix 6: Close unclosed strings by finding patterns like: "value
         # at end of line followed by comma or newline
         # Pattern: "text without closing quote followed by , or newline
-        json_str = re.sub(r'"([^"\\]*(?:\\.[^"\\]*)*)([,\n\r])', lambda m: f'"{m.group(1)}"{m.group(2)}' if not m.group(1).endswith('"') else f'"{m.group(1)}"{m.group(2)}', json_str)
+        json_str = re.sub(
+            r'"([^"\\]*(?:\\.[^"\\]*)*)([,\n\r])',
+            lambda m: f'"{m.group(1)}"{m.group(2)}'
+            if not m.group(1).endswith('"')
+            else f'"{m.group(1)}"{m.group(2)}',
+            json_str,
+        )
 
         # Fix 7: Remove trailing commas before closing braces/brackets
-        json_str = re.sub(r',\s*}', '}', json_str)
-        json_str = re.sub(r',\s*]', ']', json_str)
+        json_str = re.sub(r",\s*}", "}", json_str)
+        json_str = re.sub(r",\s*]", "]", json_str)
 
         # Fix 8: Normalize whitespace around colons and commas
-        json_str = re.sub(r'\s*,\s*', ', ', json_str)
-        json_str = re.sub(r'\s*:\s*', ': ', json_str)
+        json_str = re.sub(r"\s*,\s*", ", ", json_str)
+        json_str = re.sub(r"\s*:\s*", ": ", json_str)
 
         return json_str
 
@@ -214,38 +222,54 @@ class ComparisonJudgeStep(BaseStep):
         except json.JSONDecodeError as e:
             logging.warning(f"Failed to parse repaired JSON: {e}")
             logging.warning(f"Raw response (first 1000 chars): {raw_response[:1000]}")
-            logging.warning(f"Repaired response (first 1000 chars): {repaired_response[:1000]}")
+            logging.warning(
+                f"Repaired response (first 1000 chars): {repaired_response[:1000]}"
+            )
 
             # Return fallback structure
             return {
-                "breakdown_a": {"total_score": 25, "strengths": "Unable to parse", "weaknesses": "Parse error"},
-                "breakdown_b": {"total_score": 25, "strengths": "Unable to parse", "weaknesses": "Parse error"},
+                "breakdown_a": {
+                    "total_score": 25,
+                    "strengths": "Unable to parse",
+                    "weaknesses": "Parse error",
+                },
+                "breakdown_b": {
+                    "total_score": 25,
+                    "strengths": "Unable to parse",
+                    "weaknesses": "Parse error",
+                },
                 "winner": "A",
-                "reason": f"Failed to parse judge response: {e}"
+                "reason": f"Failed to parse judge response: {e}",
             }
 
     def _validate_and_normalize_judge_result(self, result: Dict) -> Dict:
         """Validate and normalize the parsed judge result."""
         # Validate required structure
-        required_top_level = ['breakdown_a', 'breakdown_b', 'winner', 'reason']
+        required_top_level = ["breakdown_a", "breakdown_b", "winner", "reason"]
         for field in required_top_level:
             if field not in result:
                 raise ValueError(f"Missing required field: {field}")
 
         # Validate breakdown structure
-        for breakdown_key in ['breakdown_a', 'breakdown_b']:
+        for breakdown_key in ["breakdown_a", "breakdown_b"]:
             breakdown = result[breakdown_key]
-            if 'total_score' not in breakdown:
+            if "total_score" not in breakdown:
                 # Calculate total if missing
-                score_fields = ['completeness', 'clarity', 'actionability', 'logical_structure', 'granularity']
+                score_fields = [
+                    "coherence",
+                    "completeness",
+                    "feasibility",
+                    "format",
+                    "granularity",
+                ]
                 total = sum(breakdown.get(field, 0) for field in score_fields)
-                breakdown['total_score'] = total
+                breakdown["total_score"] = total
 
         # Ensure winner is valid
-        if result['winner'] not in ['A', 'B']:
+        if result["winner"] not in ["A", "B"]:
             # Default to A if invalid
-            result['winner'] = 'A'
-            result['reason'] = "Invalid winner designation, defaulting to A"
+            result["winner"] = "A"
+            result["reason"] = "Invalid winner designation, defaulting to A"
 
         return result
 
@@ -255,7 +279,7 @@ class ComparisonJudgeStep(BaseStep):
         row_data = {
             self.input_column: input_text,
             self.output_a_column: output_a,
-            self.output_b_column: output_b
+            self.output_b_column: output_b,
         }
 
         prompt = self.prompt_template_func(row_data)
@@ -265,31 +289,45 @@ class ComparisonJudgeStep(BaseStep):
                 model=self.model_name,
                 messages=[
                     {"role": "system", "content": self.system_prompt},
-                    {"role": "user", "content": prompt}
+                    {"role": "user", "content": prompt},
                 ],
                 stream=False,
-                options=self.generation_kwargs
+                options=self.generation_kwargs,
             )
 
-            raw_response = response['message']['content']
+            raw_response = response["message"]["content"]
             return self._parse_judge_response(raw_response)
 
         except Exception as e:
             logging.error(f"Judge evaluation failed: {e}")
             # Return fallback
             return {
-                "breakdown_a": {"total_score": 25, "strengths": "Error occurred", "weaknesses": str(e)},
-                "breakdown_b": {"total_score": 25, "strengths": "Error occurred", "weaknesses": str(e)},
+                "breakdown_a": {
+                    "total_score": 25,
+                    "strengths": "Error occurred",
+                    "weaknesses": str(e),
+                },
+                "breakdown_b": {
+                    "total_score": 25,
+                    "strengths": "Error occurred",
+                    "weaknesses": str(e),
+                },
                 "winner": "A",
-                "reason": f"Judge evaluation failed: {e}"
+                "reason": f"Judge evaluation failed: {e}",
             }
 
     def _process_batch(self, batch_df: pd.DataFrame) -> pd.DataFrame:
         """Process a batch of rows for comparison judging."""
         results = []
-        
+
         # Define score criteria
-        score_criteria = ['completeness', 'clarity', 'actionability', 'logical_structure', 'granularity']
+        score_criteria = [
+            "coherence",
+            "completeness",
+            "feasibility",
+            "format",
+            "granularity",
+        ]
 
         for _, row in batch_df.iterrows():
             input_text = str(row[self.input_column])
@@ -298,77 +336,79 @@ class ComparisonJudgeStep(BaseStep):
 
             # Track judge time
             start_time = time.time()
-            
+
             # Get judge evaluation
             judgment = self._judge_comparison(input_text, output_a, output_b)
-            
+
             judge_time = time.time() - start_time
 
             # Extract breakdown for A
-            breakdown_a = judgment['breakdown_a']
-            breakdown_b = judgment['breakdown_b']
-            
+            breakdown_a = judgment["breakdown_a"]
+            breakdown_b = judgment["breakdown_b"]
+
             # Extract total scores
-            score_a_total = breakdown_a.get('total_score', 0)
-            score_b_total = breakdown_b.get('total_score', 0)
-            
+            score_a_total = breakdown_a.get("total_score", 0)
+            score_b_total = breakdown_b.get("total_score", 0)
+
             # Extract individual criteria scores for A
-            score_a_completeness = breakdown_a.get('completeness', 0)
-            score_a_clarity = breakdown_a.get('clarity', 0)
-            score_a_actionability = breakdown_a.get('actionability', 0)
-            score_a_logical_structure = breakdown_a.get('logical_structure', 0)
-            score_a_granularity = breakdown_a.get('granularity', 0)
-            
+            score_a_coherence = breakdown_a.get("coherence", 0)
+            score_a_completeness = breakdown_a.get("completeness", 0)
+            score_a_feasibility = breakdown_a.get("feasibility", 0)
+            score_a_format = breakdown_a.get("format", 0)
+            score_a_granularity = breakdown_a.get("granularity", 0)
+
             # Extract individual criteria scores for B
-            score_b_completeness = breakdown_b.get('completeness', 0)
-            score_b_clarity = breakdown_b.get('clarity', 0)
-            score_b_actionability = breakdown_b.get('actionability', 0)
-            score_b_logical_structure = breakdown_b.get('logical_structure', 0)
-            score_b_granularity = breakdown_b.get('granularity', 0)
-            
+            score_b_coherence = breakdown_b.get("coherence", 0)
+            score_b_completeness = breakdown_b.get("completeness", 0)
+            score_b_feasibility = breakdown_b.get("feasibility", 0)
+            score_b_format = breakdown_b.get("format", 0)
+            score_b_granularity = breakdown_b.get("granularity", 0)
+
             # Extract qualitative feedback
-            strengths_a = breakdown_a.get('strengths', 'N/A')
-            weaknesses_a = breakdown_a.get('weaknesses', 'N/A')
-            strengths_b = breakdown_b.get('strengths', 'N/A')
-            weaknesses_b = breakdown_b.get('weaknesses', 'N/A')
-            
-            winner = judgment['winner']
-            reason = judgment['reason']
+            strengths_a = breakdown_a.get("strengths", "N/A")
+            weaknesses_a = breakdown_a.get("weaknesses", "N/A")
+            strengths_b = breakdown_b.get("strengths", "N/A")
+            weaknesses_b = breakdown_b.get("weaknesses", "N/A")
+
+            winner = judgment["winner"]
+            reason = judgment["reason"]
 
             # Select the winning output
-            if winner == 'B':
+            if winner == "B":
                 selected_output = output_b
             else:  # Default to A
                 selected_output = output_a
 
-            results.append({
-                # Total scores
-                "judge_score_a_total": score_a_total,
-                "judge_score_b_total": score_b_total,
-                # Individual scores for A
-                "judge_score_a_completeness": score_a_completeness,
-                "judge_score_a_clarity": score_a_clarity,
-                "judge_score_a_actionability": score_a_actionability,
-                "judge_score_a_logical_structure": score_a_logical_structure,
-                "judge_score_a_granularity": score_a_granularity,
-                # Individual scores for B
-                "judge_score_b_completeness": score_b_completeness,
-                "judge_score_b_clarity": score_b_clarity,
-                "judge_score_b_actionability": score_b_actionability,
-                "judge_score_b_logical_structure": score_b_logical_structure,
-                "judge_score_b_granularity": score_b_granularity,
-                # Qualitative feedback
-                "judge_strengths_a": strengths_a,
-                "judge_weaknesses_a": weaknesses_a,
-                "judge_strengths_b": strengths_b,
-                "judge_weaknesses_b": weaknesses_b,
-                # Decision
-                "judge_winner": winner,
-                "judge_reason": reason,
-                "selected_output": selected_output,
-                # Timing metadata
-                "judge_time": judge_time
-            })
+            results.append(
+                {
+                    # Total scores
+                    "judge_score_a_total": score_a_total,
+                    "judge_score_b_total": score_b_total,
+                    # Individual scores for A
+                    "judge_score_a_coherence": score_a_coherence,
+                    "judge_score_a_completeness": score_a_completeness,
+                    "judge_score_a_feasibility": score_a_feasibility,
+                    "judge_score_a_format": score_a_format,
+                    "judge_score_a_granularity": score_a_granularity,
+                    # Individual scores for B
+                    "judge_score_b_coherence": score_b_coherence,
+                    "judge_score_b_completeness": score_b_completeness,
+                    "judge_score_b_feasibility": score_b_feasibility,
+                    "judge_score_b_format": score_b_format,
+                    "judge_score_b_granularity": score_b_granularity,
+                    # Qualitative feedback
+                    "judge_strengths_a": strengths_a,
+                    "judge_weaknesses_a": weaknesses_a,
+                    "judge_strengths_b": strengths_b,
+                    "judge_weaknesses_b": weaknesses_b,
+                    # Decision
+                    "judge_winner": winner,
+                    "judge_reason": reason,
+                    "selected_output": selected_output,
+                    # Timing metadata
+                    "judge_time": judge_time,
+                }
+            )
 
         # Create result DataFrame with all original columns plus new ones
         result_df = batch_df.copy()
@@ -394,16 +434,20 @@ class ComparisonJudgeStep(BaseStep):
                 logging.warning(f"Column '{col}' has {missing_count} missing values")
 
         num_batches = get_num_batches(df, self.batch_size)
-        logging.info(f"Processing {len(df)} comparisons in {num_batches} batches of {self.batch_size}")
+        logging.info(
+            f"Processing {len(df)} comparisons in {num_batches} batches of {
+                self.batch_size
+            }"
+        )
 
         for i, batch_df in enumerate(batch_dataframe(df, self.batch_size)):
-            logging.info(f"Processing judge batch {i+1}/{num_batches}")
+            logging.info(f"Processing judge batch {i + 1}/{num_batches}")
 
             try:
                 batch_result = self._process_batch(batch_df)
                 results.append(batch_result)
             except Exception as e:
-                logging.error(f"Batch {i+1} failed: {e}")
+                logging.error(f"Batch {i + 1} failed: {e}")
                 # Create fallback results for failed batch
                 batch_size = len(batch_df)
                 fallback_df = batch_df.copy()
@@ -411,16 +455,16 @@ class ComparisonJudgeStep(BaseStep):
                 fallback_df["judge_score_a_total"] = [25] * batch_size
                 fallback_df["judge_score_b_total"] = [25] * batch_size
                 # Individual scores for A (distributed equally)
+                fallback_df["judge_score_a_coherence"] = [5] * batch_size
                 fallback_df["judge_score_a_completeness"] = [5] * batch_size
-                fallback_df["judge_score_a_clarity"] = [5] * batch_size
-                fallback_df["judge_score_a_actionability"] = [5] * batch_size
-                fallback_df["judge_score_a_logical_structure"] = [5] * batch_size
+                fallback_df["judge_score_a_feasibility"] = [5] * batch_size
+                fallback_df["judge_score_a_format"] = [5] * batch_size
                 fallback_df["judge_score_a_granularity"] = [5] * batch_size
                 # Individual scores for B (distributed equally)
+                fallback_df["judge_score_b_coherence"] = [5] * batch_size
                 fallback_df["judge_score_b_completeness"] = [5] * batch_size
-                fallback_df["judge_score_b_clarity"] = [5] * batch_size
-                fallback_df["judge_score_b_actionability"] = [5] * batch_size
-                fallback_df["judge_score_b_logical_structure"] = [5] * batch_size
+                fallback_df["judge_score_b_feasibility"] = [5] * batch_size
+                fallback_df["judge_score_b_format"] = [5] * batch_size
                 fallback_df["judge_score_b_granularity"] = [5] * batch_size
                 # Qualitative feedback
                 fallback_df["judge_strengths_a"] = ["N/A"] * batch_size
@@ -429,7 +473,9 @@ class ComparisonJudgeStep(BaseStep):
                 fallback_df["judge_weaknesses_b"] = ["Error occurred"] * batch_size
                 # Decision
                 fallback_df["judge_winner"] = ["A"] * batch_size
-                fallback_df["judge_reason"] = [f"Batch processing failed: {e}"] * batch_size
+                fallback_df["judge_reason"] = [
+                    f"Batch processing failed: {e}"
+                ] * batch_size
                 fallback_df["selected_output"] = batch_df[self.output_a_column].tolist()
                 # Timing metadata
                 fallback_df["judge_time"] = [0.0] * batch_size
@@ -444,7 +490,12 @@ class ComparisonJudgeStep(BaseStep):
             avg_score_a = final_df["judge_score_a_total"].mean()
             avg_score_b = final_df["judge_score_b_total"].mean()
 
-            logging.info(f"Judge results: A wins: {winner_counts.get('A', 0)}, B wins: {winner_counts.get('B', 0)}")
+            logging.info(
+                f"Judge results: A wins: {winner_counts.get('A', 0)}, B wins: {
+                    winner_counts.get('B', 0)
+                }"
+            )
             logging.info(f"Average scores: A={avg_score_a:.1f}, B={avg_score_b:.1f}")
 
         return final_df
+

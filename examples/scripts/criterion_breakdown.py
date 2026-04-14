@@ -11,10 +11,10 @@ if len(sys.argv) != 2:
 FILE = sys.argv[1]
 
 CRITERIA = [
+    "coherence",
     "completeness",
-    "clarity",
-    "actionability",
-    "logical_structure",
+    "feasibility",
+    "format",
     "granularity",
 ]
 
@@ -22,10 +22,10 @@ PREFIX_A = "judge_score_a_"
 PREFIX_B = "judge_score_b_"
 
 nice_names = {
+    "coherence": "Coherencia",
     "completeness": "Completitud",
-    "clarity": "Claridad",
-    "actionability": "Accionabilidad",
-    "logical_structure": "Estructura lógica",
+    "feasibility": "Viabilidad",
+    "format": "Formato",
     "granularity": "Granularidad",
 }
 

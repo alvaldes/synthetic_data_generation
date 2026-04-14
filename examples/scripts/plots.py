@@ -17,18 +17,18 @@ SHOW = "--show" in sys.argv
 # CONFIG
 # =========================
 CRITERIA = [
+    "coherence",
     "completeness",
-    "clarity",
-    "actionability",
-    "logical_structure",
+    "feasibility",
+    "format",
     "granularity",
 ]
 
 LABELS = [
+    "Coherencia",
     "Completitud",
-    "Claridad",
-    "Accionabilidad",
-    "Estructura lógica",
+    "Viabilidad",
+    "Formato",
     "Granularidad",
 ]
 
