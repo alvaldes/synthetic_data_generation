@@ -203,6 +203,10 @@ class ComparisonJudgeStep(BaseStep):
         # Fix missing commas after ] before "field":
         json_str = re.sub(r']\s*"(\w+)":\s*', r'], "\1": ', json_str)
 
+        # Fix missing comma after string value before next field
+        # Pattern: "string value"\n"next_field": -> "string value",\n"next_field":
+        json_str = re.sub(r'"\s*\n\s*"(\w+)":\s*', r'",\n"\1": ', json_str)
+
         # Remove trailing commas before closing braces/brackets
         json_str = re.sub(r',\s*}', '}', json_str)
         json_str = re.sub(r',\s*]', ']', json_str)
