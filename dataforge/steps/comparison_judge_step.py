@@ -141,58 +141,73 @@ class ComparisonJudgeStep(BaseStep):
 
         Fixes:
         - Missing commas between fields
-        - Unclosed strings
+        - Unclosed strings with embedded newlines
         - Unescaped quotes within strings
-        - Trailing content after JSON
+        - Invalid control characters
+        - Missing comma between } and next "field":
         """
         # First, extract JSON boundaries
         json_str = self._clean_json_response(json_str)
+
+        # Fix 0: Remove invalid control characters (raw \n, \r, \t inside strings)
+        # These appear as literal control chars, not escaped
+        json_str = re.sub(r'(?<=:)\s*"([^"]*?)(\n|\r|\t)([^"]*?)"',
+                         lambda m: f': "{m.group(1)}{m.group(2)}{m.group(3)}"',
+                         json_str)
 
         # Fix 1: Add missing commas between string fields
         # Pattern: "field": "value" "next_field": -> "field": "value", "next_field":
         json_str = re.sub(r'"\s+"(\w+)":', r'", "\1":', json_str)
 
+        # Fix 1b: Add missing comma after closing brace before field
+        # Pattern: } "next_field": -> }, "next_field":
+        json_str = re.sub(r'}\s+"(\w+)":', r'}, "\1":', json_str)
+
+        # Fix 1c: Add missing comma after closing bracket before field
+        # Pattern: ] "next_field": -> ], "next_field":
+        json_str = re.sub(r']\s+"(\w+)":', r'], "\1":', json_str)
+
         # Fix 2: Add missing commas after numbers before string fields
         # Pattern: "field": 123 "next_field": -> "field": 123, "next_field":
         json_str = re.sub(r'(\d+)\s+"(\w+)":', r'\1, "\2":', json_str)
 
-        # Fix 3: Add missing commas after closing braces before string fields
-        # Pattern: } "next_field": -> }, "next_field":
-        json_str = re.sub(r'}\s+"(\w+)":', r'}, "\1":', json_str)
+        # Fix 3: Replace unescaped newlines inside strings with escaped version
+        # Pattern: "text with \n newline inside" -> "text with \\n newline inside"
+        # But only for newlines that are INSIDE strings, not for actual JSON formatting
+        lines = json_str.split('\n')
+        repaired_lines = []
+        for line in lines:
+            # Check if this line looks like it's inside a string value
+            # heuristic: has opening quote after colon but no closing before end
+            if re.search(r':\s*"[^"]*$', line) and not line.rstrip().endswith('"'):
+                # This line is continuation of a string value, escape the content
+                line = re.sub(r'(:\s*")(.+)', lambda m: m.group(1) + m.group(2).replace('\n', '\\n').replace('\r', '\\r'), line)
+            repaired_lines.append(line)
+        json_str = '\n'.join(repaired_lines)
 
-        # Fix 4: Add missing commas after closing brackets before string fields
-        # Pattern: ] "next_field": -> ], "next_field":
-        json_str = re.sub(r']\s+"(\w+)":', r'], "\1":', json_str)
-
-        # Fix 5: Fix unescaped quotes within string values
-        # This is tricky - we need to find strings and escape internal quotes
+        # Fix 4: Fix unescaped quotes within string values
         def escape_internal_quotes(match):
             content = match.group(1)
-            # Escape backslashes first, then quotes
             content = content.replace("\\", "\\\\").replace('"', '\\"')
             return f'"{content}"'
 
-        # Match strings that are values (after colon)
         json_str = re.sub(
             r':\s*"([^"\\]*(?:\\.[^"\\]*)*)"', escape_internal_quotes, json_str
         )
 
-        # Fix 6: Close unclosed strings by finding patterns like: "value
-        # at end of line followed by comma or newline
-        # Pattern: "text without closing quote followed by , or newline
+        # Fix 5: Close unclosed strings
+        # Find strings that start with " but never close properly
         json_str = re.sub(
-            r'"([^"\\]*(?:\\.[^"\\]*)*)([,\n\r])',
-            lambda m: f'"{m.group(1)}"{m.group(2)}'
-            if not m.group(1).endswith('"')
-            else f'"{m.group(1)}"{m.group(2)}',
-            json_str,
+            r'"([^"\\]*(?:\\.[^"\\]*)*)$',
+            lambda m: f'"{m.group(1)}"' if not m.group(1).endswith('"') else m.group(0),
+            json_str
         )
 
-        # Fix 7: Remove trailing commas before closing braces/brackets
+        # Fix 6: Remove trailing commas before closing braces/brackets
         json_str = re.sub(r",\s*}", "}", json_str)
         json_str = re.sub(r",\s*]", "]", json_str)
 
-        # Fix 8: Normalize whitespace around colons and commas
+        # Fix 7: Normalize whitespace around colons and commas
         json_str = re.sub(r"\s*,\s*", ", ", json_str)
         json_str = re.sub(r"\s*:\s*", ": ", json_str)
 
