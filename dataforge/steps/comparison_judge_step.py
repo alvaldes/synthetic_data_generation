@@ -137,79 +137,79 @@ class ComparisonJudgeStep(BaseStep):
 
     def _repair_json(self, json_str: str) -> str:
         """
-        Attempt to repair common JSON errors from LLM output.
+        Attempt to repair common JSON errors from LLM output using a character-by-character
+        state machine to properly handle string boundaries.
 
-        Fixes:
-        - Missing commas between fields
-        - Unclosed strings with embedded newlines
-        - Unescaped quotes within strings
-        - Invalid control characters
-        - Missing comma between } and next "field":
+        Repairs:
+        - Escapes newlines inside string values
+        - Escapes control characters inside string values
+        - Adds missing commas between fields
+        - Removes trailing commas before closing braces/brackets
         """
         # First, extract JSON boundaries
         json_str = self._clean_json_response(json_str)
 
-        # Fix 0: Remove invalid control characters (raw \n, \r, \t inside strings)
-        # These appear as literal control chars, not escaped
-        json_str = re.sub(r'(?<=:)\s*"([^"]*?)(\n|\r|\t)([^"]*?)"',
-                         lambda m: f': "{m.group(1)}{m.group(2)}{m.group(3)}"',
-                         json_str)
+        # Character-by-character state machine
+        result = []
+        i = 0
+        in_string = False
+        escaped = False
 
-        # Fix 1: Add missing commas between string fields
-        # Pattern: "field": "value" "next_field": -> "field": "value", "next_field":
-        json_str = re.sub(r'"\s+"(\w+)":', r'", "\1":', json_str)
+        while i < len(json_str):
+            char = json_str[i]
 
-        # Fix 1b: Add missing comma after closing brace before field
-        # Pattern: } "next_field": -> }, "next_field":
-        json_str = re.sub(r'}\s+"(\w+)":', r'}, "\1":', json_str)
+            if escaped:
+                # Previous char was backslash, just copy and reset
+                result.append(char)
+                escaped = False
+            elif char == '\\' and in_string:
+                # Backslash inside string - escape it
+                result.append(char)
+                escaped = True
+            elif char == '"':
+                # Toggle string state
+                in_string = not in_string
+                result.append(char)
+            elif in_string:
+                # We're inside a string value
+                if char in ('\n', '\r'):
+                    # Escape raw newlines inside strings
+                    if char == '\n':
+                        result.append('\\n')
+                    else:
+                        result.append('\\r')
+                elif char == '\t':
+                    result.append('\\t')
+                elif char == '\0':
+                    # Remove null bytes
+                    pass
+                else:
+                    result.append(char)
+            else:
+                # Outside string - normal JSON
+                result.append(char)
 
-        # Fix 1c: Add missing comma after closing bracket before field
-        # Pattern: ] "next_field": -> ], "next_field":
-        json_str = re.sub(r']\s+"(\w+)":', r'], "\1":', json_str)
+            i += 1
 
-        # Fix 2: Add missing commas after numbers before string fields
-        # Pattern: "field": 123 "next_field": -> "field": 123, "next_field":
-        json_str = re.sub(r'(\d+)\s+"(\w+)":', r'\1, "\2":', json_str)
+        json_str = ''.join(result)
 
-        # Fix 3: Replace unescaped newlines inside strings with escaped version
-        # Pattern: "text with \n newline inside" -> "text with \\n newline inside"
-        # But only for newlines that are INSIDE strings, not for actual JSON formatting
-        lines = json_str.split('\n')
-        repaired_lines = []
-        for line in lines:
-            # Check if this line looks like it's inside a string value
-            # heuristic: has opening quote after colon but no closing before end
-            if re.search(r':\s*"[^"]*$', line) and not line.rstrip().endswith('"'):
-                # This line is continuation of a string value, escape the content
-                line = re.sub(r'(:\s*")(.+)', lambda m: m.group(1) + m.group(2).replace('\n', '\\n').replace('\r', '\\r'), line)
-            repaired_lines.append(line)
-        json_str = '\n'.join(repaired_lines)
+        # Now apply simple comma fixes (outside string context now)
+        # Fix missing commas between fields (only outside strings)
+        json_str = re.sub(r'(\d+)\s*"(\w+)":\s*', r'\1, "\2": ', json_str)
 
-        # Fix 4: Fix unescaped quotes within string values
-        def escape_internal_quotes(match):
-            content = match.group(1)
-            content = content.replace("\\", "\\\\").replace('"', '\\"')
-            return f'"{content}"'
+        # Fix missing commas after } before "field":
+        json_str = re.sub(r'}\s*"(\w+)":\s*', r'}, "\1": ', json_str)
 
-        json_str = re.sub(
-            r':\s*"([^"\\]*(?:\\.[^"\\]*)*)"', escape_internal_quotes, json_str
-        )
+        # Fix missing commas after ] before "field":
+        json_str = re.sub(r']\s*"(\w+)":\s*', r'], "\1": ', json_str)
 
-        # Fix 5: Close unclosed strings
-        # Find strings that start with " but never close properly
-        json_str = re.sub(
-            r'"([^"\\]*(?:\\.[^"\\]*)*)$',
-            lambda m: f'"{m.group(1)}"' if not m.group(1).endswith('"') else m.group(0),
-            json_str
-        )
+        # Remove trailing commas before closing braces/brackets
+        json_str = re.sub(r',\s*}', '}', json_str)
+        json_str = re.sub(r',\s*]', ']', json_str)
 
-        # Fix 6: Remove trailing commas before closing braces/brackets
-        json_str = re.sub(r",\s*}", "}", json_str)
-        json_str = re.sub(r",\s*]", "]", json_str)
-
-        # Fix 7: Normalize whitespace around colons and commas
-        json_str = re.sub(r"\s*,\s*", ", ", json_str)
-        json_str = re.sub(r"\s*:\s*", ": ", json_str)
+        # Normalize whitespace around colons and commas
+        json_str = re.sub(r'\s*,\s*', ', ', json_str)
+        json_str = re.sub(r'\s*:\s*', ': ', json_str)
 
         return json_str
 
