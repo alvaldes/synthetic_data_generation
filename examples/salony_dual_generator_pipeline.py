@@ -438,7 +438,7 @@ def run_dual_generator_pipeline(
             "judge_score_b_completeness",
             "judge_score_b_feasibility",
             "judge_score_b_format",
-            "judge_score_b_granuylarity",
+            "judge_score_b_granularity",
             # Qualitative feedback
             "judge_strengths_a",
             "judge_weaknesses_a",
@@ -549,17 +549,17 @@ def run_dual_generator_pipeline(
 
         # Show average scores by criteria
         logging.info(f"\n=== AVERAGE SCORES BY CRITERIA (out of 10) ===")
-        criteria = [
-            "coherencia",
-            "completitud",
-            "viabilidad",
-            "formato",
-            "granularidad",
-        ]
-        for criterion in criteria:
+        criteria_display = {
+            "coherence": "Coherencia",
+            "completeness": "Completitud",
+            "feasibility": "Viabilidad",
+            "format": "Formato",
+            "granularity": "Granularidad",
+        }
+        for criterion, display_name in criteria_display.items():
             avg_a = result_df[f"judge_score_a_{criterion}"].mean()
             avg_b = result_df[f"judge_score_b_{criterion}"].mean()
-            logging.info(f"{criterion.capitalize():20s}: A={avg_a:.1f}, B={avg_b:.1f}")
+            logging.info(f"{display_name:20s}: A={avg_a:.1f}, B={avg_b:.1f}")
 
         # Show timing statistics
         logging.info(f"\n=== TIMING STATISTICS (seconds) ===")
