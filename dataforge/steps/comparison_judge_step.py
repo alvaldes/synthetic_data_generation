@@ -365,9 +365,9 @@ class ComparisonJudgeStep(BaseStep):
             breakdown_a = judgment["breakdown_a"]
             breakdown_b = judgment["breakdown_b"]
 
-            # Extract total scores
-            score_a_total = breakdown_a.get("total_score", 0)
-            score_b_total = breakdown_b.get("total_score", 0)
+            # Ensure breakdown structures are valid\nif not isinstance(breakdown_a, dict) or not isinstance(breakdown_b, dict):\n    logging.error("Invalid breakdown structure in judgment!")\n    continue\n# Sanitize total scores
+            score_a_total = breakdown_a.get("total_score", 0) if isinstance(breakdown_a.get("total_score", 0), (int, float)) else 0
+            score_b_total = ensure_scalar(breakdown_b.get("total_score", 0))
 
             # Extract individual criteria scores for A
             score_a_coherence = breakdown_a.get("coherence", 0)
