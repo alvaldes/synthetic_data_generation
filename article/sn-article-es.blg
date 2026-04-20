@@ -20,55 +20,56 @@ Reallocated singl_function (elt_size=4) to 100 items from 50.
 Reallocated singl_function (elt_size=4) to 100 items from 50.
 Reallocated singl_function (elt_size=4) to 100 items from 50.
 Database file #1: sn-bibliography.bib
+Warning--string name "june" is undefined
+--line 733 of file sn-bibliography.bib
 Warning--entry type for "iso29148" isn't style-file defined
---line 789 of file sn-bibliography.bib
+--line 809 of file sn-bibliography.bib
 sn-mathphys-num.bst [2024/07/19 v1.1  bibliography style]
 Reallocated wiz_functions (elt_size=4) to 9000 items from 6000.
 Reallocated singl_function (elt_size=4) to 100 items from 50.
 Warning--to sort, need author or key in pipes_filters
-Warning--to sort, need author or key in prompt_engineering_review
 Reallocated singl_function (elt_size=4) to 100 items from 50.
 Reallocated singl_function (elt_size=4) to 100 items from 50.
 Reallocated singl_function (elt_size=4) to 100 items from 50.
 You've used 47 entries,
             7485 wiz_defined-function locations,
-            1407 strings with 16762 characters,
-and the built_in function-call counts, 446245 in all, are:
-= -- 83017
-> -- 959
-< -- 262
-+ -- 50211
-- -- 349
-* -- 10181
-:= -- 78624
+            1412 strings with 16904 characters,
+and the built_in function-call counts, 449184 in all, are:
+= -- 83342
+> -- 995
+< -- 276
++ -- 50251
+- -- 360
+* -- 10441
+:= -- 79214
 add.period$ -- 47
 call.type$ -- 47
-change.case$ -- 304
-chr.to.int$ -- 503
-cite$ -- 51
-duplicate$ -- 1384
-empty$ -- 6526
-format.name$ -- 910
-if$ -- 115059
+change.case$ -- 305
+chr.to.int$ -- 542
+cite$ -- 49
+duplicate$ -- 1418
+empty$ -- 6724
+format.name$ -- 938
+if$ -- 115686
 int.to.chr$ -- 1
 int.to.str$ -- 82
 missing$ -- 0
-newline$ -- 586
-num.names$ -- 225
-pop$ -- 897
+newline$ -- 593
+num.names$ -- 230
+pop$ -- 911
 preamble$ -- 1
-purify$ -- 210
+purify$ -- 211
 quote$ -- 0
-skip$ -- 50816
+skip$ -- 50978
 stack$ -- 0
-substring$ -- 40536
-swap$ -- 471
-text.length$ -- 543
+substring$ -- 41005
+swap$ -- 498
+text.length$ -- 547
 text.prefix$ -- 0
 top$ -- 1
-type$ -- 1511
-warning$ -- 2
-while$ -- 1050
+type$ -- 1531
+warning$ -- 1
+while$ -- 1073
 width$ -- 0
-write$ -- 879
+write$ -- 886
 (There were 3 warnings)

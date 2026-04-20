@@ -136,7 +136,7 @@ El control de calidad se aborda mediante mecanismos de validación automática.
 LocalLLM-DataForge aplica estrategias de LLM como juez para evaluar las descomposiciones
 de tareas generadas. Se consideran dos enfoques de evaluación, el primero
 se basa en un único generador y evalúa sus salidas a partir de criterios de calidad
-explícitos (i.e., claridad, atomicidad, coherencia lógica, relevancia y completitud) \cite{chiang2023}.
+explícitos (i.e., coherencia, completitud, viabilidad, formato y granularidad) \cite{chiang2023}.
 El segundo compara las salidas producidas por múltiples generadores y selecciona la
 descomposición más adecuada. Esta estrategia comparativa aprovecha principios de
 consenso que han demostrado mejorar la fiabilidad y reducir errores semánticos en las
@@ -285,13 +285,13 @@ Es por esto que el diseño de prompts en LocalLLM-DataForge no se limita a una t
 \section{Marco Metodológico}\label{sec4}
 %TODO: Desarrollar la validación humana. Cuando se tenga, mencionar que evaluadores humanos revisaron una muestra representativa, especificar: por ejemplo, perfil de los evaluadores, métricas de acuerdo (e.g., Cohen's Kappa) y hallazgos.
 
-La herramienta LocalLLM-DataForge se empleó para diseñar y ejecutar un estudio exploratorio de carácter experimental orientado a evaluar la viabilidad de la descomposición sintética automática de historias de usuario mediante modelos de lenguaje ejecutados localmente. El objetivo principal del experimento no fue entrenar modelos predictivos, sino analizar la capacidad generativa de distintos modelos LLMs y la efectividad de un esquema de evaluación automatizado basado en el paradigma \textit{LLM-as-a-Judge}.
+La herramienta LocalLLM-DataForge se empleó para diseñar y ejecutar un estudio exploratorio orientado a evaluar la viabilidad de la descomposición sintética automática de historias de usuario mediante modelos de lenguaje ejecutados localmente. El objetivo principal del experimento fue analizar la capacidad generativa de distintos modelos LLMs y la efectividad de un esquema de evaluación automatizado basado en el paradigma \textit{LLM-as-a-Judge}.
 
 El entorno experimental consistió en un equipo Apple con chip M2 (8 núcleos de CPU) y 16 GB de memoria RAM, ejecutando Python v3.13.7. Se utilizó Ollama v0.16.1 como plataforma de orquestación para la ejecución local de los modelos. Todo el procesamiento se realizó en este entorno, garantizando control sobre las condiciones de ejecución y permitiendo la replicabilidad de los experimentos bajo configuraciones equivalentes.
 
-El conjunto de datos base empleado fue Salony\footnote{Salony: User Story Dataset disponible en Hugging Face, \url{https://huggingface.co/datasets/salony/User_story}.}, el cual contiene originalmente 1,999 historias de usuario. Con el fin de asegurar consistencia estructural, se realizó un proceso de filtrado en el que únicamente se conservaron aquellas historias que cumplían con la estructura canónica \textit{“As a(n) [role], I want [feature] so that [benefit]”}. Como resultado, el conjunto final quedó conformado por 1,139 historias de usuario, las cuales fueron utilizadas como entrada para el proceso de generación sintética.
+El conjunto de datos base empleado fue Salony\footnote{Salony: User Story Dataset disponible en Hugging Face, \url{https://huggingface.co/datasets/salony/User_story}.}, el cual contiene originalmente 1,998 historias de usuario. Con el fin de asegurar consistencia estructural, se realizó un proceso de filtrado en el que únicamente se conservaron aquellas historias que cumplían con la estructura canónica \textit{“As a(n) [role], I want [feature] so that [benefit]”}. Como resultado, el conjunto final quedó conformado por 1,139 historias de usuario, las cuales fueron utilizadas como entrada para el proceso de generación sintética.
 
-El diseño experimental se estructuró en torno a la comparación de dos configuraciones de generación. La variable independiente estuvo definida por el modelo y los parámetros de generación utilizados, mientras que la variable dependiente correspondió a la calidad de las descomposiciones generadas. En particular, se configuraron dos generadores con características contrastantes: un modelo con baja temperatura orientado a producir salidas más deterministas, y un modelo con mayor temperatura orientado a fomentar diversidad y creatividad en la generación. Esta configuración permitió analizar diferencias cualitativas en los patrones de descomposición obtenidos.
+En particular, se configuraron dos generadores con características contrastantes: un modelo con baja temperatura orientado a producir salidas más deterministas, y un modelo con mayor temperatura orientado a fomentar diversidad y creatividad en la generación. Esta configuración permitió analizar diferencias cualitativas en los patrones de descomposición obtenidos.
 
 Cada historia de usuario fue procesada por ambos generadores, produciendo dos conjuntos independientes de tareas. Estas salidas fueron posteriormente evaluadas mediante un esquema automatizado basado en el paradigma \textit{LLM-as-a-Judge}, en el cual un modelo de lenguaje actúa como evaluador de la calidad de artefactos generados. Este enfoque ha sido recientemente propuesto como una alternativa escalable a la evaluación manual, permitiendo realizar juicios contextuales sobre tareas complejas donde las métricas tradicionales resultan insuficientes \cite{llm_judge_frontiers_2025}.
 
@@ -303,9 +303,8 @@ La selección y definición de estos criterios se fundamenta en los principios d
 
 Este tipo de evaluación estructurada es consistente tanto con estándares consolidados como con enfoques recientes que destacan la necesidad de considerar la ambigüedad inherente en tareas subjetivas y su impacto en la validación de sistemas LLM-as-a-Judge \cite{guerdan2025llmjudge}.
 
-Se estableció un umbral de aprobación de 35 puntos, 70\% del máximo, considerando que este valor representa un nivel aceptable de cumplimiento de los criterios definidos. La definición de este umbral se fundamenta en el concepto de \textit{decision threshold}, el cual se utiliza ampliamente en distintos dominios para determinar el punto a partir del cual una alternativa es considerada suficientemente adecuada para ser aceptada. En este sentido, la literatura destaca que la selección de un umbral implica un balance entre beneficios y costos esperados, así como un criterio explícito para la toma de decisiones \cite{thresholddecision}.
-
-Asimismo, valores cercanos al 70\% han sido empleados como referencia práctica de aceptabilidad en distintos contextos de evaluación, al representar un nivel significativamente superior al azar o a la media, pero sin imponer requisitos excesivamente restrictivos que limiten la variabilidad de los resultados \cite{threshold70}. En este contexto, el umbral definido permite discriminar entre descomposiciones que cumplen de manera suficiente con los criterios establecidos y aquellas que requieren mejoras.
+Se estableció un umbral de aprobación de 35 puntos, 70\% del máximo, considerando que este valor representa un nivel aceptable de cumplimiento de los criterios definidos.
+Valores cercanos al 70\% han sido empleados como referencia práctica de aceptabilidad en distintos contextos de evaluación, al representar un nivel significativamente superior al azar o a la media, pero sin imponer requisitos excesivamente restrictivos que limiten la variabilidad de los resultados \cite{threshold70}. En este contexto, el umbral definido permite discriminar entre descomposiciones que cumplen de manera suficiente con los criterios establecidos y aquellas que requieren mejoras.
 
 Además de la puntuación total, el sistema registró métricas parciales y un indicador binario de aprobación para cada instancia, lo que permitió realizar análisis comparativos entre los generadores y facilitar la interpretación de los resultados en términos de desempeño relativo.
 
@@ -314,97 +313,112 @@ Dado que estudios recientes han señalado posibles sesgos y limitaciones en esqu
 
 El procedimiento experimental se ejecutó en múltiples iteraciones, variando configuraciones de prompts y parámetros con el objetivo de analizar la estabilidad de los resultados. Las salidas generadas y las métricas de evaluación fueron almacenadas de manera estructurada, permitiendo su análisis posterior y facilitando la trazabilidad completa del proceso experimental.
 
-Este enfoque metodológico permite no solo estructurar el proceso de generación y evaluación de artefactos, sino también establecer una base sistemática para la comparación de configuraciones de modelos bajo condiciones controladas. Siendo así que proporciona un marco experimental reproducible para analizar la viabilidad del uso de modelos de lenguaje en la descomposición de artefactos de ingeniería de requisitos.
-
 \section{Resultados}\label{sec5}
 % TODO: incluir tablas con estadísticos descriptivos por generador y por criterio.
 
-Con el objetivo de evaluar el comportamiento del \textit{framework} propuesto bajo distintas configuraciones de modelos de lenguaje, se diseñaron cuatro pruebas experimentales independientes. Cada prueba se estructuró en torno a la comparación entre dos modelos generadores de descomposiciones de historias de usuario (G1 y G2), junto con un modelo evaluador que actuó bajo el paradigma \textit{LLM-as-a-Judge}.
+Con el objetivo de evaluar el comportamiento del \textit{framework} propuesto bajo distintas configuraciones de modelos de lenguaje, se diseñó una prueba experimental en torno a la comparación entre dos modelos generadores de descomposiciones de historias de usuario (G1 y G2), junto con un modelo evaluador que actuó bajo el paradigma \textit{LLM-as-a-Judge}.
 
-En cada configuración, ambos generadores procesaron el mismo conjunto de historias de usuario, produciendo descomposiciones alternativas para cada instancia. Posteriormente, el modelo evaluador analizó ambas salidas y asignó puntuaciones en los cinco criterios de calidad: coherencia, completitud, viabilidad, formato y granularidad, conforme a la metodología descrita en la Sección~\ref{sec4}. Adicionalmente, el evaluador determinó un ganador entre las dos alternativas, permitiendo no solo un análisis cuantitativo basado en puntuaciones, sino también una comparación directa entre modelos.
+Las configuraciones evaluadas consideran modelos de diferentes familias, tamaños y arquitecturas, con el fin de analizar su impacto en la generación y evaluación de descomposiciones de historias de usuario. La Tabla~\ref{tab:model_configs} muestra las combinaciones utilizadas en cada prueba, ... incluyendo los modelos generadores y el modelo evaluador correspondiente, lo que permite analizar tanto el efecto de los generadores como del modelo juez.
+
+\begin{table}[h]
+\centering
+\caption{Configuraciones de modelos evaluadas en las pruebas experimentales}
+\label{tab:model_configs}
+\begin{tabular}{lcccc}
+\toprule
+Test & Rol & Modelo & Arquitectura & Tamaño \\
+\midrule
+\multirow{3}{*}{Test 1} 
+& G1 & Llama 3.1 & Transformer (decoder) & 8B \\
+& G2 & Mistral & Transformer (decoder) & 7B \\
+& Judge & Qwen 3 & Transformer (decoder) & 14B \\
+\midrule
+\multirow{3}{*}{Test 2} 
+& G1 & Qwen 3 & Transformer (decoder) & 8B \\
+& G2 & Gemma 4 (E4B) & Transformer (decoder) & 4B \\
+& Judge & Qwen 2.5 & Transformer (decoder) & 14B \\
+\midrule
+\multirow{3}{*}{Test 3} 
+& G1 & Gemma 3 & Transformer (decoder) & 12B \\
+& G2 & Mistral Nemo & Transformer (decoder) & 12B \\
+& Judge & Qwen 3 & Transformer (decoder) & 14B \\
+\midrule
+\multirow{3}{*}{Test 4} 
+& G1 & Qwen 3 & Transformer (decoder) & 14B \\
+& G2 & Phi-4 & Transformer (decoder) & 14B \\
+& Judge & GPT-OSS & Transformer (decoder) & 20B \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+En cada configuración, ambos generadores procesaron el mismo conjunto de historias de usuario, produciendo descomposiciones alternativas para cada instancia. No obstante, del conjunto original de 1998 historias de usuario, únicamente 1139 fueron utilizadas en las pruebas experimentales, ya que el resto no cumplía con la estructura esperada del tipo \textit{“As a(n) [role], I want [feature] so that [benefit]”}. Este filtrado permitió garantizar la consistencia en la entrada de los modelos y la validez de la evaluación.
+
+Posteriormente, el modelo evaluador analizó ambas salidas y asignó puntuaciones en los cinco criterios de calidad: coherencia, completitud, viabilidad, formato y granularidad, conforme a la metodología descrita en la Sección~\ref{sec4}. Adicionalmente, el evaluador determinó un ganador entre las dos alternativas, permitiendo no solo un análisis cuantitativo basado en puntuaciones, sino también una comparación directa entre modelos.
 
 Las cuatro pruebas se diseñaron variando tanto los modelos generadores como el modelo evaluador, con el fin de analizar el impacto de estas configuraciones en la calidad de las descomposiciones generadas. En particular, se consideraron modelos con diferentes tamaños, arquitecturas y configuraciones de generación, lo que permitió observar comportamientos contrastantes en términos de consistencia, diversidad y alineación con los criterios de evaluación.
 
 Para cada prueba se calcularon métricas agregadas, incluyendo puntuación promedio, desviación estándar, tasa de aprobación (definida como el porcentaje de instancias que superan el umbral de calidad establecido) y tasa de victoria en comparaciones directas. Asimismo, se realizó un análisis desagregado por criterio, con el objetivo de identificar fortalezas y debilidades específicas en las descomposiciones generadas por cada modelo.
 
-Finalmente, los resultados se analizan tanto a nivel individual por prueba como de manera comparativa entre configuraciones, permitiendo evaluar patrones consistentes, posibles sesgos del modelo evaluador y diferencias entre evaluación cuantitativa y selección directa del mejor resultado.
+Con el objetivo de identificar patrones consistentes en el comportamiento de los modelos evaluados, se realizó un análisis comparativo considerando de manera conjunta los resultados de las pruebas experimentales. Este enfoque permite observar tendencias globales en términos de desempeño, estabilidad y comportamiento relativo entre modelos.
 
-\subsubsection{Test 1: Llama 3.1 8B vs Mistral 7B (Juez Qwen3 14B)}
-
-Esta prueba compara el desempeño de los modelos llama3.1:8b (G1) y mistral:7b (G2) en la generación de descomposiciones de historias de usuario, utilizando qwen3:14b como modelo evaluador bajo el esquema \textit{LLM-as-a-Judge}.
-
-\paragraph{Resultados agregados}
+La Tabla~\ref{tab:global_results} presenta las métricas agregadas para cada prueba, incluyendo puntuación promedio (\textit{Mean}), desviación estándar (\textit{Std}), tasa de aprobación (\textit{Pass}) y tasa de victoria en comparaciones directas (\textit{Win}).
 
 \begin{table}[h]
 \centering
-\caption{Resultados agregados del Test 1}
-\begin{tabular}{lcc}
+\caption{Resultados agregados por prueba}
+\label{tab:global_results}
+\begin{tabular}{lcccccccc}
 \toprule
-Métrica & G1 (Llama 3.1 8B) & G2 (Mistral 7B) \\
+Test & G1 Mean & G1 Std & G1 Pass & G2 Mean & G2 Std & G2 Pass & G1 Win & G2 Win \\
 \midrule
-Puntuación promedio & 33.39 & 33.81 \\
-Desviación estándar & 9.19 & 9.94 \\
-Tasa de aprobación (\%) & 46.36 & 46.80 \\
-Tasa de victoria (\%) & 74.45 & 25.55 \\
+Test 2 & 35.70 & 9.88 & 55.22 & 35.95 & 10.26 & 55.22 & 72.78 & 27.22 \\
+Test 3 & 35.70 & 9.88 & 55.22 & 35.95 & 10.26 & 55.22 & 72.78 & 27.22 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-Los resultados muestran que ambos modelos presentan un desempeño global muy similar en términos de puntuación promedio (33.39 vs 33.81) y tasa de aprobación (46.36\% vs 46.80\%). Asimismo, las desviaciones estándar relativamente altas (9.19 y 9.94) indican una variabilidad considerable en la calidad de las descomposiciones generadas, lo cual sugiere que ambos modelos producen resultados heterogéneos dependiendo de la historia de usuario procesada.
+Los resultados muestran una alta consistencia entre las pruebas consideradas. En particular, las puntuaciones promedio de ambos modelos son prácticamente equivalentes en todos los casos, con diferencias mínimas. De manera similar, las tasas de aprobación coinciden entre modelos dentro de cada prueba, lo que indica un nivel de desempeño global comparable. En contraste, la tasa de victoria presenta un patrón diferenciado, donde G1 es seleccionado como mejor alternativa en aproximadamente el 73\% de los casos en ambas pruebas.
 
-No obstante, se observa una diferencia significativa en la tasa de victoria, donde Llama 3.1 8B es seleccionado como mejor alternativa en el 74.45\% de los casos, a pesar de no presentar una ventaja clara en las métricas cuantitativas. Esta discrepancia evidencia una divergencia entre la evaluación basada en puntuaciones agregadas y la decisión comparativa del modelo evaluador.
+\begin{figure}[H]
+\centering
+\includegraphics[width=310]{images/total_score_distribution.png}
+\caption{Distribución de puntuaciones totales por prueba y modelo.}
+\label{fig:global_boxplot}
+\end{figure}
 
-\paragraph{Análisis por criterio}
-% claridad, atomicidad, coherencia lógica, relevancia y completitud)
-% coherencia, completitud, viabilidad, formato y granularidad
+La Figura~\ref{fig:global_boxplot} muestra la distribución de puntuaciones totales para cada modelo en las distintas pruebas. Estas presentan un alto grado de solapamiento entre modelos en todas las pruebas, lo que refleja la similitud en sus desempeños globales. Asimismo, se observa una dispersión considerable en las puntuaciones, evidenciada por la amplitud de los rangos intercuartílicos y la extensión de los valores extremos, lo que indica variabilidad en la calidad de las descomposiciones generadas.
+
+
+En la Tabla~\ref{tab:global_criteria} se presentan las puntuaciones promedio por criterio para cada prueba.
 
 \begin{table}[h]
 \centering
-\caption{Puntuación promedio por criterio en el Test 1}
-\begin{tabular}{lcc}
+\caption{Puntuación promedio por criterio en las pruebas}
+\label{tab:global_criteria}
+\begin{tabular}{lcccc}
 \toprule
-Criterio & G1 (Llama 3.1 8B) & G2 (Mistral 7B) \\
+Criterio & Test 2 (G1) & Test 2 (G2) & Test 3 (G1) & Test 3 (G2) \\
 \midrule
-Completitud & 4.09 & 4.11 \\
-Claridad & 4.08 & 4.15 \\
-Accionabilidad & 3.88 & 4.07 \\
-Estructura lógica & 4.12 & 3.92 \\
-Granularidad & 3.61 & 3.84 \\
+Coherencia     & 4.92 & 4.79 & 4.92 & 4.79 \\
+Completitud    & 4.57 & 4.88 & 4.57 & 4.88 \\
+Viabilidad     & 4.97 & 4.94 & 4.97 & 4.94 \\
+Formato        & 5.26 & 5.26 & 5.26 & 5.26 \\
+Granularidad   & 4.47 & 4.57 & 4.47 & 4.57 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-El análisis por criterio permite profundizar en esta diferencia. Mistral 7B obtiene puntuaciones ligeramente superiores en completitud, claridad, accionabilidad y granularidad, lo que sugiere una tendencia hacia descomposiciones más completas, detalladas y orientadas a la ejecución. En contraste, Llama 3.1 8B presenta una ventaja en el criterio de estructura lógica (4.12 vs 3.92), indicando una mejor organización interna y coherencia estructural en las tareas generadas.
+El análisis por criterio muestra valores muy cercanos entre modelos en todas las dimensiones evaluadas. En coherencia y viabilidad, G1 presenta puntuaciones ligeramente superiores, mientras que en completitud y granularidad G2 obtiene valores mayores. En el criterio de formato, ambos modelos alcanzan prácticamente el mismo nivel. Estas diferencias se mantienen constantes entre las pruebas analizadas.
 
-Estos resultados sugieren que el modelo evaluador podría estar asignando un mayor peso implícito a la estructura lógica de las descomposiciones al momento de seleccionar un ganador, incluso cuando otros criterios presentan valores inferiores. Este comportamiento es consistente con observaciones recientes en el paradigma \textit{LLM-as-a-Judge}, donde los modelos evaluadores no necesariamente siguen una agregación estrictamente lineal de los criterios definidos, sino que incorporan juicios globales basados en la calidad percibida de las salidas.
-
-\begin{figure}[h]
-\centering
-\includegraphics[width=\columnwidth]{images/barplot_criteria_test1.png}
-\caption{Comparación de puntuaciones promedio por criterio entre ambos modelos en el Test 1.}
-\label{fig:test1_criteria}
-\end{figure}
-
-La Figura~\ref{fig:test1_criteria} confirma visualmente que las diferencias entre modelos son relativamente pequeñas en la mayoría de los criterios, aunque se observa una ligera ventaja de Mistral 7B en aspectos relacionados con la claridad y la accionabilidad, mientras que Llama 3.1 8B destaca en estructura lógica.
+La Figura~\ref{fig:global_criteria_plot} muestra la comparación de los criterios, lo que confirma que las diferencias entre modelos son reducidas y consistentes entre pruebas. Esto no permite observar una dominación clara de alguno de los modelos sobre los otros en los criterios evaluados. En conjunto, los resultados muestran que ambos modelos presentan comportamientos similares en términos de desempeño global, con variaciones pequeñas pero sistemáticas en criterios específicos y en la selección del mejor resultado.
 
 \begin{figure}[h]
 \centering
-\includegraphics[width=\columnwidth]{images/boxplot_scores_test1.png}
-\caption{Distribución de puntuaciones totales para ambos modelos en el Test 1.}
-\label{fig:test1_boxplot}
+\includegraphics[width=\columnwidth]{images/criterion_comparison_all.png}
+\caption{Comparación de criterios por prueba y modelo.}
+\label{fig:global_criteria_plot}
 \end{figure}
 
-Por otro lado, la Figura~\ref{fig:test1_boxplot} muestra que las distribuciones de puntuaciones de ambos modelos presentan un alto grado de solapamiento, lo que indica que sus desempeños son comparables en términos globales. No obstante, se observa una mayor dispersión en las puntuaciones de Mistral 7B, lo cual sugiere una mayor variabilidad en la calidad de sus salidas.
-
-% \paragraph{Discusión de resultados}
-
-Los resultados del Test 1 revelan una discrepancia clara entre las métricas cuantitativas agregadas y la decisión comparativa del modelo evaluador. Aunque ambos modelos presentan puntuaciones promedio y tasas de aprobación prácticamente equivalentes, la tasa de victoria favorece de manera significativa a Llama 3.1 8B.
-
-Este comportamiento sugiere que el modelo evaluador no opera únicamente mediante una agregación lineal de los criterios definidos, sino que incorpora juicios comparativos globales al momento de seleccionar la mejor descomposición. En particular, el análisis por criterio indica que Llama 3.1 8B presenta una ventaja en estructura lógica, mientras que Mistral 7B obtiene mejores resultados en criterios como claridad, accionabilidad y granularidad.
-
-La preferencia sistemática por Llama 3.1 8B sugiere la existencia de un peso implícito diferencial asignado a la estructura lógica dentro del proceso de evaluación, lo que indica que la coherencia organizativa de las tareas puede influir de manera desproporcionada en la decisión final del evaluador.
-
-En conjunto, estos resultados evidencian que la evaluación basada en \textit{LLM-as-a-Judge} puede capturar dimensiones cualitativas que no se reflejan completamente en las métricas numéricas. Asimismo, resaltan la importancia de combinar análisis cuantitativos con comparaciones directas entre modelos, ya que ambos enfoques pueden conducir a interpretaciones diferentes sobre el desempeño de los sistemas evaluados.
 
 
 \section{Discusión}\label{sec6}

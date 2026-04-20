@@ -421,12 +421,19 @@ arXiv preprint arXiv:2407.12994
 \endbibitem
 
 %%% 34
-\bibitem[\protect\citeauthoryear{}{2023}]{prompt_engineering_review}
-\begin{botherref}
-Unleashing the potential of prompt engineering for large language models.
-arXiv preprint arXiv:2310.14735
-(2023)
-\end{botherref}
+\bibitem[\protect\citeauthoryear{Chen et~al.}{2025}]{prompt_engineering_review}
+\begin{barticle}
+\bauthor{\bsnm{Chen}, \binits{B.}},
+\bauthor{\bsnm{Zhang}, \binits{Z.}},
+\bauthor{\bsnm{Langrené}, \binits{N.}},
+\bauthor{\bsnm{Zhu}, \binits{S.}}:
+\batitle{Unleashing the potential of prompt engineering for large language models}.
+\bjtitle{Patterns}
+\bvolume{6}(\bissue{6}),
+\bfpage{101260}
+(\byear{2025})
+\doiurl{10.1016/j.patter.2025.101260}
+\end{barticle}
 \endbibitem
 
 %%% 35

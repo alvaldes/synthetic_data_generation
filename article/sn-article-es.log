@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.29 (TeX Live 2026) (preloaded format=pdflatex 2026.3.15)  13 APR 2026 15:49
+This is pdfTeX, Version 3.141592653-2.6-1.40.29 (TeX Live 2026) (preloaded format=pdflatex 2026.3.15)  20 APR 2026 15:45
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -744,7 +744,7 @@ Underfull \vbox (badness 10000) has occurred while \output is active []
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
  [5]
-<images/diagram_es.png, id=156, 555.07375pt x 418.56375pt>
+<images/diagram_es.png, id=144, 555.07375pt x 418.56375pt>
 File: images/diagram_es.png Graphic file (type png)
 <use images/diagram_es.png>
 Package pdftex.def Info: images/diagram_es.png  used on input line 230.
@@ -776,76 +776,95 @@ Underfull \vbox (badness 10000) has occurred while \output is active []
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
  [12]
+LaTeX Font Info:    Calculating math sizes for size <8.03> on input line 327.
 
-Package hyperref Warning: Difference (2) between bookmark levels is greater 
-(hyperref)                than one, level fixed on input line 332.
+
+LaTeX Font Warning: Font shape `U/rsfs/m/n' in size <4.015> not available
+(Font)              size <5> substituted on input line 327.
 
 
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
- [13]
+ [13
+pdfTeX warning (ext4): destination with the same identifier (name{table.1}) has been already used, duplicate ignored
+<argument> ...shipout:D \box_use:N \l_shipout_box 
+                                                  \__shipout_drop_firstpage_...
+l.359 
+      ]
+Overfull \hbox (1.14398pt too wide) in paragraph at lines 366--378
+ [] 
+ []
 
-Package hyperref Warning: Difference (2) between bookmark levels is greater 
-(hyperref)                than one, level fixed on input line 336.
+<images/total_score_distribution.png, id=239, 462.528pt x 346.896pt>
+./sn-article-es.tex:384: Illegal unit of measure (pt inserted).
+<to be read again> 
+                   \relax 
+l.384 ...310]{images/total_score_distribution.png}
+                                                  
+Dimensions can be in units of em, ex, in, pt, pc,
+cm, mm, dd, cc, nd, nc, bp, or sp; but yours is a new one!
+I'll assume that you meant to say pt, for printer's points.
+To recover gracefully from this error, it's best to
+delete the erroneous units; e.g., type `2' to delete
+two letters. (See Chapter 27 of The TeXbook.)
 
-LaTeX Font Info:    Calculating math sizes for size <8.03> on input line 341.
+./sn-article-es.tex:384: Illegal unit of measure (pt inserted).
+<to be read again> 
+                   \relax 
+l.384 ...310]{images/total_score_distribution.png}
+                                                  
+Dimensions can be in units of em, ex, in, pt, pc,
+cm, mm, dd, cc, nd, nc, bp, or sp; but yours is a new one!
+I'll assume that you meant to say pt, for printer's points.
+To recover gracefully from this error, it's best to
+delete the erroneous units; e.g., type `2' to delete
+two letters. (See Chapter 27 of The TeXbook.)
 
-LaTeX Font Warning: Font shape `U/rsfs/m/n' in size <4.015> not available
-(Font)              size <5> substituted on input line 341.
-
+File: images/total_score_distribution.png Graphic file (type png)
+<use images/total_score_distribution.png>
+Package pdftex.def Info: images/total_score_distribution.png  used on input line 384.
+(pdftex.def)             Requested size: 310.0pt x 232.50908pt.
 
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
  [14
-pdfTeX warning (ext4): destination with the same identifier (name{table.1}) has been already used, duplicate ignored
-<argument> ...shipout:D \box_use:N \l_shipout_box 
-                                                  \__shipout_drop_firstpage_...
-l.379 E
-       stos resultados sugieren que el modelo evaluador podría estar asigna...
 pdfTeX warning (ext4): destination with the same identifier (name{table.2}) has been already used, duplicate ignored
 <argument> ...shipout:D \box_use:N \l_shipout_box 
                                                   \__shipout_drop_firstpage_...
-l.379 E
-       stos resultados sugieren que el modelo evaluador podría estar asigna...]
-<images/barplot_criteria_test1.png, id=258, 462.528pt x 346.896pt>
-File: images/barplot_criteria_test1.png Graphic file (type png)
-<use images/barplot_criteria_test1.png>
-Package pdftex.def Info: images/barplot_criteria_test1.png  used on input line 383.
-(pdftex.def)             Requested size: 372.0pt x 279.01514pt.
-<images/boxplot_scores_test1.png, id=261, 462.528pt x 346.896pt>
-File: images/boxplot_scores_test1.png Graphic file (type png)
-<use images/boxplot_scores_test1.png>
-Package pdftex.def Info: images/boxplot_scores_test1.png  used on input line 392.
-(pdftex.def)             Requested size: 372.0pt x 279.01514pt.
-
-
-LaTeX Warning: `h' float specifier changed to `ht'.
-
-
+l.388 
+      ]
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
  [15
 pdfTeX warning (ext4): destination with the same identifier (name{figure.2}) has been already used, duplicate ignored
 <argument> ...shipout:D \box_use:N \l_shipout_box 
                                                   \__shipout_drop_firstpage_...
-l.401 L
-       os resultados del Test 1 revelan una discrepancia clara entre las mé... <./images/barplot_criteria_test1.png>]
+l.414 
+      
+pdfTeX warning (ext4): destination with the same identifier (name{table.3}) has been already used, duplicate ignored
+<argument> ...shipout:D \box_use:N \l_shipout_box 
+                                                  \__shipout_drop_firstpage_...
+l.414 
+       <./images/total_score_distribution.png>]
+<images/criterion_comparison_all.png, id=256, 567.3195pt x 426.1521pt>
+File: images/criterion_comparison_all.png Graphic file (type png)
+<use images/criterion_comparison_all.png>
+Package pdftex.def Info: images/criterion_comparison_all.png  used on input line 417.
+(pdftex.def)             Requested size: 372.0pt x 279.43402pt.
+
+
+Package hyperref Warning: Difference (4) between bookmark levels is greater 
+(hyperref)                than one, level fixed on input line 440.
+
+
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
  [16
 pdfTeX warning (ext4): destination with the same identifier (name{figure.3}) has been already used, duplicate ignored
 <argument> ...shipout:D \box_use:N \l_shipout_box 
                                                   \__shipout_drop_firstpage_...
-l.410 \section
-              {Discusión}\label{sec6} <./images/boxplot_scores_test1.png>]
-
-Package hyperref Warning: Difference (4) between bookmark levels is greater 
-(hyperref)                than one, level fixed on input line 426.
-
-
-Underfull \vbox (badness 10000) has occurred while \output is active []
-
- [17] (./sn-article-es.bbl
+l.452 \newpage
+               <./images/criterion_comparison_all.png>] (./sn-article-es.bbl
 Underfull \hbox (badness 1259) in paragraph at lines 79--87
 []\OT1/cmr/m/n/10 Schwaber, K., Suther-land, J.: The Scrum Guide. [][]$https : / / scrumguides . org$[][].
  []
@@ -853,16 +872,16 @@ Underfull \hbox (badness 1259) in paragraph at lines 79--87
 
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
+ [17]
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
  [18]
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
- [19]
+ [19])
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
- [20])
-Underfull \vbox (badness 10000) has occurred while \output is active []
-
- [21] (./sn-article-es.aux)
+ [20] (./sn-article-es.aux)
  ***********
 LaTeX2e <2025-11-01>
 L3 programming layer <2026-01-19>
@@ -873,21 +892,21 @@ LaTeX Font Warning: Size substitutions with differences
 (Font)              up to 0.985pt have occurred.
 
 Package rerunfilecheck Info: File `sn-article-es.out' has not changed.
-(rerunfilecheck)             Checksum: CC4F21E135C8F257B5B27F2812356A07;2573.
+(rerunfilecheck)             Checksum: C54861209DD4C676CFECF5B33BEE9B4F;1886.
  ) 
 Here is how much of TeX's memory you used:
- 14750 strings out of 467525
- 226172 string characters out of 5418982
- 648775 words of memory out of 5000000
+ 14746 strings out of 467525
+ 226177 string characters out of 5418982
+ 650938 words of memory out of 5000000
  43332 multiletter control sequences out of 15000+600000
- 653324 words of font info for 140 fonts, out of 8000000 for 9000
+ 652965 words of font info for 139 fonts, out of 8000000 for 9000
  1151 hyphenation exceptions out of 8191
- 90i,11n,93p,1685b,710s stack positions out of 10000i,1000n,20000p,200000b,200000s
-</usr/local/texlive/2026/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb></usr/local/texlive/2026/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb></usr/local/texlive/2026/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx8.pfb></usr/local/texlive/2026/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx9.pfb></usr/local/texlive/2026/texmf-dist/fonts/type1/public/amsfonts/cm/cmbxti10.pfb></usr/local/texlive/2026/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/local/texlive/2026/texmf-dist/fonts/type1/public/amsfonts/cm/cmr12.pfb></usr/local/texlive/2026/texmf-dist/fonts/type1/public/amsfonts/cm/cmr17.pfb></usr/local/texlive/2026/texmf-dist/fonts/type1/public/amsfonts/cm/cmr5.pfb></usr/local/texlive/2026/texmf-dist/fonts/type1/public/amsfonts/cm/cmr7.pfb></usr/local/texlive/2026/texmf-dist/fonts/type1/public/amsfonts/cm/cmr8.pfb></usr/local/texlive/2026/texmf-dist/fonts/type1/public/amsfonts/cm/cmr9.pfb></usr/local/texlive/2026/texmf-dist/fonts/type1/public/amsfonts/cm/cmti10.pfb></usr/local/texlive/2026/texmf-dist/fonts/type1/public/amsfonts/cm/cmti9.pfb></usr/local/texlive/2026/texmf-dist/fonts/type1/public/amsfonts/cm/cmtt10.pfb>
-Output written on sn-article-es.pdf (21 pages, 433516 bytes).
+ 90i,12n,93p,1685b,708s stack positions out of 10000i,1000n,20000p,200000b,200000s
+</usr/local/texlive/2026/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb></usr/local/texlive/2026/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb></usr/local/texlive/2026/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx8.pfb></usr/local/texlive/2026/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx9.pfb></usr/local/texlive/2026/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/local/texlive/2026/texmf-dist/fonts/type1/public/amsfonts/cm/cmr12.pfb></usr/local/texlive/2026/texmf-dist/fonts/type1/public/amsfonts/cm/cmr17.pfb></usr/local/texlive/2026/texmf-dist/fonts/type1/public/amsfonts/cm/cmr5.pfb></usr/local/texlive/2026/texmf-dist/fonts/type1/public/amsfonts/cm/cmr7.pfb></usr/local/texlive/2026/texmf-dist/fonts/type1/public/amsfonts/cm/cmr8.pfb></usr/local/texlive/2026/texmf-dist/fonts/type1/public/amsfonts/cm/cmr9.pfb></usr/local/texlive/2026/texmf-dist/fonts/type1/public/amsfonts/cm/cmti10.pfb></usr/local/texlive/2026/texmf-dist/fonts/type1/public/amsfonts/cm/cmti9.pfb></usr/local/texlive/2026/texmf-dist/fonts/type1/public/amsfonts/cm/cmtt10.pfb>
+Output written on sn-article-es.pdf (20 pages, 437948 bytes).
 PDF statistics:
- 398 PDF objects out of 1000 (max. 8388607)
- 335 compressed objects within 4 object streams
- 94 named destinations out of 1000 (max. 500000)
- 144 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 382 PDF objects out of 1000 (max. 8388607)
+ 322 compressed objects within 4 object streams
+ 91 named destinations out of 1000 (max. 500000)
+ 120 words of extra memory for PDF output out of 10000 (max. 10000000)
 
