@@ -366,7 +366,16 @@ class ComparisonJudgeStep(BaseStep):
             breakdown_b = judgment["breakdown_b"]
 
             # Ensure breakdown structures are valid\nif not isinstance(breakdown_a, dict) or not isinstance(breakdown_b, dict):\n    logging.error("Invalid breakdown structure in judgment!")\n    continue\n# Sanitize total scores
-            score_a_total = breakdown_a.get("total_score", 0) if isinstance(breakdown_a.get("total_score", 0), (int, float)) else 0
+            score_a_total = ensure_scalar(breakdown_a.get("total_score", 0))
+            def ensure_scalar(value):
+    """
+    Ensure the value is scalar (either int or float). If not, default to 0.
+    """
+    if not isinstance(value, (int, float)):
+        logging.warning(f"ensure_scalar encountered non-scalar value: {value}")
+        return 0
+    return value
+
             score_b_total = ensure_scalar(breakdown_b.get("total_score", 0))
 
             # Extract individual criteria scores for A
