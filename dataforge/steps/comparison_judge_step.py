@@ -162,7 +162,7 @@ class ComparisonJudgeStep(BaseStep):
                 # Previous char was backslash, just copy and reset
                 result.append(char)
                 escaped = False
-            elif char == '\\' and in_string:
+            elif char == "\\" and in_string:
                 # Backslash inside string - escape it
                 result.append(char)
                 escaped = True
@@ -172,15 +172,15 @@ class ComparisonJudgeStep(BaseStep):
                 result.append(char)
             elif in_string:
                 # We're inside a string value
-                if char in ('\n', '\r'):
+                if char in ("\n", "\r"):
                     # Escape raw newlines inside strings
-                    if char == '\n':
-                        result.append('\\n')
+                    if char == "\n":
+                        result.append("\\n")
                     else:
-                        result.append('\\r')
-                elif char == '\t':
-                    result.append('\\t')
-                elif char == '\0':
+                        result.append("\\r")
+                elif char == "\t":
+                    result.append("\\t")
+                elif char == "\0":
                     # Remove null bytes
                     pass
                 else:
@@ -191,7 +191,7 @@ class ComparisonJudgeStep(BaseStep):
 
             i += 1
 
-        json_str = ''.join(result)
+        json_str = "".join(result)
 
         # Now apply simple comma fixes (outside string context now)
         # Fix missing commas between fields (only outside strings)
@@ -208,12 +208,12 @@ class ComparisonJudgeStep(BaseStep):
         json_str = re.sub(r'"\s*\n\s*"(\w+)":\s*', r'",\n"\1": ', json_str)
 
         # Remove trailing commas before closing braces/brackets
-        json_str = re.sub(r',\s*}', '}', json_str)
-        json_str = re.sub(r',\s*]', ']', json_str)
+        json_str = re.sub(r",\s*}", "}", json_str)
+        json_str = re.sub(r",\s*]", "]", json_str)
 
         # Normalize whitespace around colons and commas
-        json_str = re.sub(r'\s*,\s*', ', ', json_str)
-        json_str = re.sub(r'\s*:\s*', ': ', json_str)
+        json_str = re.sub(r"\s*,\s*", ", ", json_str)
+        json_str = re.sub(r"\s*:\s*", ": ", json_str)
 
         return json_str
 
@@ -348,6 +348,15 @@ class ComparisonJudgeStep(BaseStep):
             "granularity",
         ]
 
+        def ensure_scalar(value):
+            """
+            Ensure the value is scalar (either int or float). If not, log and default to 0.
+            """
+            if not isinstance(value, (int, float)):
+                logging.warning(f"ensure_scalar encountered non-scalar value: {value}")
+                return 0
+            return value
+
         for _, row in batch_df.iterrows():
             input_text = str(row[self.input_column])
             output_a = str(row[self.output_a_column])
@@ -367,15 +376,6 @@ class ComparisonJudgeStep(BaseStep):
 
             # Ensure breakdown structures are valid\nif not isinstance(breakdown_a, dict) or not isinstance(breakdown_b, dict):\n    logging.error("Invalid breakdown structure in judgment!")\n    continue\n# Sanitize total scores
             score_a_total = ensure_scalar(breakdown_a.get("total_score", 0))
-            def ensure_scalar(value):
-    """
-    Ensure the value is scalar (either int or float). If not, default to 0.
-    """
-    if not isinstance(value, (int, float)):
-        logging.warning(f"ensure_scalar encountered non-scalar value: {value}")
-        return 0
-    return value
-
             score_b_total = ensure_scalar(breakdown_b.get("total_score", 0))
 
             # Extract individual criteria scores for A
@@ -526,4 +526,3 @@ class ComparisonJudgeStep(BaseStep):
             logging.info(f"Average scores: A={avg_score_a:.1f}, B={avg_score_b:.1f}")
 
         return final_df
-
