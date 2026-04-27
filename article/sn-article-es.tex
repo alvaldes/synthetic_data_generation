@@ -274,12 +274,12 @@ El diseño de prompts constituye un componente metodológico central dentro del 
 
 En LocalLLM-DataForge, los prompts se diseñan siguiendo un enfoque estructurado basado en esquemas de instrucción–entrada–respuesta, en el que se especifican explícitamente tanto las restricciones de contenido como el formato esperado de salida. Este tipo de estructuración ha sido identificado como una estrategia efectiva para mejorar la consistencia de los resultados y facilitar su procesamiento automático, especialmente en tareas que requieren generar datos estructurados \cite{structured_prompting}. En particular, la imposición de formatos rígidos permite reducir la ambigüedad en las salidas y habilita su integración directa en el pipeline sin necesidad de etapas adicionales de limpieza o normalización.
 
-En las tareas de generación, los prompts están diseñados para producir descomposiciones de historias de usuario bajo restricciones específicas, tales como la no superposición de tareas, la claridad en la redacción y la inclusión de campos estructurados como resumen y descripción. Estas restricciones actúan como mecanismos de control que delimitan el espacio de salida del modelo, favoreciendo la producción de artefactos consistentes y comparables. Por otro lado, en las tareas de evaluación, los prompts definen explícitamente criterios de calidad y reglas de decisión, instruyendo al modelo para emitir juicios estructurados en formatos como JSON. Este enfoque permite transformar evaluaciones cualitativas en representaciones cuantificables que pueden ser integradas directamente en el flujo de procesamiento.
+Dentro del framework se emplean dos prompts principales: (i) un \textit{prompt generador de tareas}, encargado de descomponer historias de usuario en conjuntos estructurados de tareas, y (ii) un \textit{prompt de evaluación bajo el enfoque LLM-as-a-Judge}, orientado a valorar la calidad de dichas descomposiciones conforme a criterios definidos. Ambos prompts son diseñados bajo principios homogéneos de estructuración y control, pero responden a objetivos funcionales distintos dentro del pipeline. Con el fin de garantizar la reproducibilidad del experimento y la transparencia metodológica, las versiones completas de estos prompts se presentan en el Apéndice~\ref{appendix:task_generation_prompt} y el Apéndice~\ref{appendix:llm_judge_prompt}, respectivamente.
+
+En las tareas de generación, el prompt generador está diseñado para producir descomposiciones de historias de usuario bajo restricciones específicas, tales como la no superposición de tareas, la claridad en la redacción y la inclusión de campos estructurados como resumen y descripción. Estas restricciones actúan como mecanismos de control que delimitan el espacio de salida del modelo, favoreciendo la producción de artefactos consistentes y comparables. Por otro lado, en las tareas de evaluación, el prompt basado en LLM-as-a-Judge define explícitamente criterios de calidad y reglas de decisión, instruyendo al modelo para emitir juicios estructurados en formatos como JSON. Este enfoque permite transformar evaluaciones cualitativas en representaciones cuantificables que pueden ser integradas directamente en el flujo de procesamiento.
 
 Adicionalmente, el uso de prompts estandarizados entre diferentes modelos permite realizar comparaciones más justas y controladas, evitando sesgos derivados de ajustes específicos para cada modelo. La literatura reciente ha señalado que la consistencia en el diseño de prompts es un factor crítico para garantizar la validez de evaluaciones comparativas entre LLMs, ya que pequeñas variaciones en la formulación pueden impactar significativamente los resultados obtenidos \cite{structured_prompting}. En este sentido, el framework adopta un enfoque uniforme en la definición de prompts, asegurando que las diferencias observadas en las salidas se deban principalmente a las características de los modelos y no a variaciones en las instrucciones proporcionadas.
 
-%TODO: Más adelante mostrar el diseño de prompts con ejemplos reales. en 3.5 se habló de manera abstracta. Incluir al menos un fragmento del prompt de generación y uno del prompt del juez (en forma de figura o listado)
-%
 Es por esto que el diseño de prompts en LocalLLM-DataForge no se limita a una tarea de configuración, sino que constituye un elemento fundamental del proceso experimental, al actuar como interfaz de control entre el investigador y el modelo. Este enfoque permite ejercer un control fino sobre la generación y evaluación de artefactos, alineándose con tendencias recientes que conciben el prompt engineering como una capa de abstracción clave en sistemas basados en modelos de lenguaje.
 
 \section{Marco Metodológico}\label{sec4}
@@ -316,9 +316,9 @@ El procedimiento experimental se ejecutó en múltiples iteraciones, variando co
 \section{Resultados}\label{sec5}
 % TODO: incluir tablas con estadísticos descriptivos por generador y por criterio.
 
-Con el objetivo de evaluar el comportamiento del \textit{framework} propuesto bajo distintas configuraciones de modelos de lenguaje, se diseñó una prueba experimental en torno a la comparación entre dos modelos generadores de descomposiciones de historias de usuario (G1 y G2), junto con un modelo evaluador que actuó bajo el paradigma \textit{LLM-as-a-Judge}.
+Con el objetivo de evaluar el comportamiento del \textit{framework} propuesto bajo distintas configuraciones de modelos de lenguaje, se diseñó un estudio experimental en torno a la comparación entre dos modelos generadores de descomposiciones de historias de usuario (G1 y G2), junto con un modelo evaluador que actuó bajo el paradigma \textit{LLM-as-a-Judge}.
 
-Las configuraciones evaluadas consideran modelos de diferentes familias, tamaños y arquitecturas, con el fin de analizar su impacto en la generación y evaluación de descomposiciones de historias de usuario. La Tabla~\ref{tab:model_configs} muestra las combinaciones utilizadas en cada prueba, ... incluyendo los modelos generadores y el modelo evaluador correspondiente, lo que permite analizar tanto el efecto de los generadores como del modelo juez.
+Las configuraciones evaluadas consideran modelos de diferentes familias, tamaños y arquitecturas, con el fin de analizar su impacto en la generación y evaluación de descomposiciones de historias de usuario. La Tabla~\ref{tab:model_configs} muestra las combinaciones utilizadas en cada prueba, incluyendo los modelos generadores y el modelo evaluador correspondiente, lo que permite analizar tanto el efecto de los generadores como del modelo juez.
 
 \begin{table}[h]
 \centering
@@ -351,7 +351,7 @@ Test & Rol & Modelo & Arquitectura & Tamaño \\
 \end{tabular}
 \end{table}
 
-En cada configuración, ambos generadores procesaron el mismo conjunto de historias de usuario, produciendo descomposiciones alternativas para cada instancia. No obstante, del conjunto original de 1998 historias de usuario, únicamente 1139 fueron utilizadas en las pruebas experimentales, ya que el resto no cumplía con la estructura esperada del tipo \textit{“As a(n) [role], I want [feature] so that [benefit]”}. Este filtrado permitió garantizar la consistencia en la entrada de los modelos y la validez de la evaluación.
+En cada configuración, ambos generadores procesaron el mismo conjunto de historias de usuario, produciendo descomposiciones alternativas para cada instancia. No obstante, del conjunto original de 1,998 historias de usuario, únicamente 1,139 fueron utilizadas en las pruebas experimentales, ya que el resto no cumplía con la estructura esperada del tipo \textit{“As a(n) [role], I want [feature] so that [benefit]”}. Este filtrado permitió garantizar la consistencia en la entrada de los modelos y la validez de la evaluación.
 
 Posteriormente, el modelo evaluador analizó ambas salidas y asignó puntuaciones en los cinco criterios de calidad: coherencia, completitud, viabilidad, formato y granularidad, conforme a la metodología descrita en la Sección~\ref{sec4}. Adicionalmente, el evaluador determinó un ganador entre las dos alternativas, permitiendo no solo un análisis cuantitativo basado en puntuaciones, sino también una comparación directa entre modelos.
 
@@ -437,7 +437,7 @@ La Figura~\ref{fig:global_criteria_plot} muestra la comparación de los criterio
 
 % TODO: agregar agradecimientos si aplica
 
-\section*{Declaraciones}
+% \section*{Declaraciones}
 
 % \begin{itemize}
 % \item Financiamiento: No aplica
@@ -449,7 +449,97 @@ La Figura~\ref{fig:global_criteria_plot} muestra la comparación de los criterio
 % \item Contribución de autores: Todos los autores contribuyeron al diseño y desarrollo del framework. A.L.V.S. lideró la implementación y los experimentos. C.A.F.F. y V.R.L. supervisaron la investigación y contribuyeron a la metodología.
 % \end{itemize}
 
-\newpage
+% \newpage
+
+\begin{appendices}
+
+\section{Prompt de Generación de Tareas}
+\label{appendix:task_generation_prompt}
+
+Este apéndice presenta el prompt utilizado para la generación automática de tareas a partir de historias de usuario. Dicho prompt sigue un esquema de instrucción–entrada–respuesta, en el cual se especifican explícitamente las restricciones de descomposición, así como el formato estructurado esperado en la salida.
+
+\begin{lstlisting}[basicstyle=\ttfamily\small, breaklines=true, caption={Prompt generador de tareas}, label={lst:task_generation_prompt}]
+Below is an instruction that describes a task, paired with an input that provides a user story.
+
+Write a response that appropriately completes the request.
+
+Instruction:
+
+Break this user story into smaller development tasks to help the developers implement it efficiently. You can divide this user story into as many tasks as needed, depending on its complexity. Each task must be unique, actionable, and non-overlapping.
+
+Use the following format for the response:
+
+1. summary: <task summary 1>
+description: <task description 1>
+2. summary: <task summary 2>
+description: <task description 2>
+
+N. summary: <task summary N>
+description: <task description N>
+
+Input:
+
+{user_story}
+
+Response:
+\end{lstlisting}
+
+\section{Prompt de Evaluación LLM-as-a-Judge}
+\label{appendix:llm_judge_prompt}
+
+En este apéndice se presenta el prompt utilizado para la evaluación automática de descomposiciones de historias de usuario bajo el enfoque \textit{LLM-as-a-Judge}. Este prompt instruye al modelo para comparar dos alternativas de descomposición y emitir un juicio basado en criterios de calidad alineados con el estándar ISO/IEC/IEEE~29148:2018.
+
+\begin{lstlisting}[basicstyle=\ttfamily\small, breaklines=true, caption={Prompt LLM-as-a-Judge}, label={lst:llm_judge_prompt}]
+You are an expert software development manager evaluating two different breakdowns of a user story into development tasks.
+
+Your job is to compare both breakdowns and determine which one is better overall.
+
+USER STORY:
+{user_story}
+
+BREAKDOWN A:
+{tasks_a}
+
+BREAKDOWN B:
+{tasks_b}
+
+Evaluate both breakdowns based on these criteria (0-10 points each), aligned with ISO/IEC/IEEE 29148:2018 quality standards:
+
+1. COHERENCE: Semantic correspondence between the generated tasks and the original user story. Does it maintain consistency with the user story intent? (0-10)
+2. COMPLETENESS: Degree of coverage of implicit and explicit requirements. Does it cover all necessary aspects of the user story? (0-10)
+3. FEASIBILITY: Technical feasibility of the proposed tasks. Are the tasks realistically implementable? (0-10)
+4. FORMAT: Structure and clarity of the output. Is the response well-formatted, unambiguous, and easy to understand? (0-10)
+5. GRANULARITY: Appropriateness of the decomposition level. Are tasks properly sized (not too big, not too small) and atomic? (0-10)
+
+Respond in this exact JSON format:
+{
+  "breakdown_a": {
+    "coherence": [score_0_to_10],
+    "completeness": [score_0_to_10],
+    "feasibility": [score_0_to_10],
+    "format": [score_0_to_10],
+    "granularity": [score_0_to_10],
+    "total_score": [sum_of_all_scores],
+    "strengths": "[brief_description_of_strengths]",
+    "weaknesses": "[brief_description_of_weaknesses]"
+  },
+  "breakdown_b": {
+    "coherence": [score_0_to_10],
+    "completeness": [score_0_to_10],
+    "feasibility": [score_0_to_10],
+    "format": [score_0_to_10],
+    "granularity": [score_0_to_10],
+    "total_score": [sum_of_all_scores],
+    "strengths": "[brief_description_of_strengths]",
+    "weaknesses": "[brief_description_of_weaknesses]"
+  },
+  "winner": "[A_or_B]",
+  "reason": "[brief_explanation_of_why_the_winner_is_better]"
+}
+\end{lstlisting}
+
+\end{appendices}
+
 \bibliography{sn-bibliography}
 
 \end{document}

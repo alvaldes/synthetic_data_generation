@@ -20,56 +20,56 @@ Reallocated singl_function (elt_size=4) to 100 items from 50.
 Reallocated singl_function (elt_size=4) to 100 items from 50.
 Reallocated singl_function (elt_size=4) to 100 items from 50.
 Database file #1: sn-bibliography.bib
-Warning--string name "june" is undefined
---line 733 of file sn-bibliography.bib
+Warning--entry type for "long2024" isn't style-file defined
+--line 1087 of file sn-bibliography.bib
 Warning--entry type for "iso29148" isn't style-file defined
---line 809 of file sn-bibliography.bib
+--line 1897 of file sn-bibliography.bib
 sn-mathphys-num.bst [2024/07/19 v1.1  bibliography style]
 Reallocated wiz_functions (elt_size=4) to 9000 items from 6000.
 Reallocated singl_function (elt_size=4) to 100 items from 50.
-Warning--to sort, need author or key in pipes_filters
+Warning--to sort, need author or key in iso29148
 Reallocated singl_function (elt_size=4) to 100 items from 50.
 Reallocated singl_function (elt_size=4) to 100 items from 50.
 Reallocated singl_function (elt_size=4) to 100 items from 50.
-You've used 47 entries,
+You've used 46 entries,
             7485 wiz_defined-function locations,
-            1412 strings with 16904 characters,
-and the built_in function-call counts, 449184 in all, are:
-= -- 83342
-> -- 995
-< -- 276
-+ -- 50251
-- -- 360
-* -- 10441
-:= -- 79214
-add.period$ -- 47
-call.type$ -- 47
-change.case$ -- 305
-chr.to.int$ -- 542
-cite$ -- 49
-duplicate$ -- 1418
-empty$ -- 6724
-format.name$ -- 938
-if$ -- 115686
+            1505 strings with 24030 characters,
+and the built_in function-call counts, 820766 in all, are:
+= -- 149177
+> -- 1722
+< -- 338
++ -- 88316
+- -- 759
+* -- 23643
+:= -- 143621
+add.period$ -- 65
+call.type$ -- 46
+change.case$ -- 356
+chr.to.int$ -- 805
+cite$ -- 48
+duplicate$ -- 2221
+empty$ -- 15523
+format.name$ -- 1888
+if$ -- 208255
 int.to.chr$ -- 1
-int.to.str$ -- 82
+int.to.str$ -- 71
 missing$ -- 0
-newline$ -- 593
-num.names$ -- 230
-pop$ -- 911
+newline$ -- 822
+num.names$ -- 231
+pop$ -- 1614
 preamble$ -- 1
-purify$ -- 211
+purify$ -- 207
 quote$ -- 0
-skip$ -- 50978
+skip$ -- 89436
 stack$ -- 0
-substring$ -- 41005
-swap$ -- 498
-text.length$ -- 547
+substring$ -- 85510
+swap$ -- 988
+text.length$ -- 611
 text.prefix$ -- 0
 top$ -- 1
-type$ -- 1531
+type$ -- 1694
 warning$ -- 1
-while$ -- 1073
+while$ -- 1693
 width$ -- 0
-write$ -- 886
+write$ -- 1102
 (There were 3 warnings)
