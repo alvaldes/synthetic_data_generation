@@ -1,6 +1,9 @@
 import os
 import pandas as pd
 from matplotlib import pyplot as plt
+from matplotlib.gridspec import GridSpec
+import numpy as np
+
 
 # ============================
 # DIRECTORIOS Y CONFIGURACION
@@ -9,7 +12,20 @@ SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 TESTS_DIR = os.path.join(SCRIPT_DIR, "../tests")
 OUTPUTS_DIR = os.path.join(SCRIPT_DIR, "outputs")
 CRITERIA = ["coherence", "completeness", "feasibility", "format", "granularity"]
-CRITERIA_LABELS = ["Coherencia", "Completitud", "Viabilidad", "Formato", "Granularidad"]
+CRITERIA_LABELS_ES = [
+    "Coherencia",
+    "Completitud",
+    "Viabilidad",
+    "Formato",
+    "Granularidad",
+]
+CRITERIA_LABELS_EN = [
+    "Coherence",
+    "Completeness",
+    "Feasibility",
+    "Format",
+    "Granularity",
+]
 THRESHOLD = 35  # Umbral para Pass Rate
 
 # Asegurarse de que el directorio de salidas exista
@@ -24,7 +40,7 @@ tests_files = [
     for f in os.listdir(TESTS_DIR)
     # OMITIR ESTE ARCHIVO
     if f.endswith("_judge_results.csv")
-    and f != "salony_dual_test1_output_judge_results.csv"
+    # and f != "salony_dual_test1_output_judge_results.csv"
 ]
 
 criterion_results = []
@@ -48,7 +64,7 @@ for test_file in tests_files:
         col_g2 = f"judge_score_b_{crit}"
 
         if col_g1 in df.columns:
-            g1_mean = df[col_g1].mean()
+            g1_mean = pd.to_numeric(df[col_g1], errors="coerce").mean()
             criterion_means[f"G1_{crit}"] = g1_mean
             g1_total += g1_mean
         else:
@@ -56,7 +72,7 @@ for test_file in tests_files:
             criterion_means[f"G1_{crit}"] = None
 
         if col_g2 in df.columns:
-            g2_mean = df[col_g2].mean()
+            g2_mean = pd.to_numeric(df[col_g2], errors="coerce").mean()
             criterion_means[f"G2_{crit}"] = g2_mean
             g2_total += g2_mean
         else:
@@ -66,9 +82,26 @@ for test_file in tests_files:
     # Agregar totales y ganador a los criterios
     criterion_means["G1_Total"] = g1_total
     criterion_means["G2_Total"] = g2_total
-    criterion_means["Winner"] = 1 if g1_total > g2_total else 2
 
-    criterion_results.append(criterion_means)
+    config_id = "C" + test_name.split("_")[2][-1] if "_" in test_name else test_name
+
+    # Fila G1
+    row_g1 = {
+        "Config": config_id,
+        "Gen": "G1",
+    }
+    # Fila G2
+    row_g2 = {
+        "Config": config_id,
+        "Gen": "G2",
+    }
+
+    for crit, label in zip(CRITERIA, CRITERIA_LABELS_EN):
+        row_g1[label] = criterion_means[f"G1_{crit}"]
+        row_g2[label] = criterion_means[f"G2_{crit}"]
+
+    criterion_results.append(row_g1)
+    criterion_results.append(row_g2)
 
     # Calcular métricas agregadas (totales, medias, tasas, etc.)
     aggregate_means = {"Test": test_name}
@@ -104,18 +137,44 @@ for test_file in tests_files:
         aggregate_means["G1_Win_Rate"] = None
         aggregate_means["G2_Win_Rate"] = None
 
-    aggregate_results.append(aggregate_means)
+    # Extraer identificador corto de configuración (C1, C2, etc.)
+    config_id = "C" + test_name.split("_")[2][-1] if "_" in test_name else test_name
 
+    # Agregar fila para G1
+    aggregate_results.append(
+        {
+            "Config": config_id,
+            "Gen": "G1",
+            "Mean": aggregate_means["G1_Mean"],
+            "Std": aggregate_means["G1_Std"],
+            "Pass": aggregate_means["G1_Pass_Rate"],
+            "Win": aggregate_means["G1_Win_Rate"],
+        }
+    )
+
+    # Agregar fila para G2
+    aggregate_results.append(
+        {
+            "Config": config_id,
+            "Gen": "G2",
+            "Mean": aggregate_means["G2_Mean"],
+            "Std": aggregate_means["G2_Std"],
+            "Pass": aggregate_means["G2_Pass_Rate"],
+            "Win": aggregate_means["G2_Win_Rate"],
+        }
+    )
 # ============================
 # CREAR TABLAS CONSOLIDADAS
 # ============================
 # Tabla por criterios
-criterion_df = pd.DataFrame(criterion_results)
+criterion_df = pd.DataFrame(criterion_results).sort_values(by=["Config", "Gen"])
+criterion_df = criterion_df.round(2)
 criterion_output_path = os.path.join(OUTPUTS_DIR, "criterion_summary.csv")
 criterion_df.to_csv(criterion_output_path, index=False)
 
 # Tabla de métricas agregadas
-aggregate_df = pd.DataFrame(aggregate_results)
+aggregate_df = pd.DataFrame(aggregate_results).sort_values(by=["Config", "Gen"])
+aggregate_df = aggregate_df.round(2)
 aggregate_output_path = os.path.join(OUTPUTS_DIR, "aggregate_summary.csv")
 aggregate_df.to_csv(aggregate_output_path, index=False)
 
@@ -124,28 +183,30 @@ aggregate_df.to_csv(aggregate_output_path, index=False)
 # ============================
 # Gráfico único con todos los criterios
 plt.figure(figsize=(8, 6))
-x = criterion_df["Test"]
-width = 0.1
-x_index = range(len(x))
 
-for i, crit in enumerate(CRITERIA):
-    g1_scores = criterion_df[f"G1_{crit}"].fillna(0)
-    g2_scores = criterion_df[f"G2_{crit}"].fillna(0)
+configs = sorted(criterion_df["Config"].unique())
+x_index = range(len(configs))
 
-    plt.plot(
-        x_index,
-        g1_scores,
-        marker="x",
-        label=f"G1_{crit}",
-    )
-    plt.plot(x_index, g2_scores, marker="o", label=f"G2_{crit}")
+for crit, label in zip(CRITERIA, CRITERIA_LABELS_EN):
+    g1_scores = []
+    g2_scores = []
 
-plt.xticks(x_index, [label.split("_")[2] for label in x], rotation=0)
-plt.yticks(fontsize=10)
-plt.ylabel("Puntuación Promedio")
-plt.title("Comparación de Criterios por Pruebas")
+    for config in configs:
+        subset = criterion_df[criterion_df["Config"] == config]
+        g1_scores.append(subset[subset["Gen"] == "G1"][label].values[0])
+        g2_scores.append(subset[subset["Gen"] == "G2"][label].values[0])
+
+    plt.plot(x_index, g1_scores, marker="x", label=f"G1_{label}")
+    plt.plot(x_index, g2_scores, marker="o", label=f"G2_{label}")
+
+plt.xticks(x_index, configs)
+# plt.ylabel("Puntuación Promedio")
+# plt.title("Comparación de Criterios por Configuración")
+plt.ylabel("Average Score")
+plt.title("Comparison of Evaluation Criteria Across Configurations")
 plt.legend(bbox_to_anchor=(1.05, 1), loc="upper left", fontsize="small")
 plt.tight_layout()
+
 plt.savefig(
     os.path.join(OUTPUTS_DIR, "criterion_comparison_all.png"),
     dpi=300,
@@ -172,7 +233,7 @@ for test_file in tests_files:
         data_by_group["G2"].append(df["judge_score_b_total"].values)
 
         # Guardar el nombre del test
-        labels.append(os.path.splitext(test_file)[0].split("_")[2])
+        labels.append("C" + os.path.splitext(test_file)[0].split("_")[2][-1])
 
 # Crear lista de datos para el boxplot
 boxplot_data = data_by_group["G1"] + data_by_group["G2"]
@@ -185,10 +246,71 @@ boxplot_labels = [f"{label} (G1)" for label in labels] + [
 # ============================
 plt.figure()
 plt.boxplot(boxplot_data, labels=boxplot_labels, vert=True)
-plt.ylabel("Puntuaciones totales")
-plt.title("Distribución de puntuaciones por Pruebas")
-plt.xticks(rotation=45, ha="right", fontsize=8)
+# plt.ylabel("Puntuaciones totales")
+# plt.title("Distribución de puntuaciones por Pruebas")
+plt.ylabel("Total Scores")
+plt.title("Score Distribution Across Tests")
+plt.xticks(rotation=0, ha="center", fontsize=8)
 plt.tight_layout()
 
 # Guardar el gráfico
 plt.savefig(boxplot_path, dpi=300)
+
+
+# ============================
+# PREPARAR DATOS
+# ============================
+configs = sorted(criterion_df["Config"].unique())
+x = np.arange(len(configs))
+width = 0.35
+
+# ============================
+# CREAR FIGURA Y GRID
+# ============================
+fig = plt.figure(figsize=(10, 10))
+gs = GridSpec(3, 2, figure=fig)
+
+axes = [
+    fig.add_subplot(gs[0, 0]),
+    fig.add_subplot(gs[0, 1]),
+    fig.add_subplot(gs[1, 0]),
+    fig.add_subplot(gs[1, 1]),
+    fig.add_subplot(gs[2, :]),  # centrado (ocupa ambas columnas)
+]
+
+# ============================
+# GENERAR SUBPLOTS
+# ============================
+for idx, (crit, label) in enumerate(zip(CRITERIA, CRITERIA_LABELS_EN)):
+    ax = axes[idx]
+
+    g1_vals = []
+    g2_vals = []
+
+    for config in configs:
+        subset = criterion_df[criterion_df["Config"] == config]
+
+        g1_vals.append(subset[subset["Gen"] == "G1"][label].values[0])
+        g2_vals.append(subset[subset["Gen"] == "G2"][label].values[0])
+
+    ax.bar(x - width / 2, g1_vals, width, label="G1")
+    ax.bar(x + width / 2, g2_vals, width, label="G2")
+
+    ax.set_title(label)
+    ax.set_xticks(x)
+    ax.set_xticklabels(configs)
+    ax.set_ylabel("Average Score")
+    ax.set_ylim(0, 10)
+
+    ax.legend()
+
+# ============================
+# AJUSTES FINALES
+# ============================
+plt.tight_layout()
+
+plt.savefig(
+    os.path.join(OUTPUTS_DIR, "criteria_subplots.png"), dpi=300, bbox_inches="tight"
+)
+
+plt.close()
