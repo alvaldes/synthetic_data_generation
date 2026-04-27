@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.29 (TeX Live 2026) (preloaded format=pdflatex 2026.3.15)  26 APR 2026 21:53
+This is pdfTeX, Version 3.141592653-2.6-1.40.29 (TeX Live 2026) (preloaded format=pdflatex 2026.3.15)  27 APR 2026 01:56
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -744,10 +744,10 @@ Underfull \vbox (badness 10000) has occurred while \output is active []
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
  [5]
-<images/diagram_es.png, id=152, 555.07375pt x 418.56375pt>
+<images/diagram_es.png, id=159, 555.07375pt x 418.56375pt>
 File: images/diagram_es.png Graphic file (type png)
 <use images/diagram_es.png>
-Package pdftex.def Info: images/diagram_es.png  used on input line 230.
+Package pdftex.def Info: images/diagram_es.png  used on input line 229.
 (pdftex.def)             Requested size: 372.0pt x 280.51288pt.
 
 Underfull \vbox (badness 10000) has occurred while \output is active []
@@ -756,7 +756,7 @@ Underfull \vbox (badness 10000) has occurred while \output is active []
 pdfTeX warning (ext4): destination with the same identifier (name{figure.1}) has been already used, duplicate ignored
 <argument> ...shipout:D \box_use:N \l_shipout_box 
                                                   \__shipout_drop_firstpage_...
-l.238 
+l.237 
        <./images/diagram_es.png>]
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
@@ -773,33 +773,30 @@ Underfull \vbox (badness 10000) has occurred while \output is active []
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
  [11]
-Underfull \vbox (badness 10000) has occurred while \output is active []
-
- [12]
-LaTeX Font Info:    Calculating math sizes for size <8.03> on input line 327.
+LaTeX Font Info:    Calculating math sizes for size <8.03> on input line 312.
 
 
 LaTeX Font Warning: Font shape `U/rsfs/m/n' in size <4.015> not available
-(Font)              size <5> substituted on input line 327.
+(Font)              size <5> substituted on input line 312.
 
 
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
- [13
+ [12
 pdfTeX warning (ext4): destination with the same identifier (name{table.1}) has been already used, duplicate ignored
 <argument> ...shipout:D \box_use:N \l_shipout_box 
                                                   \__shipout_drop_firstpage_...
-l.356 P
-       osteriormente, el modelo evaluador analizó ambas salidas y asignó p...]
-Overfull \hbox (1.14398pt too wide) in paragraph at lines 366--378
+l.342 
+      ]
+Overfull \hbox (1.14398pt too wide) in paragraph at lines 349--361
  [] 
  []
 
-<images/total_score_distribution.png, id=249, 462.528pt x 346.896pt>
-./sn-article-es.tex:384: Illegal unit of measure (pt inserted).
+<images/total_score_distribution.png, id=242, 462.528pt x 346.896pt>
+./sn-article-es.tex:367: Illegal unit of measure (pt inserted).
 <to be read again> 
                    \relax 
-l.384 ...310]{images/total_score_distribution.png}
+l.367 ...310]{images/total_score_distribution.png}
                                                   
 Dimensions can be in units of em, ex, in, pt, pc,
 cm, mm, dd, cc, nd, nc, bp, or sp; but yours is a new one!
@@ -808,10 +805,10 @@ To recover gracefully from this error, it's best to
 delete the erroneous units; e.g., type `2' to delete
 two letters. (See Chapter 27 of The TeXbook.)
 
-./sn-article-es.tex:384: Illegal unit of measure (pt inserted).
+./sn-article-es.tex:367: Illegal unit of measure (pt inserted).
 <to be read again> 
                    \relax 
-l.384 ...310]{images/total_score_distribution.png}
+l.367 ...310]{images/total_score_distribution.png}
                                                   
 Dimensions can be in units of em, ex, in, pt, pc,
 cm, mm, dd, cc, nd, nc, bp, or sp; but yours is a new one!
@@ -822,75 +819,75 @@ two letters. (See Chapter 27 of The TeXbook.)
 
 File: images/total_score_distribution.png Graphic file (type png)
 <use images/total_score_distribution.png>
-Package pdftex.def Info: images/total_score_distribution.png  used on input line 384.
+Package pdftex.def Info: images/total_score_distribution.png  used on input line 367.
 (pdftex.def)             Requested size: 310.0pt x 232.50908pt.
 
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
- [14
+ [13
 pdfTeX warning (ext4): destination with the same identifier (name{table.2}) has been already used, duplicate ignored
 <argument> ...shipout:D \box_use:N \l_shipout_box 
                                                   \__shipout_drop_firstpage_...
-l.388 
+l.371 
       ]
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
- [15
+ [14
 pdfTeX warning (ext4): destination with the same identifier (name{figure.2}) has been already used, duplicate ignored
 <argument> ...shipout:D \box_use:N \l_shipout_box 
                                                   \__shipout_drop_firstpage_...
-l.414 
-      
+l.397 L
+       a Figura~\ref{fig:global_criteria_plot} muestra la comparación de lo...
 pdfTeX warning (ext4): destination with the same identifier (name{table.3}) has been already used, duplicate ignored
 <argument> ...shipout:D \box_use:N \l_shipout_box 
                                                   \__shipout_drop_firstpage_...
-l.414 
-       <./images/total_score_distribution.png>]
-<images/criterion_comparison_all.png, id=266, 567.3195pt x 426.1521pt>
+l.397 L
+       a Figura~\ref{fig:global_criteria_plot} muestra la comparación de lo... <./images/total_score_distribution.png>]
+<images/criterion_comparison_all.png, id=260, 567.3195pt x 426.1521pt>
 File: images/criterion_comparison_all.png Graphic file (type png)
 <use images/criterion_comparison_all.png>
-Package pdftex.def Info: images/criterion_comparison_all.png  used on input line 417.
+Package pdftex.def Info: images/criterion_comparison_all.png  used on input line 401.
 (pdftex.def)             Requested size: 372.0pt x 279.43402pt.
 
 
 Package hyperref Warning: Difference (4) between bookmark levels is greater 
-(hyperref)                than one, level fixed on input line 456.
+(hyperref)                than one, level fixed on input line 440.
 
 
-Underfull \hbox (badness 1308) in paragraph at lines 459--460
+Underfull \hbox (badness 1308) in paragraph at lines 443--444
 \OT1/cmr/m/n/10 tar-eas a par-tir de his-to-rias de usuario. Dicho prompt sigue un esquema de
  []
 
 
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
- [16
+ [15
 pdfTeX warning (ext4): destination with the same identifier (name{figure.3}) has been already used, duplicate ignored
 <argument> ...shipout:D \box_use:N \l_shipout_box 
                                                   \__shipout_drop_firstpage_...
-l.461 ...eas}, label={lst:task_generation_prompt}]
-                                                   <./images/criterion_comparison_all.png>]
-Package hyperref Info: bookmark level for unknown lstlisting defaults to 0 on input line 461.
+l.444 
+       <./images/criterion_comparison_all.png>]
+Package hyperref Info: bookmark level for unknown lstlisting defaults to 0 on input line 445.
 
-Underfull \hbox (badness 1005) in paragraph at lines 490--491
+Underfull \hbox (badness 1005) in paragraph at lines 474--475
 \OT1/cmr/m/n/10 prompt instruye al mod-elo para com-parar dos alter-na-ti-vas de descom-posici^^Son
  []
 
 
-Underfull \hbox (badness 1558) in paragraph at lines 490--491
+Underfull \hbox (badness 1558) in paragraph at lines 474--475
 \OT1/cmr/m/n/10 y emi-tir un juicio basado en cri-te-rios de cal-i-dad alin-ea-dos con el est^^Sandar
  []
 
 
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
+ [16]
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
  [17] (./sn-article-es.bbl
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
  [18]
-Underfull \vbox (badness 10000) has occurred while \output is active []
-
- [19]
 Underfull \hbox (badness 1342) in paragraph at lines 301--314
 []\OT1/cmr/m/n/10 Li, Y., Lin, Z., Zhang, S.D., Fu, Q., Chen, B., Lou, J.-G., Chen, W.:
  []
@@ -954,10 +951,10 @@ Underfull \hbox (badness 1067) in paragraph at lines 331--344
 
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
- [20]
+ [19]
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
- [21]
+ [20]
 
 ./sn-article-es.bbl:669: LaTeX Error: Invalid UTF-8 byte sequence (�.).
 
@@ -991,10 +988,10 @@ Alternatively, save the file in UTF-8 using your editor or another tool
 
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
- [22])
+ [21])
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
- [23] (./sn-article-es.aux)
+ [22] (./sn-article-es.aux)
  ***********
 LaTeX2e <2025-11-01>
 L3 programming layer <2026-01-19>
@@ -1005,21 +1002,21 @@ LaTeX Font Warning: Size substitutions with differences
 (Font)              up to 0.985pt have occurred.
 
 Package rerunfilecheck Info: File `sn-article-es.out' has not changed.
-(rerunfilecheck)             Checksum: 0D2ED0008337E016B83ECEDC358B7A02;2330.
+(rerunfilecheck)             Checksum: AC03B020C790F21C33F33BDF93FD8D0F;2710.
  ) 
 Here is how much of TeX's memory you used:
- 15102 strings out of 467525
- 229518 string characters out of 5418982
- 854214 words of memory out of 5000000
- 43612 multiletter control sequences out of 15000+600000
+ 15104 strings out of 467525
+ 229575 string characters out of 5418982
+ 862174 words of memory out of 5000000
+ 43613 multiletter control sequences out of 15000+600000
  653736 words of font info for 142 fonts, out of 8000000 for 9000
  1151 hyphenation exceptions out of 8191
  90i,12n,93p,1685b,2060s stack positions out of 10000i,1000n,20000p,200000b,200000s
 </usr/local/texlive/2026/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb></usr/local/texlive/2026/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb></usr/local/texlive/2026/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx8.pfb></usr/local/texlive/2026/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx9.pfb></usr/local/texlive/2026/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/local/texlive/2026/texmf-dist/fonts/type1/public/amsfonts/cm/cmr12.pfb></usr/local/texlive/2026/texmf-dist/fonts/type1/public/amsfonts/cm/cmr17.pfb></usr/local/texlive/2026/texmf-dist/fonts/type1/public/amsfonts/cm/cmr5.pfb></usr/local/texlive/2026/texmf-dist/fonts/type1/public/amsfonts/cm/cmr7.pfb></usr/local/texlive/2026/texmf-dist/fonts/type1/public/amsfonts/cm/cmr8.pfb></usr/local/texlive/2026/texmf-dist/fonts/type1/public/amsfonts/cm/cmr9.pfb></usr/local/texlive/2026/texmf-dist/fonts/type1/public/amsfonts/cm/cmss10.pfb></usr/local/texlive/2026/texmf-dist/fonts/type1/public/amsfonts/cm/cmti10.pfb></usr/local/texlive/2026/texmf-dist/fonts/type1/public/amsfonts/cm/cmti9.pfb></usr/local/texlive/2026/texmf-dist/fonts/type1/public/amsfonts/cm/cmtt10.pfb></usr/local/texlive/2026/texmf-dist/fonts/type1/public/amsfonts/cm/cmtt9.pfb>
-Output written on sn-article-es.pdf (23 pages, 485625 bytes).
+Output written on sn-article-es.pdf (22 pages, 482684 bytes).
 PDF statistics:
  529 PDF objects out of 1000 (max. 8388607)
- 461 compressed objects within 5 object streams
- 165 named destinations out of 1000 (max. 500000)
- 136 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 462 compressed objects within 5 object streams
+ 166 named destinations out of 1000 (max. 500000)
+ 152 words of extra memory for PDF output out of 10000 (max. 10000000)
 

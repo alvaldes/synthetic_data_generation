@@ -158,8 +158,7 @@ El resto del artículo se organiza de la siguiente manera. La Sección~\ref{sec2
 relacionado sobre automatización basada en LLM en ingeniería de requisitos y generación
 de datos sintéticos. La Sección~\ref{sec3} describe la arquitectura y los componentes
 principales de LocalLLM-DataForge. La Sección~\ref{sec4} presenta la configuración experimental
-y la metodología de evaluación. La Sección~\ref{sec5} presenta los resultados obtenidos.
-La Sección~\ref{sec6} discute los hallazgos y sus implicaciones, mientras que la Sección~\ref{sec7}
+y los resultados obtenidos. La Sección~\ref{sec5} discute los hallazgos y sus implicaciones, mientras que la Sección~\ref{sec6}
 expone las conclusiones y las líneas de trabajo futuro.
 
 \section{Trabajos Relacionados}\label{sec2}
@@ -282,39 +281,25 @@ Adicionalmente, el uso de prompts estandarizados entre diferentes modelos permit
 
 Es por esto que el diseño de prompts en LocalLLM-DataForge no se limita a una tarea de configuración, sino que constituye un elemento fundamental del proceso experimental, al actuar como interfaz de control entre el investigador y el modelo. Este enfoque permite ejercer un control fino sobre la generación y evaluación de artefactos, alineándose con tendencias recientes que conciben el prompt engineering como una capa de abstracción clave en sistemas basados en modelos de lenguaje.
 
-\section{Marco Metodológico}\label{sec4}
-%TODO: Desarrollar la validación humana. Cuando se tenga, mencionar que evaluadores humanos revisaron una muestra representativa, especificar: por ejemplo, perfil de los evaluadores, métricas de acuerdo (e.g., Cohen's Kappa) y hallazgos.
+\section{Resultados}\label{sec4}
 
-La herramienta LocalLLM-DataForge se empleó para diseñar y ejecutar un estudio exploratorio orientado a evaluar la viabilidad de la descomposición sintética automática de historias de usuario mediante modelos de lenguaje ejecutados localmente. El objetivo principal del experimento fue analizar la capacidad generativa de distintos modelos LLMs y la efectividad de un esquema de evaluación automatizado basado en el paradigma \textit{LLM-as-a-Judge}.
+Esta sección presenta los resultados del estudio experimental realizado para evaluar el desempeño del \textit{framework} propuesto en la generación automática de descomposiciones de historias de usuario. En primer lugar, se describe la configuración experimental empleada, incluyendo el entorno de ejecución, los modelos utilizados y el esquema de evaluación. Posteriormente, se presentan los resultados agregados obtenidos en las distintas pruebas, seguidos de un análisis detallado por criterio que permite identificar patrones de comportamiento y diferencias entre modelos. Finalmente, se discuten los hallazgos más relevantes derivados del estudio.
 
-El entorno experimental consistió en un equipo Apple con chip M2 (8 núcleos de CPU) y 16 GB de memoria RAM, ejecutando Python v3.13.7. Se utilizó Ollama v0.16.1 como plataforma de orquestación para la ejecución local de los modelos. Todo el procesamiento se realizó en este entorno, garantizando control sobre las condiciones de ejecución y permitiendo la replicabilidad de los experimentos bajo configuraciones equivalentes.
+\subsection{Configuración experimental}
 
-El conjunto de datos base empleado fue Salony\footnote{Salony: User Story Dataset disponible en Hugging Face, \url{https://huggingface.co/datasets/salony/User_story}.}, el cual contiene originalmente 1,998 historias de usuario. Con el fin de asegurar consistencia estructural, se realizó un proceso de filtrado en el que únicamente se conservaron aquellas historias que cumplían con la estructura canónica \textit{“As a(n) [role], I want [feature] so that [benefit]”}. Como resultado, el conjunto final quedó conformado por 1,139 historias de usuario, las cuales fueron utilizadas como entrada para el proceso de generación sintética.
+El estudio experimental se realizó utilizando la herramienta \textit{LocalLLM-DataForge}, con el objetivo de evaluar la generación automática de descomposiciones de historias de usuario mediante modelos de lenguaje ejecutados localmente.
 
-En particular, se configuraron dos generadores con características contrastantes: un modelo con baja temperatura orientado a producir salidas más deterministas, y un modelo con mayor temperatura orientado a fomentar diversidad y creatividad en la generación. Esta configuración permitió analizar diferencias cualitativas en los patrones de descomposición obtenidos.
+El entorno consistió en un servidor Dell equipado con un procesador AMD EPYC 9124 a 3.0 GHz (16 núcleos, 32 hilos, 64 MB de caché), con 64 GB de memoria RAM DDR5-4800 (4 módulos de 16 GB) y una GPU NVIDIA Ampere A2 con 16 GB de memoria. El sistema se ejecutó utilizando Python v3.13.7 y Ollama v0.21.2 como plataforma de orquestación para la ejecución local de los modelos. La GPU fue utilizada para acelerar la inferencia de los modelos, permitiendo reducir los tiempos de generación y evaluación durante las pruebas experimentales.
 
-Cada historia de usuario fue procesada por ambos generadores, produciendo dos conjuntos independientes de tareas. Estas salidas fueron posteriormente evaluadas mediante un esquema automatizado basado en el paradigma \textit{LLM-as-a-Judge}, en el cual un modelo de lenguaje actúa como evaluador de la calidad de artefactos generados. Este enfoque ha sido recientemente propuesto como una alternativa escalable a la evaluación manual, permitiendo realizar juicios contextuales sobre tareas complejas donde las métricas tradicionales resultan insuficientes \cite{llm_judge_frontiers_2025}.
-
-Para cada instancia, el modelo evaluador analizó ambas descomposiciones y asignó puntuaciones en cinco criterios: coherencia, completitud, viabilidad, formato y granularidad. Cada criterio fue evaluado en una escala de 0 a 10, obteniéndose una puntuación total máxima de 50 puntos. La elección de una escala de 10 puntos responde a la necesidad de capturar evaluaciones con mayor nivel de granularidad, permitiendo diferenciar matices sutiles en la calidad de las descomposiciones generadas. En este sentido, las escalas extendidas han sido utilizadas en investigación para obtener mediciones más precisas y mejorar la precisión en la diferenciación de respuestas \cite{likert10granularity}. Asimismo, el uso de un mayor número de categorías incrementa la variabilidad de los datos sin afectar significativamente sus propiedades estadísticas generales, favoreciendo el análisis cuantitativo y la comparación entre resultados \cite{likertscalecomparison}. Este comportamiento ha sido ampliamente discutido en revisiones recientes sobre el diseño de escalas tipo Likert, donde se destaca la relación entre número de categorías, precisión de medición y capacidad discriminativa \cite{likertreview2021,likertscalecomparison2}.
-
-Por otra parte, el uso de una escala de 0 a 10 es consistente con prácticas comunes en sistemas de evaluación numérica. En la literatura, las escalas tipo Likert más utilizadas suelen contener entre cinco y siete puntos, siendo estas ampliamente adoptadas por su equilibrio entre simplicidad y capacidad de respuesta \cite{likert5to7range}. Sin embargo, estudios comparativos han demostrado que incrementar el número de categorías puede proporcionar mayor sensibilidad en la medición sin afectar de manera significativa la comparabilidad de los resultados \cite{dawes2008}. En este contexto, una escala de 10 puntos permite representar con mayor detalle distintos grados de calidad, donde los valores extremos indican los límites de desempeño y los valores intermedios detectan variaciones sutiles entre los datos. Este tipo de escala resulta particularmente adecuado cuando se requiere evaluar múltiples alternativas generadas automáticamente, favoreciendo la interpretabilidad y el análisis agregado de los resultados.
+El conjunto de datos base fue Salony\footnote{Salony: User Story Dataset disponible en Hugging Face, \url{https://huggingface.co/datasets/salony/User_story}.}, del cual se seleccionaron 1,139 de 1,998 historias de usuario que cumplían con la estructura canónica \textit{“As a(n) [role], I want [feature] so that [benefit]”}. Cada historia fue procesada por dos modelos generadores (G1 y G2), configurados con diferentes parámetros de generación para fomentar comportamientos contrastantes. Las descomposiciones generadas fueron evaluadas mediante un modelo bajo el paradigma \textit{LLM-as-a-Judge}, asignando puntuaciones en cinco criterios: coherencia, completitud, viabilidad, formato y granularidad \cite{llm_judge_frontiers_2025}\cite{likert10granularity}\cite{likertscalecomparison}.
 
 La selección y definición de estos criterios se fundamenta en los principios de calidad de requisitos establecidos por la norma ISO/IEC/IEEE 29148:2018 \cite{iso29148}, la cual enfatiza características como la claridad, consistencia, completitud y verificabilidad de los artefactos de requisitos. En este sentido, la coherencia evaluó la correspondencia semántica entre las tareas generadas y la historia de usuario original, alineándose con la propiedad de consistencia. La completitud midió el grado de cobertura de los requerimientos implícitos y explícitos, en concordancia con el atributo de completitud definido por la norma. La viabilidad analizó si las tareas propuestas eran técnicamente realizables, lo cual se relaciona con la verificabilidad y factibilidad de los requisitos. El criterio de formato verificó la estructura y claridad de la salida, en línea con la necesidad de que los requisitos sean comprensibles y no ambiguos. Finalmente, la granularidad evaluó la adecuación del nivel de descomposición, apoyando la correcta especificación y atomicidad recomendada en la ingeniería de requisitos.
 
-Este tipo de evaluación estructurada es consistente tanto con estándares consolidados como con enfoques recientes que destacan la necesidad de considerar la ambigüedad inherente en tareas subjetivas y su impacto en la validación de sistemas LLM-as-a-Judge \cite{guerdan2025llmjudge}.
+Cada criterio fue evaluado en una escala de 0 a 10, con una puntuación máxima de 50 puntos \cite{likert5to7range}\cite{dawes2008}. Se estableció un umbral de aprobación de 35 puntos (70\%), permitiendo clasificar automáticamente cada instancia como válida o no válida \cite{threshold70}.
 
-Se estableció un umbral de aprobación de 35 puntos, 70\% del máximo, considerando que este valor representa un nivel aceptable de cumplimiento de los criterios definidos.
-Valores cercanos al 70\% han sido empleados como referencia práctica de aceptabilidad en distintos contextos de evaluación, al representar un nivel significativamente superior al azar o a la media, pero sin imponer requisitos excesivamente restrictivos que limiten la variabilidad de los resultados \cite{threshold70}. En este contexto, el umbral definido permite discriminar entre descomposiciones que cumplen de manera suficiente con los criterios establecidos y aquellas que requieren mejoras.
+Además de la puntuación total, se registraron métricas agregadas como media, desviación estándar, tasa de aprobación y tasa de victoria en comparaciones directas entre modelos. Este esquema permitió analizar el desempeño relativo de los generadores bajo distintas configuraciones.
 
-Además de la puntuación total, el sistema registró métricas parciales y un indicador binario de aprobación para cada instancia, lo que permitió realizar análisis comparativos entre los generadores y facilitar la interpretación de los resultados en términos de desempeño relativo.
-
-% TODO: Revisar conclusion sobre juicio humano una vez realizada las sec resultados
-Dado que estudios recientes han señalado posibles sesgos y limitaciones en esquemas de evaluación basados en LLMs, como inconsistencias o dependencia del prompt, se incorporó una validación complementaria mediante evaluación humana sobre una muestra representativa de los resultados \cite{wang2025trustjudge}. Esta estrategia permitió contrastar la consistencia de los juicios automáticos y fortalecer la validez de los resultados obtenidos.
-
-El procedimiento experimental se ejecutó en múltiples iteraciones, variando configuraciones de prompts y parámetros con el objetivo de analizar la estabilidad de los resultados. Las salidas generadas y las métricas de evaluación fueron almacenadas de manera estructurada, permitiendo su análisis posterior y facilitando la trazabilidad completa del proceso experimental.
-
-\section{Resultados}\label{sec5}
-% TODO: incluir tablas con estadísticos descriptivos por generador y por criterio.
+\subsection{Resultados globales}
 
 Con el objetivo de evaluar el comportamiento del \textit{framework} propuesto bajo distintas configuraciones de modelos de lenguaje, se diseñó un estudio experimental en torno a la comparación entre dos modelos generadores de descomposiciones de historias de usuario (G1 y G2), junto con un modelo evaluador que actuó bajo el paradigma \textit{LLM-as-a-Judge}.
 
@@ -351,9 +336,7 @@ Test & Rol & Modelo & Arquitectura & Tamaño \\
 \end{tabular}
 \end{table}
 
-En cada configuración, ambos generadores procesaron el mismo conjunto de historias de usuario, produciendo descomposiciones alternativas para cada instancia. No obstante, del conjunto original de 1,998 historias de usuario, únicamente 1,139 fueron utilizadas en las pruebas experimentales, ya que el resto no cumplía con la estructura esperada del tipo \textit{“As a(n) [role], I want [feature] so that [benefit]”}. Este filtrado permitió garantizar la consistencia en la entrada de los modelos y la validez de la evaluación.
-
-Posteriormente, el modelo evaluador analizó ambas salidas y asignó puntuaciones en los cinco criterios de calidad: coherencia, completitud, viabilidad, formato y granularidad, conforme a la metodología descrita en la Sección~\ref{sec4}. Adicionalmente, el evaluador determinó un ganador entre las dos alternativas, permitiendo no solo un análisis cuantitativo basado en puntuaciones, sino también una comparación directa entre modelos.
+En cada configuración, ambos generadores procesaron el mismo conjunto de historias de usuario, produciendo descomposiciones alternativas para cada instancia. Este filtrado permitió garantizar la consistencia en la entrada de los modelos y la validez de la evaluación. Posteriormente, el modelo evaluador analizó ambas salidas y asignó puntuaciones en los cinco criterios de calidad para determinar un ganador entre las dos alternativas. De esta forma se consigue no solo un análisis cuantitativo basado en puntuaciones, sino también una comparación directa entre modelos.
 
 Las cuatro pruebas se diseñaron variando tanto los modelos generadores como el modelo evaluador, con el fin de analizar el impacto de estas configuraciones en la calidad de las descomposiciones generadas. En particular, se consideraron modelos con diferentes tamaños, arquitecturas y configuraciones de generación, lo que permitió observar comportamientos contrastantes en términos de consistencia, diversidad y alineación con los criterios de evaluación.
 
@@ -388,6 +371,7 @@ Los resultados muestran una alta consistencia entre las pruebas consideradas. En
 
 La Figura~\ref{fig:global_boxplot} muestra la distribución de puntuaciones totales para cada modelo en las distintas pruebas. Estas presentan un alto grado de solapamiento entre modelos en todas las pruebas, lo que refleja la similitud en sus desempeños globales. Asimismo, se observa una dispersión considerable en las puntuaciones, evidenciada por la amplitud de los rangos intercuartílicos y la extensión de los valores extremos, lo que indica variabilidad en la calidad de las descomposiciones generadas.
 
+\subsection{Análisis por criterio}
 
 En la Tabla~\ref{tab:global_criteria} se presentan las puntuaciones promedio por criterio para cada prueba.
 
@@ -421,13 +405,13 @@ La Figura~\ref{fig:global_criteria_plot} muestra la comparación de los criterio
 
 
 
-\section{Discusión}\label{sec6}
+\section{Discusión}\label{sec5}
 
 % TODO: completar discusión de resultados
 %
 % TODO: Considerar dentro de la discusión : discutir validez interna (el juez mide lo que dice medir?), validez externa (los resultados generalizan más allá del dataset?) y validez de constructo (los cinco criterios capturan suficientemente la calidad de una descomposición?)
 
-\section{Conclusión}\label{sec7}
+\section{Conclusión}\label{sec6}
 
 % TODO: completar conclusiones y trabajo futuro
 

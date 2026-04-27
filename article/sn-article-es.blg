@@ -21,9 +21,9 @@ Reallocated singl_function (elt_size=4) to 100 items from 50.
 Reallocated singl_function (elt_size=4) to 100 items from 50.
 Database file #1: sn-bibliography.bib
 Warning--entry type for "long2024" isn't style-file defined
---line 1087 of file sn-bibliography.bib
+--line 544 of file sn-bibliography.bib
 Warning--entry type for "iso29148" isn't style-file defined
---line 1897 of file sn-bibliography.bib
+--line 949 of file sn-bibliography.bib
 sn-mathphys-num.bst [2024/07/19 v1.1  bibliography style]
 Reallocated wiz_functions (elt_size=4) to 9000 items from 6000.
 Reallocated singl_function (elt_size=4) to 100 items from 50.
