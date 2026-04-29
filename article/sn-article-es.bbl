@@ -1,6 +1,6 @@
 %% BioMed_Central_Bib_Style_v1.01
 
-\begin{thebibliography}{46}
+\begin{thebibliography}{43}
 % BibTex style file: bmc-mathphys.bst (version 2.1), 2014-07-24
 \ifx \bisbn   \undefined \def \bisbn  #1{ISBN #1}\fi
 \ifx \binits  \undefined \def \binits#1{#1}\fi
@@ -703,36 +703,15 @@ Accessed: 2026-04-26
 \endbibitem
 
 %%% 39
-\bibitem[\protect\citeauthoryear{Jebb et~al.}{2021}]{likertreview2021}
-\begin{barticle}
-\bauthor{\bsnm{Jebb}, \binits{A.T.}},
-\bauthor{\bsnm{Ng}, \binits{V.}},
-\bauthor{\bsnm{Tay}, \binits{L.}}:
-\batitle{A review of key likert scale development advances: 1995--2019}.
-\bjtitle{Frontiers in Psychology}
-\bvolume{12},
-\bfpage{637547}
-(\byear{2021})
-\doiurl{10.3389/fpsyg.2021.637547}
-\end{barticle}
+\bibitem[\protect\citeauthoryear{International Organization for Standardization}{2018}]{iso29148}
+\begin{botherref}
+Systems and Software Engineering --- Life Cycle Processes --- Requirements Engineering.
+International Organization for Standardization.
+\url{https://www.iso.org/standard/72089.html}
+\end{botherref}
 \endbibitem
 
 %%% 40
-\bibitem[\protect\citeauthoryear{Tanujaya et~al.}{2023}]{likertscalecomparison2}
-\begin{barticle}
-\bauthor{\bsnm{Tanujaya}, \binits{B.}},
-\bauthor{\bsnm{Prahmana}, \binits{R.}},
-\bauthor{\bsnm{Mumu}, \binits{J.}}:
-\batitle{Likert scale in social sciences research: Problems and difficulties}.
-\bjtitle{FWU Journal of Social Sciences}
-\bvolume{16},
-\bfpage{89}--\blpage{101}
-(\byear{2023})
-\doiurl{10.51709/19951272/Winter2022/7}
-\end{barticle}
-\endbibitem
-
-%%% 41
 \bibitem[\protect\citeauthoryear{Wu and Leung}{2017}]{likert5to7range}
 \begin{barticle}
 \bauthor{\bsnm{Wu}, \binits{H.}},
@@ -746,7 +725,7 @@ Accessed: 2026-04-26
 \end{barticle}
 \endbibitem
 
-%%% 42
+%%% 41
 \bibitem[\protect\citeauthoryear{Dawes}{2007}]{dawes2008}
 \begin{barticle}
 \bauthor{\bsnm{Dawes}, \binits{J.}}:
@@ -758,31 +737,7 @@ Accessed: 2026-04-26
 \end{barticle}
 \endbibitem
 
-%%% 43
-\bibitem[\protect\citeauthoryear{International Organization for Standardization}{2018}]{iso29148}
-\begin{botherref}
-Systems and Software Engineering --- Life Cycle Processes --- Requirements Engineering.
-International Organization for Standardization.
-\url{https://www.iso.org/standard/72089.html}
-\end{botherref}
-\endbibitem
-
-%%% 44
-\bibitem[\protect\citeauthoryear{Guerdan et~al.}{2025}]{guerdan2025llmjudge}
-\begin{bchapter}
-\bauthor{\bsnm{Guerdan}, \binits{L.}},
-\bauthor{\bsnm{Barocas}, \binits{S.}},
-\bauthor{\bsnm{Holstein}, \binits{K.}},
-\bauthor{\bsnm{Wallach}, \binits{H.M.}},
-\bauthor{\bsnm{Wu}, \binits{Z.S.}},
-\bauthor{\bsnm{Chouldechova}, \binits{A.}}:
-\bctitle{Validating llm-as-a-judge systems under rating indeterminacy}.
-(\byear{2025}).
-\burl{https://api.semanticscholar.org/CorpusID:276903119}
-\end{bchapter}
-\endbibitem
-
-%%% 45
+%%% 42
 \bibitem[\protect\citeauthoryear{{Consumer Council for Water}}{2013}]{threshold70}
 \begin{botherref}
 \oauthor{\bsnm{{Consumer Council for Water}}}:
@@ -795,27 +750,19 @@ Accessed: 2026-04-26.
 \end{botherref}
 \endbibitem
 
-%%% 46
-\bibitem[\protect\citeauthoryear{Wang et~al.}{2025}]{wang2025trustjudge}
+%%% 43
+\bibitem[\protect\citeauthoryear{Li et~al.}{2026}]{li2026temp}
 \begin{botherref}
-\oauthor{\bsnm{Wang}, \binits{Y.}},
+\oauthor{\bsnm{Li}, \binits{L.}},
+\oauthor{\bsnm{Sleem}, \binits{L.}},
+\oauthor{\bsnm{Xu}, \binits{Y.}},
 \oauthor{\bsnm{Song}, \binits{Y.}},
-\oauthor{\bsnm{Zhu}, \binits{T.}},
-\oauthor{\bsnm{Zhang}, \binits{X.}},
-\oauthor{\bsnm{Yu}, \binits{Z.}},
-\oauthor{\bsnm{Chen}, \binits{H.}},
-\oauthor{\bsnm{Song}, \binits{C.}},
-\oauthor{\bsnm{Wang}, \binits{Q.}},
-\oauthor{\bsnm{Wang}, \binits{C.}},
-\oauthor{\bsnm{Wu}, \binits{Z.}},
-\oauthor{\bsnm{Dai}, \binits{X.}},
-\oauthor{\bsnm{Zhang}, \binits{Y.}},
-\oauthor{\bsnm{Ye}, \binits{W.}},
-\oauthor{\bsnm{Zhang}, \binits{S.}}:
-Trustjudge: Inconsistencies of llm-as-a-judge and how to alleviate them.
-ArXiv
-\textbf{abs/2509.21117}
-(2025)
+\oauthor{\bsnm{Jia}, \binits{A.}},
+\oauthor{\bsnm{François}, \binits{J.}},
+\oauthor{\bsnm{State}, \binits{R.}}:
+The Necessity of Setting Temperature in LLM-as-a-Judge
+(2026).
+\doiurl{10.48550/arXiv.2603.28304}
 \end{botherref}
 \endbibitem
 

@@ -63,7 +63,7 @@ con Validación tipo LLM-as-a-Judge}
 %  End of hidden for blind review reasons
 % ----------------------------------------------
 
-\abstract{La descomposición de historias de usuario en tareas de desarrollo es una práctica habitual en los proyectos ágiles; sin embargo, continúa siendo un proceso altamente dependiente del juicio humano. Los intentos de automatizar esta actividad mediante técnicas de aprendizaje automático suelen enfrentar dos limitaciones recurrentes: la escasez de conjuntos de datos anotados y la dependencia de modelos de lenguaje basados en servicios en la nube. Este trabajo presenta \textit{LocalLLM-DataForge}, un framework modular basado en DataFrames para la generación y evaluación de conjuntos de datos sintéticos orientados a la descomposición de historias de usuario utilizando modelos de lenguaje ejecutados localmente. El framework integra modelos generadores y evaluadores dentro de un pipeline reproducible, incorporando mecanismos de validación automática basados en el paradigma \textit{LLM-as-a-Judge} y permitiendo la experimentación con distintas configuraciones de modelos y parámetros. La propuesta se evaluó sobre un conjunto de datos mediante múltiples configuraciones de modelos de código abierto. Los resultados muestran que es posible generar descomposiciones con niveles consistentes de calidad, observándose diferencias significativas en desempeño y estabilidad dependiendo de la configuración de los modelos. En particular, se identifica un compromiso entre diversidad y consistencia asociado a parámetros como la temperatura, así como una mayor estabilidad en criterios estructurales frente a una mayor variabilidad en criterios semánticos. Estos hallazgos sugieren que los LLMs ejecutados localmente constituyen una alternativa viable para la generación de datasets sintéticos en ingeniería de requisitos, proporcionando ventajas en términos de reproducibilidad, control de datos y costo.}
+\abstract{La descomposición de historias de usuario en tareas de desarrollo es una práctica habitual en los proyectos ágiles; sin embargo, continúa siendo un proceso altamente dependiente del juicio humano. Los intentos de automatizar esta actividad mediante técnicas de aprendizaje automático suelen enfrentar dos limitaciones recurrentes: la escasez de conjuntos de datos anotados y la dependencia de modelos de lenguaje basados en servicios en la nube. Este trabajo presenta \textit{LocalLLM-DataForge}, un framework modular basado en DataFrames para la generación y evaluación de conjuntos de datos sintéticos orientados a la descomposición de historias de usuario utilizando modelos de lenguaje ejecutados localmente. El framework integra modelos generadores y evaluadores dentro de un pipeline reproducible, incorporando mecanismos de validación automática basados en el paradigma \textit{LLM-as-a-Judge} y permitiendo la experimentación con distintas configuraciones de modelos y parámetros. La propuesta se evaluó sobre un conjunto de datos mediante múltiples configuraciones de modelos de código abierto. Los resultados muestran que es posible generar descomposiciones con niveles consistentes de calidad, observándose diferencias notables en desempeño y estabilidad dependiendo de la configuración de los modelos. En particular, se identifica un compromiso entre diversidad y consistencia asociado a parámetros como la temperatura, así como una mayor estabilidad en criterios estructurales frente a una mayor variabilidad en criterios semánticos. Estos hallazgos sugieren que los LLMs ejecutados localmente constituyen una alternativa viable para la generación de datasets sintéticos en ingeniería de requisitos, proporcionando ventajas en términos de reproducibilidad, control de datos y costo.}
 
 \keywords{Requirements engineering, Natural language processing, Large language models,
 Synthetic data generation, Task decomposition, Automated evaluation}
@@ -137,7 +137,7 @@ descomposición más adecuada. Esta estrategia comparativa aprovecha principios 
 consenso que han demostrado mejorar la fiabilidad y reducir errores semánticos en las
 salidas de los modelos \cite{wang2023, li2024}.
 
-Este trabajo realiza tres contribuciones principales. En primer lugar, presenta un
+Este trabajo realiza dos contribuciones principales. En primer lugar, presenta un
 framework completamente local, extensible y reproducible para la generación de conjuntos
 de datos sintéticos a partir de historias de usuario, abordando de forma explícita
 restricciones de costo y privacidad. En segundo lugar, define y operacionaliza estrategias
@@ -293,18 +293,20 @@ El entorno consistió en un servidor Dell equipado con un procesador AMD EPYC 91
 
 El conjunto de datos base fue Salony\footnote{Salony: User Story Dataset disponible en Hugging Face, \url{https://huggingface.co/datasets/salony/User_story}.}, del cual se seleccionaron 1,139 de 1,998 historias de usuario que cumplían con la estructura canónica \textit{“As a(n) [role], I want [feature] so that [benefit]”}. Cada historia fue procesada por dos modelos generadores (G1 y G2), configurados con diferentes valores de temperatura. En particular, G1 utilizó una temperatura de 0.3, favoreciendo salidas más deterministas, mientras que G2 se configuró con una temperatura de 0.7, promoviendo una mayor diversidad. Por su parte, el modelo evaluador operó con una temperatura de 0.2, con el fin de mantener consistencia en los juicios emitidos.
 
-Las descomposiciones generadas fueron evaluadas mediante un modelo bajo el paradigma \textit{LLM-as-a-Judge}, asignando puntuaciones en cinco criterios: coherencia, completitud, viabilidad, formato y granularidad \cite{llm_judge_frontiers_2025}\cite{likert10granularity}\cite{likertscalecomparison}.
+Las descomposiciones generadas fueron evaluadas mediante un modelo bajo el paradigma \textit{LLM-as-a-Judge}, asignando puntuaciones en cinco criterios: coherencia, completitud, viabilidad, formato y granularidad \cite{llm_judge_frontiers_2025}.
 
 La selección de estos criterios se fundamenta en los principios de calidad de requisitos establecidos por la norma ISO/IEC/IEEE 29148:2018 \cite{iso29148}. En este sentido, la coherencia evalúa la correspondencia semántica con la historia de usuario, la completitud el grado de cobertura de los requerimientos, la viabilidad la factibilidad técnica de las tareas, el formato la claridad y estructura de la salida, y la granularidad la adecuación del nivel de descomposición.
 
-Cada criterio fue evaluado en una escala de 0 a 10, con una puntuación máxima de 50 puntos \cite{likert5to7range}\cite{dawes2008}. Se estableció un umbral de aprobación de 35 puntos (70\%), permitiendo clasificar automáticamente cada instancia como válida o no válida \cite{threshold70}. Además, se calcularon métricas agregadas como media, desviación estándar, tasa de aprobación y tasa de victoria en comparaciones directas.
+Cada criterio fue evaluado en una escala de 0 a 10, con una puntuación máxima de 50 puntos \cite{likert5to7range}. La puntuación total de cada instancia se obtuvo como la suma de los cinco criterios evaluados. A partir de estas puntuaciones, se estableció un umbral de aprobación de 35 puntos (70\%), permitiendo clasificar cada instancia como válida o no válida \cite{threshold70}. 
+
+Sobre el conjunto de instancias evaluadas, se calcularon métricas agregadas como la media y la desviación estándar de las puntuaciones totales. La tasa de aprobación se definió como el porcentaje de instancias cuya puntuación total supera el umbral establecido. Por su parte, la tasa de victoria se calculó en el contexto de comparaciones directas entre dos descomposiciones, representando el porcentaje de comparaciones en las que una descomposición es preferida sobre la otra según la puntuación total asignada por el modelo evaluador.
 
 Para analizar el impacto de distintas configuraciones de modelos de lenguaje, se definieron cuatro configuraciones experimentales (C1, C2, C3 y C4), cada una compuesta por dos modelos generadores (G1 y G2) y un modelo evaluador bajo el paradigma \textit{LLM-as-a-Judge}. Las configuraciones evaluadas, presentadas en la Tabla~\ref{tab:model_configs}, incluyen modelos de distintas familias, tamaños y arquitecturas.
 
 \begin{table}[h]
 \centering
 \caption{Model configurations evaluated in experimental tests}
-\label{tab:model_configs_updated}
+\label{tab:model_configs}
 \begin{tabular}{lcccc}
 \toprule
 Config. & Role & Model & Architecture & Size \\
@@ -338,27 +340,27 @@ En cada configuración, ambos generadores procesaron el mismo conjunto de histor
 
 Con el objetivo de identificar patrones consistentes en el comportamiento de los modelos evaluados, se realizó un análisis comparativo considerando de manera conjunta los resultados de las pruebas experimentales. Este enfoque permite observar tendencias globales en términos de desempeño, estabilidad y comportamiento relativo entre modelos.
 
-La Tabla~\ref{tab:global_results} presenta las métricas agregadas para cada prueba, incluyendo puntuación promedio (\textit{Mean}), desviación estándar (\textit{Std}), tasa de aprobación (\textit{Pass}) y tasa de victoria en comparaciones directas (\textit{Win}).
+La Tabla~\ref{tab:global_results} presenta las métricas agregadas para cada prueba, incluyendo la puntuación promedio junto con su desviación estándar (\textit{Mean} $\pm$ \textit{Std}), así como la tasa de aprobación (\textit{Pass}) y la tasa de victoria en comparaciones directas (\textit{Win}).
 
 \begin{table}[h]
 \centering
 \caption{Resultados agregados por prueba}
 \label{tab:global_results}
-\begin{tabular}{llcccc}
+\begin{tabular}{cllccc}
 \toprule
-Config. & Gen. & Mean & Std & Pass (\%) & Win (\%) \\
+Config. & Gen. & Mean $\pm$ Std & Pass (\%) & Win (\%) \\
 \midrule
-C1 & G1 & 35.71 & 9.88 & 55.22 & 72.78  \\
-C1 & G2 & 35.95 & 10.26 & 55.22 & 27.22 \\
+C1 & G1: Llama 3.1 & $35.71 \pm 9.88$ & 55.22 & 72.78  \\
+C1 & G2: Mistral & $35.95 \pm 10.26$ & 55.22 & 27.22 \\
 \midrule
-C2 & G1 & 39.45 & 5.5 & 90.61 & 18.7  \\
-C2 & G2 & 42.0 & 3.3 & 97.63 & 81.3  \\
+C2 & G1: Qwen 3 & $39.45 \pm 5.50$ & 90.61 & 18.70  \\
+C2 & G2: Gemma 4 & $42.00 \pm 3.30$ & 97.63 & 81.30  \\
 \midrule
-C3 & G1 & 47.23 & 8.05 & 90.87 & 99.56 \\
-C3 & G2 & 37.35 & 5.04 & 83.93 & 0.44 \\
+C3 & G1: Gemma 3 & $47.23 \pm 8.05$ & 90.87 & 99.56 \\
+C3 & G2: Mistral Nemo & $37.35 \pm 5.04$ & 83.93 & 0.44 \\
 % \midrule
-% C4 & G1 & 35.70 & 9.88 & 55.22 & 72.78 \\
-% C4 & G2 & 35.95 & 10.26 & 55.22 & 27.22 \\
+% C4 & G1: Qwen 3 & $42.0 \pm 3.3$ & 55.22 & 72.78 \\
+% C4 & G2: Phi 4 & $42.0 \pm 3.3$ & 55.22 & 27.22 \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -372,7 +374,7 @@ Sin embargo, el análisis de la distribución de puntuaciones revela diferencias
 \begin{figure}[h]
 \centering
 \includegraphics[width=\columnwidth]{images/total_score_distribution.png}
-\caption{Distribución de puntuaciones totales por configuración y generador.}
+\caption{Distribución de puntuaciones totales por configuración, para generadores con temperatura baja (G1: T=0.3) y temperatura alta (G2: T=0.7).}
 \label{fig:global_boxplot}
 \end{figure}
 
@@ -389,21 +391,21 @@ En la Tabla~\ref{tab:global_criteria} se presentan las puntuaciones promedio por
 \centering
 \caption{Puntuación promedio por criterio en las pruebas}
 \label{tab:global_criteria}
-\begin{tabular}{llccccc}
+\begin{tabular}{clccccc}
 \toprule
 Config. & Gen. & Coherencia & Completitud & Viabilidad & Formato & Granularidad \\
 \midrule
-C1 & G1 & 4.92 & 4.58 & 4.97 & 5.27 & 4.48 \\
-C1 & G2 & 4.79 & 4.88 & 4.94 & 5.27 & 4.57 \\
+C1 & G1: Llama 3.1 & 4.92 & 4.58 & 4.97 & 5.27 & 4.48 \\
+C1 & G2: Mistral & 4.79 & 4.88 & 4.94 & 5.27 & 4.57 \\
 \midrule
-C2 & G1 & 8.62 & 7.82 & 7.83 & 8.88 & 6.66 \\
-C2 & G2 & 8.72 & 9.33 & 8.16 & 8.96 & 7.06 \\
+C2 & G1: Qwen 3 & 8.62 & 7.82 & 7.83 & 8.88 & 6.66 \\
+C2 & G2: Gemma 4 & 8.72 & 9.33 & 8.16 & 8.96 & 7.06 \\
 \midrule
-C3 & G1 & 8.63 & 8.98 & 8.45 & 8.97 & 8.46 \\
-C3 & G2 & 7.19 & 6.13 & 7.27 & 7.58 & 6.21 \\
+C3 & G1: Gemma 3 & 8.63 & 8.98 & 8.45 & 8.97 & 8.46 \\
+C3 & G2: Mistral Nemo & 7.19 & 6.13 & 7.27 & 7.58 & 6.21 \\
 % \midrule
-% C4 & G1 & 4.92 & 4.57 & 4.97 & 5.26 & 4.47 \\
-% C4 & G2 & 4.79 & 4.88 & 4.94 & 5.26 & 4.57 \\
+% C4 & G1: Qwen 3 & 4.92 & 4.57 & 4.97 & 5.26 & 4.47 \\
+% C4 & G2: Phi 4 & 4.79 & 4.88 & 4.94 & 5.26 & 4.57 \\
 \bottomrule
 
 \end{tabular}
@@ -438,19 +440,31 @@ En términos generales, se observa que G2 tiende a destacar en criterios relacio
 
 Los resultados obtenidos permiten analizar no solo el desempeño de los modelos evaluados, sino también las implicaciones del uso de LLMs locales dentro de pipelines estructurados para la generación de artefactos en ingeniería de requisitos.
 
+Este comportamiento es consistente con lo reportado en la literatura reciente sobre el uso de LLMs en ingeniería de requisitos. Estudios como \cite{zadenoori2025} señalan que el desempeño de los modelos en tareas de procesamiento de lenguaje natural depende fuertemente de factores como el diseño del prompt, la configuración de generación y el contexto de uso. Asimismo, Norheim et al. \cite{sami2024} identifican la sensibilidad a la configuración como uno de los principales desafíos al aplicar LLMs en tareas de ingeniería de requisitos, lo que coincide con las variaciones observadas entre las configuraciones C2 y C3 en este estudio.
+
 En primer lugar, se observa que el desempeño de los modelos no es uniforme, sino altamente dependiente de la configuración experimental. Las diferencias marcadas entre configuraciones como C2 y C3 evidencian que factores como la combinación de modelos, su tamaño y su parametrización influyen de manera significativa en la calidad de las descomposiciones generadas. Este comportamiento sugiere que la selección de modelos dentro de un pipeline multi-etapa no puede abordarse de forma aislada, sino que debe considerarse como un problema de configuración conjunta, donde la interacción entre generadores y evaluadores juega un papel determinante.
 
-Un hallazgo relevante es la diferencia sistemática entre los generadores G1 y G2 en términos de estabilidad y variabilidad. Mientras que G2 muestra en algunos casos puntuaciones promedio más altas (e.g., C2), sus resultados presentan mayor dispersión, lo que indica una menor consistencia en la calidad de las salidas. En contraste, G1 tiende a generar descomposiciones más estables, especialmente en configuraciones más complejas como C3. Este comportamiento puede explicarse, en parte, por la diferencia en la temperatura utilizada durante la generación, donde valores más bajos favorecen salidas más deterministas y consistentes, mientras que valores más altos introducen mayor diversidad a costa de estabilidad.
+Un hallazgo relevante es la diferencia sistemática entre los generadores G1 y G2 en términos de estabilidad y variabilidad. Este fenómeno también ha sido reportado en estudios previos. En particular, Niv \cite{hematt2025} destaca que, aunque los LLMs pueden alcanzar altos niveles de desempeño promedio, su comportamiento puede presentar variaciones significativas entre ejecuciones, lo que impacta la reproducibilidad de los resultados. Mientras que G2 muestra en algunos casos puntuaciones promedio más altas (e.g., C2), sus resultados presentan mayor dispersión, lo que indica una menor consistencia en la calidad de las salidas. En contraste, G1 tiende a generar descomposiciones más estables, especialmente en configuraciones más complejas como C3.
+
+Este comportamiento puede explicarse, en parte, por la diferencia en la temperatura utilizada durante la generación. Estudios han demostrado que la temperatura tiene un impacto directo en la estabilidad de las salidas. Donde valores más bajos tienden a favorecen salidas más deterministas y mejorar la consistencia, mientras que valores más altos introducen mayor diversidad e incrementan la variabilidad \cite{li2026temp}. Además, se ha observado que esta relación no es trivial y depende del tipo de tarea y del modelo utilizado, lo que refuerza la necesidad de ajustar cuidadosamente este parámetro en pipelines de generación y evaluación.
 
 Desde la perspectiva de los criterios de evaluación, los resultados sugieren una separación clara entre dimensiones estructurales y semánticas de la calidad. Criterios como \textit{formato} y \textit{coherencia} presentan comportamientos relativamente estables entre modelos, lo que indica que los LLMs son capaces de adaptarse de manera consistente a restricciones estructuradas cuando estas se especifican explícitamente en los prompts. Por otro lado, criterios como \textit{completitud} y \textit{granularidad} muestran mayor variabilidad, lo que refleja la dificultad inherente de capturar aspectos más abstractos del proceso de descomposición de tareas.
+
+Este comportamiento es consistente con tendencias reportadas en la literatura reciente. En particular, Ferrari y Spoletini \cite{proci2025} señalan que, aunque los LLMs muestran un desempeño sólido en tareas con restricciones formales o estructurales, aún presentan limitaciones en aspectos relacionados con la comprensión semántica profunda, como la adecuación del contenido y la cobertura de requisitos. Estas limitaciones están asociadas a preocupaciones sobre la corrección y confiabilidad de los artefactos generados por LLMs en ingeniería de requisitos, lo que explica la mayor estabilidad observada en criterios como formato y coherencia, en contraste con la variabilidad en completitud y granularidad.
 
 En particular, la completitud emerge como uno de los criterios más sensibles a la configuración del modelo. Mientras que G2 obtiene mejores resultados en este aspecto en configuraciones como C2, su desempeño disminuye significativamente en escenarios más complejos como C3. Esto sugiere que la cobertura de requisitos no depende únicamente de la capacidad generativa del modelo, sino también de su habilidad para mantener consistencia semántica a medida que aumenta la complejidad de la descomposición.
 
 Por otro lado, la granularidad muestra ser un criterio clave para diferenciar el desempeño de los modelos. Las diferencias observadas en C3 indican que algunos modelos son más capaces de encontrar un equilibrio adecuado en el nivel de detalle de las tareas, evitando tanto la sobre-descomposición como la generación de tareas demasiado generales. Este aspecto es particularmente relevante en contextos de planificación ágil, donde la calidad de la descomposición impacta directamente en la estimación y ejecución del trabajo.
 
-Otro resultado significativo es la efectividad del enfoque comparativo basado en \textit{LLM-as-a-Judge}. La utilización de un modelo evaluador para seleccionar entre múltiples descomposiciones permite identificar diferencias que no son evidentes únicamente a partir de métricas agregadas. En este sentido, la tasa de victoria proporciona una medida complementaria que captura la preferencia relativa entre alternativas, aportando una visión más rica del desempeño de los modelos. Sin embargo, este enfoque también introduce posibles fuentes de sesgo, ya que el modelo evaluador puede favorecer ciertos estilos de generación o estructuras específicas.
+Otro resultado significativo es la efectividad del enfoque comparativo basado en \textit{LLM-as-a-Judge}. La utilización de un modelo evaluador para seleccionar entre múltiples descomposiciones permite identificar diferencias que no son evidentes únicamente a partir de métricas agregadas. En este sentido, la tasa de victoria proporciona una medida complementaria que captura la preferencia relativa entre alternativas, aportando una visión más rica del desempeño de los modelos. 
 
-En términos de implicaciones, los resultados sugieren que el uso de LLMs locales es una alternativa viable para la generación de datasets sintéticos en ingeniería de requisitos, siempre que se acompañe de mecanismos de validación estructurados. La combinación de generación controlada y evaluación automática permite producir artefactos con niveles de calidad comparables, al menos en términos relativos, a los esperados en procesos manuales.
+Este enfoque se encuentra alineado con una línea creciente de investigación que propone el uso de modelos como evaluadores automáticos. Estudios recientes han demostrado que estos sistemas pueden alcanzar niveles comparables con evaluadores humanos en diversas tareas \cite{eigler2026}. Sin embargo, también se han identificado limitaciones importantes, como la presencia de sesgos y la variabilidad en las puntuaciones asignadas. En particular, se ha señalado que estos sistemas pueden mostrar una tendencia a favorecer ciertos estilos de generación o estructuras de respuesta dependiendo del modelo evaluador y de su configuración. Esta observación resulta consistente con los resultados obtenidos en este estudio, donde las diferencias entre configuraciones evidencian que parámetros como la temperatura pueden influir no solo en la generación, sino también en la estabilidad de la evaluación automática.
+
+En este contexto, enfoques como el propuesto por Do et al. \cite{daly2025} sugieren la incorporación de procesos iterativos y validación humana para mejorar la fiabilidad de los sistemas de evaluación automática, lo que representa una posible línea de mejora para el presente trabajo.
+
+En relación con la generación de datos sintéticos, los resultados obtenidos son consistentes con trabajos como Li et al. \cite{long2024}, donde se señala que los LLMs pueden generar datos de alta calidad para tareas de procesamiento de lenguaje natural, aunque con limitaciones en términos de consistencia y cobertura. De manera similar, Ma et al.\cite{ma2025} y Chakir y Lahsen-Cherif \cite{fsidi2025} muestran que el uso de datos sintéticos puede mejorar el desempeño de modelos en dominios específicos, pero requiere mecanismos de validación robustos para garantizar su calidad. Estos hallazgos se reflejan en los resultados de este estudio, donde la calidad de las descomposiciones generadas depende significativamente de la configuración del modelo y del proceso de evaluación aplicado.
+
+En términos de implicaciones, los resultados sugieren que el uso de LLMs locales constituye una alternativa prometedora para la generación de datasets sintéticos en ingeniería de requisitos, siempre que se integren mecanismos de validación estructurados dentro del pipeline. En particular, la combinación de generación controlada y evaluación automática permite mitigar la variabilidad inherente de los modelos y mejorar la consistencia de los artefactos generados. No obstante, los resultados también indican que la calidad alcanzada depende fuertemente de la configuración empleada, por lo que estos enfoques deben considerarse como herramientas de apoyo al proceso, más que como sustitutos directos de la validación humana.
 
 No obstante, este estudio presenta ciertas limitaciones que deben ser consideradas. En relación con la validez interna, el uso de un LLM como evaluador plantea la cuestión de si las métricas obtenidas reflejan realmente la calidad de las descomposiciones o si están influenciadas por las características del modelo evaluador y su prompt. Aunque se emplearon criterios explícitos y una configuración conservadora de temperatura, no puede descartarse la presencia de sesgos sistemáticos en la evaluación.
 
@@ -469,6 +483,8 @@ Los resultados experimentales evidencian que es posible generar descomposiciones
 El análisis por criterio permitió identificar que los modelos tienden a comportarse de manera más estable en dimensiones estructurales como formato y coherencia, mientras que presentan mayor variabilidad en aspectos semánticos como completitud y granularidad. Estos hallazgos refuerzan la necesidad de evaluar la calidad de las descomposiciones desde múltiples perspectivas, en lugar de depender exclusivamente de métricas globales.
 
 En conjunto, este trabajo demuestra que los LLMs locales pueden constituir una alternativa viable para apoyar la generación de datasets sintéticos en investigación sobre ingeniería de requisitos, ofreciendo ventajas en términos de control de datos, reproducibilidad y costo. Además, el enfoque propuesto contribuye a la integración de generación y validación automática dentro de pipelines experimentales estructurados.
+
+En relación con las contribuciones planteadas al inicio, este trabajo cumple dos aportaciones principales. En primer lugar, se presentó un framework completamente local, extensible y reproducible para la generación de datasets sintéticos a partir de historias de usuario. Este se basa en pipelines experimentales que permiten la orquestación controlada de procesos de generación y evaluación, reduciendo la dependencia de servicios en la nube. En segundo lugar, se definieron y operacionalizaron estrategias automáticas de validación basadas en \textit{LLM-as-a-Judge}. Estas demostraron ser efectivas para comparar descomposiciones y capturar diferencias no evidentes mediante métricas agregadas, aunque sujetas a variabilidad dependiendo de la configuración del modelo.
 
 Como trabajo futuro, se plantea extender el framework en varias direcciones. En primer lugar, se propone incorporar esquemas de evaluación híbridos que combinen juicios automáticos con validación humana, con el fin de mejorar la fiabilidad de las métricas. En segundo lugar, se considera la exploración de estrategias de consenso entre múltiples modelos evaluadores para reducir posibles sesgos. Asimismo, sería relevante ampliar el conjunto de datos utilizado, incluyendo dominios más diversos y menos estructurados, con el objetivo de analizar la generalización del enfoque. Finalmente, se plantea la extensión del framework hacia otros artefactos de ingeniería de requisitos, como casos de uso, criterios de aceptación o especificaciones funcionales, así como la integración de técnicas avanzadas de prompting y ajuste fino para mejorar la calidad de las salidas generadas.
 
