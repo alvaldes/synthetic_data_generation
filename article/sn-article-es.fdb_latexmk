@@ -1,13 +1,13 @@
 # Fdb version 4
-["bibtex sn-article-es"] 1777273637.284 "sn-article-es.aux" "sn-article-es.bbl" "sn-article-es" 1777289893.32247 0
+["bibtex sn-article-es"] 1777273637.284 "sn-article-es.aux" "sn-article-es.bbl" "sn-article-es" 1777290517.7812 0
   "./sn-bibliography.bib" 1777262196.95717 50380 42c910a7c74b895a6487311fd9641911 ""
   "./sn-mathphys-num.bst" 1776713223.43365 64164 943df446db725f71d6bb625fc0d6f4fc ""
-  "sn-article-es.aux" 1777289893.03979 8605 4b623c147f6a6b5e6cbca1f421728210 "pdflatex"
+  "sn-article-es.aux" 1777290517.50119 8605 d3135e7042da3b0538bfb8637e776a72 "pdflatex"
   (generated)
   "sn-article-es.bbl"
   "sn-article-es.blg"
   (rewritten before read)
-["pdflatex"] 1777289891.56514 "sn-article-es.tex" "sn-article-es.pdf" "sn-article-es" 1777289893.32262 2
+["pdflatex"] 1777290516.0879 "sn-article-es.tex" "sn-article-es.pdf" "sn-article-es" 1777290517.78134 2
   "/usr/local/texlive/2026/texmf-dist/fonts/enc/dvips/cm-super/cm-super-ts1.enc" 1136849721 2900 1537cc8184ad1792082cd229ecc269f4 ""
   "/usr/local/texlive/2026/texmf-dist/fonts/map/fontname/texfonts.map" 1577235249 3524 cb3e574dea2d1052e39280babc910dc8 ""
   "/usr/local/texlive/2026/texmf-dist/fonts/tfm/jknappen/ec/tcrm1000.tfm" 1136768653 1536 e07581a4bb3136ece9eeb4c3ffab8233 ""
@@ -157,10 +157,10 @@
   "images/criterion_comparison_all.png" 1777282962.05685 151269 2ee59598ee62cbb56517e01a0fdebe96 ""
   "images/diagram_es.png" 1776713223.4232 8768 6f0658cf2bc44c223890b347fc2971b8 ""
   "images/total_score_distribution.png" 1777282961.63719 88349 a1a6aaf4ced0d3c25a537e3ece9bfcbb ""
-  "sn-article-es.aux" 1777289893.03979 8605 4b623c147f6a6b5e6cbca1f421728210 "pdflatex"
+  "sn-article-es.aux" 1777290517.50119 8605 d3135e7042da3b0538bfb8637e776a72 "pdflatex"
   "sn-article-es.bbl" 1777273637.43895 26877 29e90e169f9a8bde7c2bd1aaca698b85 "bibtex sn-article-es"
-  "sn-article-es.out" 1777289893.04056 2710 ac03b020c790f21c33f33bdf93fd8d0f "pdflatex"
-  "sn-article-es.tex" 1777289891.26272 61859 f028a5bd25afcd455a1e4435f7a33a0b ""
+  "sn-article-es.out" 1777290517.5039 2710 ac03b020c790f21c33f33bdf93fd8d0f "pdflatex"
+  "sn-article-es.tex" 1777290514.28719 61373 41d03e826fe515d292c70c5a30418468 ""
   "sn-jnl.cls" 1776713223.43344 55857 c14ef9d34b3d95356940eaf177aff85f ""
   (generated)
   "sn-article-es.aux"
