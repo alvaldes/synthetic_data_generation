@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.29 (TeX Live 2026) (preloaded format=pdflatex 2026.3.15)  29 APR 2026 04:45
+This is pdfTeX, Version 3.141592653-2.6-1.40.29 (TeX Live 2026) (preloaded format=pdflatex 2026.3.15)  29 APR 2026 12:20
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -776,9 +776,6 @@ Overfull \hbox (3.4046pt too wide) in paragraph at lines 306--335
  []
 
 
-LaTeX Warning: `h' float specifier changed to `ht'.
-
-
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
  [12
@@ -790,28 +787,18 @@ l.369
 <images/total_score_distribution.png, id=234, 462.528pt x 346.896pt>
 File: images/total_score_distribution.png Graphic file (type png)
 <use images/total_score_distribution.png>
-Package pdftex.def Info: images/total_score_distribution.png  used on input line 376.
+Package pdftex.def Info: images/total_score_distribution.png  used on input line 378.
 (pdftex.def)             Requested size: 372.0pt x 279.01514pt.
 
-
-LaTeX Warning: `h' float specifier changed to `ht'.
-
-
-Overfull \hbox (13.74927pt too wide) in paragraph at lines 390--412
+Overfull \hbox (13.74927pt too wide) in paragraph at lines 392--414
  [] 
  []
-
-
-LaTeX Warning: `h' float specifier changed to `ht'.
 
 <images/criterion_comparison_all.png, id=238, 714.7503pt x 715.2321pt>
 File: images/criterion_comparison_all.png Graphic file (type png)
 <use images/criterion_comparison_all.png>
-Package pdftex.def Info: images/criterion_comparison_all.png  used on input line 418.
+Package pdftex.def Info: images/criterion_comparison_all.png  used on input line 420.
 (pdftex.def)             Requested size: 372.0pt x 372.26115pt.
-
-LaTeX Warning: `h' float specifier changed to `ht'.
-
 
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
@@ -819,32 +806,32 @@ Underfull \vbox (badness 10000) has occurred while \output is active []
 pdfTeX warning (ext4): destination with the same identifier (name{table.2}) has been already used, duplicate ignored
 <argument> ...shipout:D \box_use:N \l_shipout_box 
                                                   \__shipout_drop_firstpage_...
-l.425 E
-       n \textit{completitud}, se observa un comportamiento diferenciado. G2...]
+l.423 \end{figure}
+                  ]
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
  [14
 pdfTeX warning (ext4): destination with the same identifier (name{figure.2}) has been already used, duplicate ignored
 <argument> ...shipout:D \box_use:N \l_shipout_box 
                                                   \__shipout_drop_firstpage_...
-l.429 E
-       l criterio de \textit{formato} muestra uno de los comportamientos má...
-pdfTeX warning (ext4): destination with the same identifier (name{table.3}) has been already used, duplicate ignored
-<argument> ...shipout:D \box_use:N \l_shipout_box 
-                                                  \__shipout_drop_firstpage_...
-l.429 E
+l.431 E
        l criterio de \textit{formato} muestra uno de los comportamientos má... <./images/total_score_distribution.png>]
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
  [15
+pdfTeX warning (ext4): destination with the same identifier (name{table.3}) has been already used, duplicate ignored
+<argument> ...shipout:D \box_use:N \l_shipout_box 
+                                                  \__shipout_drop_firstpage_...
+l.445 E
+       ste comportamiento es consistente con lo reportado en la literatura r...]
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
+ [16
 pdfTeX warning (ext4): destination with the same identifier (name{figure.3}) has been already used, duplicate ignored
 <argument> ...shipout:D \box_use:N \l_shipout_box 
                                                   \__shipout_drop_firstpage_...
-l.434 
-       <./images/criterion_comparison_all.png>]
-Underfull \vbox (badness 10000) has occurred while \output is active []
-
- [16]
+l.447 E
+       n primer lugar, se observa que el desempeño de los modelos no es uni... <./images/criterion_comparison_all.png>]
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
  [17]
@@ -854,17 +841,20 @@ Underfull \vbox (badness 10000) has occurred while \output is active []
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
  [19]
-Package hyperref Info: bookmark level for unknown lstlisting defaults to 0 on input line 530.
-
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
  [20]
+Package hyperref Info: bookmark level for unknown lstlisting defaults to 0 on input line 536.
+
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
- [21] (./sn-article-es.bbl
+ [21]
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
- [22]
+ [22] (./sn-article-es.bbl
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
+ [23]
 Underfull \hbox (badness 1342) in paragraph at lines 301--314
 []\OT1/cmr/m/n/10 Li, Y., Lin, Z., Zhang, S.D., Fu, Q., Chen, B., Lou, J.-G., Chen, W.:
  []
@@ -928,10 +918,10 @@ Underfull \hbox (badness 1067) in paragraph at lines 331--344
 
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
- [23]
+ [24]
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
- [24]
+ [25]
 
 ./sn-article-es.bbl:669: LaTeX Error: Invalid UTF-8 byte sequence (�.).
 
@@ -965,10 +955,10 @@ Alternatively, save the file in UTF-8 using your editor or another tool
 
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
- [25])
+ [26])
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
- [26] (./sn-article-es.aux)
+ [27] (./sn-article-es.aux)
  ***********
 LaTeX2e <2025-11-01>
 L3 programming layer <2026-01-19>
@@ -979,21 +969,21 @@ LaTeX Font Warning: Size substitutions with differences
 (Font)              up to 0.985pt have occurred.
 
 Package rerunfilecheck Info: File `sn-article-es.out' has not changed.
-(rerunfilecheck)             Checksum: E2743E1F57CBBF80BFE79476A8D8F416;2582.
+(rerunfilecheck)             Checksum: 902FB6A81A0894D92E1DFE2A3947CFC4;2666.
  ) 
 Here is how much of TeX's memory you used:
- 15033 strings out of 467525
- 228272 string characters out of 5418982
- 833141 words of memory out of 5000000
+ 15034 strings out of 467525
+ 228279 string characters out of 5418982
+ 860141 words of memory out of 5000000
  43552 multiletter control sequences out of 15000+600000
  643166 words of font info for 101 fonts, out of 8000000 for 9000
  1151 hyphenation exceptions out of 8191
  90i,12n,93p,1853b,2056s stack positions out of 10000i,1000n,20000p,200000b,200000s
 </usr/local/texlive/2026/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb></usr/local/texlive/2026/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb></usr/local/texlive/2026/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx8.pfb></usr/local/texlive/2026/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx9.pfb></usr/local/texlive/2026/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi8.pfb></usr/local/texlive/2026/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/local/texlive/2026/texmf-dist/fonts/type1/public/amsfonts/cm/cmr17.pfb></usr/local/texlive/2026/texmf-dist/fonts/type1/public/amsfonts/cm/cmr5.pfb></usr/local/texlive/2026/texmf-dist/fonts/type1/public/amsfonts/cm/cmr7.pfb></usr/local/texlive/2026/texmf-dist/fonts/type1/public/amsfonts/cm/cmr8.pfb></usr/local/texlive/2026/texmf-dist/fonts/type1/public/amsfonts/cm/cmr9.pfb></usr/local/texlive/2026/texmf-dist/fonts/type1/public/amsfonts/cm/cmss10.pfb></usr/local/texlive/2026/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/local/texlive/2026/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy8.pfb></usr/local/texlive/2026/texmf-dist/fonts/type1/public/amsfonts/cm/cmti10.pfb></usr/local/texlive/2026/texmf-dist/fonts/type1/public/amsfonts/cm/cmti9.pfb></usr/local/texlive/2026/texmf-dist/fonts/type1/public/amsfonts/cm/cmtt10.pfb></usr/local/texlive/2026/texmf-dist/fonts/type1/public/amsfonts/cm/cmtt9.pfb>
-Output written on sn-article-es.pdf (26 pages, 591462 bytes).
+Output written on sn-article-es.pdf (27 pages, 605256 bytes).
 PDF statistics:
- 553 PDF objects out of 1000 (max. 8388607)
- 478 compressed objects within 5 object streams
- 166 named destinations out of 1000 (max. 500000)
+ 557 PDF objects out of 1000 (max. 8388607)
+ 481 compressed objects within 5 object streams
+ 167 named destinations out of 1000 (max. 500000)
  144 words of extra memory for PDF output out of 10000 (max. 10000000)
 

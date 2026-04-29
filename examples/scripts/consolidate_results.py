@@ -31,6 +31,7 @@ model_map = {
     "C1": {"G1": "Llama 3.1", "G2": "Mistral"},
     "C2": {"G1": "Qwen 3", "G2": "Gemma 4"},
     "C3": {"G1": "Gemma 3", "G2": "Mistral Nemo"},
+    "C4": {"G1": "Qwen 3", "G2": "Phi 4"},
 }
 
 # Asegurarse de que el directorio de salidas exista
@@ -47,6 +48,7 @@ tests_files = [
     if f.endswith("_judge_results.csv")
     # and f != "salony_dual_test1_output_judge_results.csv"
 ]
+tests_files = sorted(tests_files)
 
 criterion_results = []
 aggregate_results = []
@@ -225,6 +227,7 @@ boxplot_path = os.path.join(OUTPUTS_DIR, "total_score_distribution.png")
 # PROCESAR TESTS
 # ============================
 tests_files = [f for f in os.listdir(TESTS_DIR) if f.endswith("_judge_results.csv")]
+tests_files = sorted(tests_files)
 
 data_by_group = {"G1": [], "G2": []}
 labels = []
@@ -241,10 +244,17 @@ for test_file in tests_files:
         labels.append("C" + os.path.splitext(test_file)[0].split("_")[2][-1])
 
 # Crear lista de datos para el boxplot
-boxplot_data = data_by_group["G1"] + data_by_group["G2"]
-boxplot_labels = [f"{label} (G1)\n{model_map[label]['G1']}" for label in labels] + [
-    f"{label} (G2)\n{model_map[label]['G2']}" for label in labels
-]
+boxplot_data = []
+boxplot_labels = []
+
+for i, label in enumerate(labels):
+    # G1
+    boxplot_data.append(data_by_group["G1"][i])
+    boxplot_labels.append(f"{label} (G1)\n{model_map[label]['G1']}")
+
+    # G2
+    boxplot_data.append(data_by_group["G2"][i])
+    boxplot_labels.append(f"{label} (G2)\n{model_map[label]['G2']}")
 
 # ============================
 # GENERAR EL GRAFICO
