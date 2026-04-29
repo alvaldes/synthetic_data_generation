@@ -27,6 +27,11 @@ CRITERIA_LABELS_EN = [
     "Granularity",
 ]
 THRESHOLD = 35  # Umbral para Pass Rate
+model_map = {
+    "C1": {"G1": "Llama 3.1", "G2": "Mistral"},
+    "C2": {"G1": "Qwen 3", "G2": "Gemma 4"},
+    "C3": {"G1": "Gemma 3", "G2": "Mistral Nemo"},
+}
 
 # Asegurarse de que el directorio de salidas exista
 os.makedirs(OUTPUTS_DIR, exist_ok=True)
@@ -237,8 +242,8 @@ for test_file in tests_files:
 
 # Crear lista de datos para el boxplot
 boxplot_data = data_by_group["G1"] + data_by_group["G2"]
-boxplot_labels = [f"{label} (G1)" for label in labels] + [
-    f"{label} (G2)" for label in labels
+boxplot_labels = [f"{label} (G1)\n{model_map[label]['G1']}" for label in labels] + [
+    f"{label} (G2)\n{model_map[label]['G2']}" for label in labels
 ]
 
 # ============================
@@ -252,6 +257,7 @@ plt.ylabel("Total Scores")
 plt.title("Score Distribution Across Tests")
 plt.xticks(rotation=0, ha="center", fontsize=8)
 plt.tight_layout()
+# plt.subplots_adjust(bottom=0.2)
 
 # Guardar el gráfico
 plt.savefig(boxplot_path, dpi=300)
@@ -293,8 +299,37 @@ for idx, (crit, label) in enumerate(zip(CRITERIA, CRITERIA_LABELS_EN)):
         g1_vals.append(subset[subset["Gen"] == "G1"][label].values[0])
         g2_vals.append(subset[subset["Gen"] == "G2"][label].values[0])
 
-    ax.bar(x - width / 2, g1_vals, width, label="G1")
-    ax.bar(x + width / 2, g2_vals, width, label="G2")
+    bars_g1 = ax.bar(x - width / 2, g1_vals, width, label="G1")
+    bars_g2 = ax.bar(x + width / 2, g2_vals, width, label="G2")
+
+    if idx == 4:
+        for i, bar in enumerate(bars_g1):
+            config = configs[i]
+            model_name = model_map[config]["G1"]
+
+            ax.text(
+                bar.get_x() + bar.get_width() / 2,
+                bar.get_height(),
+                model_name,
+                ha="center",
+                va="bottom",
+                fontsize=7,
+                rotation=0,  # opcional si se enciman
+            )
+
+        for i, bar in enumerate(bars_g2):
+            config = configs[i]
+            model_name = model_map[config]["G2"]
+
+            ax.text(
+                bar.get_x() + bar.get_width() / 2,
+                bar.get_height(),
+                model_name,
+                ha="center",
+                va="bottom",
+                fontsize=7,
+                rotation=0,
+            )
 
     ax.set_title(label)
     ax.set_xticks(x)
