@@ -38,23 +38,30 @@
 Conjuntos de Datos Sintéticos de Descomposición de Historias de Usuario
 con Validación tipo LLM-as-a-Judge}
 
-\author[1]{\fnm{Angel Luis} \sur{Valdés Sánchez}}\email{alvaldes.dev@gmail.com}
+% ----------------------------------------------
+%  This part is hidden for blind review reasons
+% ----------------------------------------------
 
-\author*[2]{\fnm{Carlos Alberto} \sur{Fernández y Fernández}}\email{caff@gs.utm.mx}
-
-\author[2]{\fnm{Verónica} \sur{Rodríguez López}}\email{veromix@gs.utm.mx}
-
-\affil[1]{\orgdiv{División de Estudios de Posgrado},
-  \orgname{Universidad Tecnológica de la Mixteca},
-  \orgaddress{\street{Av. Dr. Modesto Seara Vázquez No. 1},
-    \city{Huajuapan de León}, \postcode{69004},
-    \state{Oaxaca}, \country{México}}}
-
-\affil*[2]{\orgdiv{Instituto de Computación},
-  \orgname{Universidad Tecnológica de la Mixteca},
-  \orgaddress{\street{Av. Dr. Modesto Seara Vázquez No. 1},
-    \city{Huajuapan de León}, \postcode{69004},
-    \state{Oaxaca}, \country{México}}}
+% \author[1]{\fnm{Angel Luis} \sur{Valdés Sánchez}}\email{alvaldes.dev@gmail.com}
+%
+% \author*[2]{\fnm{Carlos Alberto} \sur{Fernández y Fernández}}\email{caff@gs.utm.mx}
+%
+% \author[2]{\fnm{Verónica} \sur{Rodríguez López}}\email{veromix@gs.utm.mx}
+%
+% \affil[1]{\orgdiv{División de Estudios de Posgrado},
+%   \orgname{Universidad Tecnológica de la Mixteca},
+%   \orgaddress{\street{Av. Dr. Modesto Seara Vázquez No. 1},
+%     \city{Huajuapan de León}, \postcode{69004},
+%     \state{Oaxaca}, \country{México}}}
+%
+% \affil*[2]{\orgdiv{Instituto de Computación},
+%   \orgname{Universidad Tecnológica de la Mixteca},
+%   \orgaddress{\street{Av. Dr. Modesto Seara Vázquez No. 1},
+%     \city{Huajuapan de León}, \postcode{69004},
+%     \state{Oaxaca}, \country{México}}}
+% ----------------------------------------------
+%  End of hidden for blind review reasons
+% ----------------------------------------------
 
 \abstract{La descomposición de historias de usuario en tareas de desarrollo es una práctica habitual en los proyectos ágiles; sin embargo, continúa siendo un proceso altamente dependiente del juicio humano. Los intentos de automatizar esta actividad mediante técnicas de aprendizaje automático suelen enfrentar dos limitaciones recurrentes: la escasez de conjuntos de datos anotados y la dependencia de modelos de lenguaje basados en servicios en la nube. Este trabajo presenta \textit{LocalLLM-DataForge}, un framework modular basado en DataFrames para la generación y evaluación de conjuntos de datos sintéticos orientados a la descomposición de historias de usuario utilizando modelos de lenguaje ejecutados localmente. El framework integra modelos generadores y evaluadores dentro de un pipeline reproducible, incorporando mecanismos de validación automática basados en el paradigma \textit{LLM-as-a-Judge} y permitiendo la experimentación con distintas configuraciones de modelos y parámetros. La propuesta se evaluó sobre un conjunto de datos mediante múltiples configuraciones de modelos de código abierto. Los resultados muestran que es posible generar descomposiciones con niveles consistentes de calidad, observándose diferencias significativas en desempeño y estabilidad dependiendo de la configuración de los modelos. En particular, se identifica un compromiso entre diversidad y consistencia asociado a parámetros como la temperatura, así como una mayor estabilidad en criterios estructurales frente a una mayor variabilidad en criterios semánticos. Estos hallazgos sugieren que los LLMs ejecutados localmente constituyen una alternativa viable para la generación de datasets sintéticos en ingeniería de requisitos, proporcionando ventajas en términos de reproducibilidad, control de datos y costo.}
 
@@ -467,29 +474,35 @@ Como trabajo futuro, se plantea extender el framework en varias direcciones. En 
 
 \backmatter
 
-\bmhead{Agradecimientos}
-
-Los autores agradecen a la Secretaría de Ciencia, Humanidades, Tecnología e Innovación (SECIHTI) por el apoyo brindado para el desarrollo de este trabajo. Asimismo, se reconoce el respaldo institucional de la Universidad Tecnológica de la Mixteca, así como las facilidades proporcionadas para la realización de los experimentos y el uso de infraestructura computacional.
-
-\section*{Declaraciones}
-
-\begin{itemize}
-
-  \item \textbf{Financiamiento:} Este trabajo contó con el apoyo de la Secretaría de Ciencia, Humanidades, Tecnología e Innovación (SECIHTI).
-
-\item \textbf{Conflicto de intereses:} Los autores declaran que no existe conflicto de intereses.
-
-\item \textbf{Aprobación ética y consentimiento de participación:} No aplicable.
-
-\item \textbf{Consentimiento para publicación:} No aplicable.
-
-\item \textbf{Disponibilidad de datos:} El conjunto de datos utilizado (Salony) es de acceso público. Los datos generados durante este estudio, así como los resultados experimentales, están disponibles en el repositorio del proyecto.
-
-\item \textbf{Disponibilidad de código:} El código fuente de \textit{LocalLLM-DataForge} se encuentra disponible públicamente en el repositorio del proyecto.
-
-\item \textbf{Contribución de autores:} Todos los autores contribuyeron al diseño conceptual del estudio. A.L.V.S. desarrolló la implementación del framework y llevó a cabo los experimentos. C.A.F.F. y V.R.L. supervisaron la investigación y contribuyeron al diseño metodológico y la revisión del manuscrito.
-
-\end{itemize}
+% ----------------------------------------------
+%  This part is hidden for blind review reasons
+% ----------------------------------------------
+% \bmhead{Agradecimientos}
+%
+% Los autores agradecen a la Secretaría de Ciencia, Humanidades, Tecnología e Innovación (SECIHTI) por el apoyo brindado para el desarrollo de este trabajo. Asimismo, se reconoce el respaldo institucional de la Universidad Tecnológica de la Mixteca, así como las facilidades proporcionadas para la realización de los experimentos y el uso de infraestructura computacional.
+%
+% \section*{Declaraciones}
+%
+% \begin{itemize}
+%
+%   \item \textbf{Financiamiento:} Este trabajo contó con el apoyo de la Secretaría de Ciencia, Humanidades, Tecnología e Innovación (SECIHTI).
+%
+% \item \textbf{Conflicto de intereses:} Los autores declaran que no existe conflicto de intereses.
+%
+% \item \textbf{Aprobación ética y consentimiento de participación:} No aplicable.
+%
+% \item \textbf{Consentimiento para publicación:} No aplicable.
+%
+% \item \textbf{Disponibilidad de datos:} El conjunto de datos utilizado (Salony) es de acceso público. Los datos generados durante este estudio, así como los resultados experimentales, están disponibles en el repositorio del proyecto.
+%
+% \item \textbf{Disponibilidad de código:} El código fuente de \textit{LocalLLM-DataForge} se encuentra disponible públicamente en el repositorio del proyecto.
+%
+% \item \textbf{Contribución de autores:} Todos los autores contribuyeron al diseño conceptual del estudio. A.L.V.S. desarrolló la implementación del framework y llevó a cabo los experimentos. C.A.F.F. y V.R.L. supervisaron la investigación y contribuyeron al diseño metodológico y la revisión del manuscrito.
+%
+% \end{itemize}
+% ----------------------------------------------
+%  End of hidden for blind review reasons
+% ----------------------------------------------
 
 % \newpage
 
