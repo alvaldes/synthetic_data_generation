@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.29 (TeX Live 2026) (preloaded format=pdflatex 2026.3.15)  29 APR 2026 13:32
+This is pdfTeX, Version 3.141592653-2.6-1.40.29 (TeX Live 2026) (preloaded format=pdflatex 2026.3.15)  29 APR 2026 19:14
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -729,7 +729,7 @@ Underfull \vbox (badness 10000) has occurred while \output is active []
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
  [4]
-<images/diagram_en.png, id=149, 550.055pt x 418.56375pt>
+<images/diagram_en.png, id=155, 550.055pt x 418.56375pt>
 File: images/diagram_en.png Graphic file (type png)
 <use images/diagram_en.png>
 Package pdftex.def Info: images/diagram_en.png  used on input line 123.
@@ -744,7 +744,7 @@ Underfull \vbox (badness 10000) has occurred while \output is active []
 pdfTeX warning (ext4): destination with the same identifier (name{figure.1}) has been already used, duplicate ignored
 <argument> ...shipout:D \box_use:N \l_shipout_box 
                                                   \__shipout_drop_firstpage_...
-l.145 
+l.139 
        <./images/diagram_en.png>]
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
@@ -755,9 +755,6 @@ Underfull \vbox (badness 10000) has occurred while \output is active []
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
  [9]
-Overfull \vbox (1.27615pt too high) has occurred while \output is active []
-
-
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
  [10]
@@ -779,8 +776,8 @@ Underfull \vbox (badness 10000) has occurred while \output is active []
 pdfTeX warning (ext4): destination with the same identifier (name{table.1}) has been already used, duplicate ignored
 <argument> ...shipout:D \box_use:N \l_shipout_box 
                                                   \__shipout_drop_firstpage_...
-l.270 I
-       n contrast to the previous setups, C4 presents a more balanced behavi...]
+l.269 
+      ]
 <images/total_score_distribution.png, id=230, 462.528pt x 346.896pt>
 File: images/total_score_distribution.png Graphic file (type png)
 <use images/total_score_distribution.png>
@@ -803,15 +800,15 @@ Underfull \vbox (badness 10000) has occurred while \output is active []
 pdfTeX warning (ext4): destination with the same identifier (name{table.2}) has been already used, duplicate ignored
 <argument> ...shipout:D \box_use:N \l_shipout_box 
                                                   \__shipout_drop_firstpage_...
-l.325 I
-       n terms of \textit{completeness}, distinct behaviors emerge. G2 outpe...]
+l.324 
+      ]
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
  [13
 pdfTeX warning (ext4): destination with the same identifier (name{figure.2}) has been already used, duplicate ignored
 <argument> ...shipout:D \box_use:N \l_shipout_box 
                                                   \__shipout_drop_firstpage_...
-l.332 
+l.330 
        <./images/total_score_distribution.png>]
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
@@ -819,15 +816,15 @@ Underfull \vbox (badness 10000) has occurred while \output is active []
 pdfTeX warning (ext4): destination with the same identifier (name{table.3}) has been already used, duplicate ignored
 <argument> ...shipout:D \box_use:N \l_shipout_box 
                                                   \__shipout_drop_firstpage_...
-l.345 F
-       irstly, it is observed that model performance is non-uniform and high...]
+l.344 
+      ]
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
  [15
 pdfTeX warning (ext4): destination with the same identifier (name{figure.3}) has been already used, duplicate ignored
 <argument> ...shipout:D \box_use:N \l_shipout_box 
                                                   \__shipout_drop_firstpage_...
-l.348 
+l.346 
        <./images/criterion_comparison_all.png>]
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
@@ -838,7 +835,7 @@ Underfull \vbox (badness 10000) has occurred while \output is active []
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
  [18]
-Package hyperref Info: bookmark level for unknown lstlisting defaults to 0 on input line 398.
+Package hyperref Info: bookmark level for unknown lstlisting defaults to 0 on input line 400.
 
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
@@ -968,13 +965,13 @@ Package rerunfilecheck Info: File `sn-article-en.out' has not changed.
 Here is how much of TeX's memory you used:
  15016 strings out of 467525
  227949 string characters out of 5418982
- 862004 words of memory out of 5000000
+ 833004 words of memory out of 5000000
  43539 multiletter control sequences out of 15000+600000
  643166 words of font info for 101 fonts, out of 8000000 for 9000
  1151 hyphenation exceptions out of 8191
  90i,12n,93p,1581b,2056s stack positions out of 10000i,1000n,20000p,200000b,200000s
 </usr/local/texlive/2026/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb></usr/local/texlive/2026/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb></usr/local/texlive/2026/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx8.pfb></usr/local/texlive/2026/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx9.pfb></usr/local/texlive/2026/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi8.pfb></usr/local/texlive/2026/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/local/texlive/2026/texmf-dist/fonts/type1/public/amsfonts/cm/cmr17.pfb></usr/local/texlive/2026/texmf-dist/fonts/type1/public/amsfonts/cm/cmr5.pfb></usr/local/texlive/2026/texmf-dist/fonts/type1/public/amsfonts/cm/cmr7.pfb></usr/local/texlive/2026/texmf-dist/fonts/type1/public/amsfonts/cm/cmr8.pfb></usr/local/texlive/2026/texmf-dist/fonts/type1/public/amsfonts/cm/cmr9.pfb></usr/local/texlive/2026/texmf-dist/fonts/type1/public/amsfonts/cm/cmss10.pfb></usr/local/texlive/2026/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/local/texlive/2026/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy8.pfb></usr/local/texlive/2026/texmf-dist/fonts/type1/public/amsfonts/cm/cmti10.pfb></usr/local/texlive/2026/texmf-dist/fonts/type1/public/amsfonts/cm/cmti9.pfb></usr/local/texlive/2026/texmf-dist/fonts/type1/public/amsfonts/cm/cmtt10.pfb></usr/local/texlive/2026/texmf-dist/fonts/type1/public/amsfonts/cm/cmtt9.pfb>
-Output written on sn-article-en.pdf (25 pages, 598871 bytes).
+Output written on sn-article-en.pdf (25 pages, 599090 bytes).
 PDF statistics:
  542 PDF objects out of 1000 (max. 8388607)
  468 compressed objects within 5 object streams

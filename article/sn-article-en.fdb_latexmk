@@ -1,13 +1,13 @@
 # Fdb version 4
-["bibtex sn-article-en"] 1777490999.19361 "sn-article-en.aux" "sn-article-en.bbl" "sn-article-en" 1777491178.27765 0
+["bibtex sn-article-en"] 1777490999.19361 "sn-article-en.aux" "sn-article-en.bbl" "sn-article-en" 1777511693.00656 0
   "./sn-bibliography.bib" 1777448729.2655 50705 60b466f7db63c72b893589f194f420f9 ""
   "./sn-mathphys-num.bst" 1776713223.43365 64164 943df446db725f71d6bb625fc0d6f4fc ""
-  "sn-article-en.aux" 1777491177.95355 8263 aaf632c2b6b314696093f9b8154c5fd5 "pdflatex"
+  "sn-article-en.aux" 1777511692.70114 8263 f112c8dd5af39847970a5c278b659f1f "pdflatex"
   (generated)
   "sn-article-en.bbl"
   "sn-article-en.blg"
   (rewritten before read)
-["pdflatex"] 1777491176.43496 "sn-article-en.tex" "sn-article-en.pdf" "sn-article-en" 1777491178.27781 2
+["pdflatex"] 1777511691.25281 "sn-article-en.tex" "sn-article-en.pdf" "sn-article-en" 1777511693.00673 2
   "/usr/local/texlive/2026/texmf-dist/fonts/map/fontname/texfonts.map" 1577235249 3524 cb3e574dea2d1052e39280babc910dc8 ""
   "/usr/local/texlive/2026/texmf-dist/fonts/tfm/public/amsfonts/cmextra/cmex7.tfm" 1246382020 1004 54797486969f23fa377b128694d548df ""
   "/usr/local/texlive/2026/texmf-dist/fonts/tfm/public/amsfonts/cmextra/cmex8.tfm" 1246382020 988 bdf658c3bfc2d96d3c8b02cfc1c94c20 ""
@@ -145,10 +145,10 @@
   "images/criterion_comparison_all.png" 1777484252.3645 177178 fd5fe97ce476279a6d0c60452e112668 ""
   "images/diagram_en.png" 1776713223.42297 8281 116fed5033737b30f255fa68030373c7 ""
   "images/total_score_distribution.png" 1777484251.91688 102637 94710917544c6efed2e74bbe0fd5cc9c ""
-  "sn-article-en.aux" 1777491177.95355 8263 aaf632c2b6b314696093f9b8154c5fd5 "pdflatex"
+  "sn-article-en.aux" 1777511692.70114 8263 f112c8dd5af39847970a5c278b659f1f "pdflatex"
   "sn-article-en.bbl" 1777490999.35317 24092 a23aff2b5fed0f286207995ffcdf8f2f "bibtex sn-article-en"
-  "sn-article-en.out" 1777491177.95921 2371 fe6086a04085f4ab6d43a6192b150d89 "pdflatex"
-  "sn-article-en.tex" 1777491174.72083 59295 365ee46a8c8c7a159cc8645e39b41f03 ""
+  "sn-article-en.out" 1777511692.70392 2371 fe6086a04085f4ab6d43a6192b150d89 "pdflatex"
+  "sn-article-en.tex" 1777511690.48806 59769 40a33797f3dd806a4e08f5055fcdc4cb ""
   "sn-jnl.cls" 1776713223.43344 55857 c14ef9d34b3d95356940eaf177aff85f ""
   (generated)
   "sn-article-en.aux"
