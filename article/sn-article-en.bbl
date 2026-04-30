@@ -1,6 +1,6 @@
 %% BioMed_Central_Bib_Style_v1.01
 
-\begin{thebibliography}{15}
+\begin{thebibliography}{40}
 % BibTex style file: bmc-mathphys.bst (version 2.1), 2014-07-24
 \ifx \bisbn   \undefined \def \bisbn  #1{ISBN #1}\fi
 \ifx \binits  \undefined \def \binits#1{#1}\fi
@@ -48,18 +48,20 @@
 \begin{bbook}
 \bauthor{\bsnm{Cohn}, \binits{M.}}:
 \bbtitle{User Stories Applied: For Agile Software Development}.
-\bpublisher{Addison-Wesley}, \blocation{???}
+\bpublisher{Addison Wesley Longman Publishing Co., Inc.},
+\blocation{USA}
 (\byear{2004})
 \end{bbook}
 \endbibitem
 
 %%% 2
-\bibitem[\protect\citeauthoryear{Beck}{2001}]{beck2001}
+\bibitem[\protect\citeauthoryear{Beck}{1999}]{beck2001}
 \begin{bbook}
 \bauthor{\bsnm{Beck}, \binits{K.}}:
 \bbtitle{Extreme Programming Explained: Embrace Change}.
-\bpublisher{Addison-Wesley}, \blocation{???}
-(\byear{2001})
+\bpublisher{Addison-Wesley Longman Publishing Co., Inc.},
+\blocation{USA}
+(\byear{1999})
 \end{bbook}
 \endbibitem
 
@@ -67,8 +69,10 @@
 \bibitem[\protect\citeauthoryear{Rubin}{2012}]{rubin2012}
 \begin{bbook}
 \bauthor{\bsnm{Rubin}, \binits{K.S.}}:
-\bbtitle{Essential Scrum: A Practical Guide to the Most Popular Agile Process}.
-\bpublisher{Addison-Wesley}, \blocation{???}
+\bbtitle{Essential Scrum: A Practical Guide to the Most Popular Agile Process},
+\bedition{1st} edn.
+\bpublisher{Addison-Wesley Professional},
+\blocation{Boston, MA}
 (\byear{2012})
 \end{bbook}
 \endbibitem
@@ -78,10 +82,10 @@
 \begin{botherref}
 \oauthor{\bsnm{Schwaber}, \binits{K.}},
 \oauthor{\bsnm{Sutherland}, \binits{J.}}:
-The Scrum Guide.
-\url{https://scrumguides.org}.
-Accessed: 2026-03-02
-(2020)
+The Scrum Guide: The Definitive Guide to Scrum: The Rules of the Game.
+Scrum.org \& Scrum Inc.
+(2020).
+\url{https://scrumguides.org/docs/scrumguide/v2020/2020-Scrum-Guide-US.pdf}
 \end{botherref}
 \endbibitem
 
@@ -90,10 +94,10 @@ Accessed: 2026-03-02
 \begin{barticle}
 \bauthor{\bsnm{Lucassen}, \binits{G.}},
 \bauthor{\bsnm{Dalpiaz}, \binits{F.}},
-\bauthor{\bsnm{Werf}, \binits{J.M.E.}},
+\bauthor{\bsnm{Van Der~Werf}, \binits{J.M.}},
 \bauthor{\bsnm{Brinkkemper}, \binits{S.}}:
 \batitle{Improving agile requirements: the quality user story framework and tool}.
-\bjtitle{Requirements Engineering}
+\bjtitle{Requir. Eng.}
 \bvolume{21}(\bissue{3}),
 \bfpage{383}--\blpage{403}
 (\byear{2016})
@@ -109,7 +113,7 @@ Accessed: 2026-03-02
 \bauthor{\bsnm{Larsson}, \binits{S.}},
 \bauthor{\bsnm{Wohlin}, \binits{C.}}:
 \batitle{A model for technology transfer in practice}.
-\bjtitle{IEEE Software}
+\bjtitle{IEEE Softw.}
 \bvolume{23}(\bissue{6}),
 \bfpage{88}--\blpage{95}
 (\byear{2006})
@@ -120,104 +124,608 @@ Accessed: 2026-03-02
 %%% 7
 \bibitem[\protect\citeauthoryear{Chen et~al.}{2021}]{chen2021}
 \begin{botherref}
-\oauthor{\bsnm{Chen}, \binits{M.}}, et al.:
+\oauthor{\bsnm{Chen}, \binits{M.}},
+\oauthor{\bsnm{Tworek}, \binits{J.}},
+\oauthor{\bsnm{Jun}, \binits{H.}},
+\oauthor{\bsnm{Yuan}, \binits{Q.}},
+\oauthor{\bsnm{Pond{\'e}}, \binits{H.}},
+\oauthor{\bsnm{Kaplan}, \binits{J.}},
+\oauthor{\bsnm{Edwards}, \binits{H.}},
+\oauthor{\bsnm{Burda}, \binits{Y.}},
+\oauthor{\bsnm{Joseph}, \binits{N.}},
+\oauthor{\bsnm{Brockman}, \binits{G.}},
+\oauthor{\bsnm{Ray}, \binits{A.}},
+\oauthor{\bsnm{Puri}, \binits{R.}},
+\oauthor{\bsnm{Krueger}, \binits{G.}},
+\oauthor{\bsnm{Petrov}, \binits{M.}},
+\oauthor{\bsnm{Khlaaf}, \binits{H.}},
+\oauthor{\bsnm{Sastry}, \binits{G.}},
+\oauthor{\bsnm{Mishkin}, \binits{P.}},
+\oauthor{\bsnm{Chan}, \binits{B.}},
+\oauthor{\bsnm{Gray}, \binits{S.}},
+\oauthor{\bsnm{Ryder}, \binits{N.}},
+\oauthor{\bsnm{Pavlov}, \binits{M.}},
+\oauthor{\bsnm{Power}, \binits{A.}},
+\oauthor{\bsnm{Kaiser}, \binits{L.}},
+\oauthor{\bsnm{Bavarian}, \binits{M.}},
+\oauthor{\bsnm{Winter}, \binits{C.}},
+\oauthor{\bsnm{Tillet}, \binits{P.}},
+\oauthor{\bsnm{Such}, \binits{F.P.}},
+\oauthor{\bsnm{Cummings}, \binits{D.W.}},
+\oauthor{\bsnm{Plappert}, \binits{M.}},
+\oauthor{\bsnm{Chantzis}, \binits{F.}},
+\oauthor{\bsnm{Barnes}, \binits{E.}},
+\oauthor{\bsnm{Herbert-Voss}, \binits{A.}},
+\oauthor{\bsnm{Guss}, \binits{W.H.}},
+\oauthor{\bsnm{Nichol}, \binits{A.}},
+\oauthor{\bsnm{Babuschkin}, \binits{I.}},
+\oauthor{\bsnm{Balaji}, \binits{S.}},
+\oauthor{\bsnm{Jain}, \binits{S.}},
+\oauthor{\bsnm{Carr}, \binits{A.}},
+\oauthor{\bsnm{Leike}, \binits{J.}},
+\oauthor{\bsnm{Achiam}, \binits{J.}},
+\oauthor{\bsnm{Misra}, \binits{V.}},
+\oauthor{\bsnm{Morikawa}, \binits{E.}},
+\oauthor{\bsnm{Radford}, \binits{A.}},
+\oauthor{\bsnm{Knight}, \binits{M.M.}},
+\oauthor{\bsnm{Brundage}, \binits{M.}},
+\oauthor{\bsnm{Murati}, \binits{M.}},
+\oauthor{\bsnm{Mayer}, \binits{K.}},
+\oauthor{\bsnm{Welinder}, \binits{P.}},
+\oauthor{\bsnm{McGrew}, \binits{B.}},
+\oauthor{\bsnm{Amodei}, \binits{D.}},
+\oauthor{\bsnm{McCandlish}, \binits{S.}},
+\oauthor{\bsnm{Sutskever}, \binits{I.}},
+\oauthor{\bsnm{Zaremba}, \binits{W.}}:
 Evaluating large language models trained on code.
-arXiv preprint arXiv:2107.03374
+ArXiv
+\textbf{abs/2107.03374}
 (2021)
 \end{botherref}
 \endbibitem
 
 %%% 8
 \bibitem[\protect\citeauthoryear{White et~al.}{2023}]{white2023}
-\begin{botherref}
-\oauthor{\bsnm{White}, \binits{J.}},
-\oauthor{\bsnm{Fu}, \binits{Q.}},
-\oauthor{\bsnm{Hays}, \binits{S.}},
-\oauthor{\bsnm{Sandborn}, \binits{M.}},
-\oauthor{\bsnm{Oleynik}, \binits{V.}}, et al.:
-A prompt pattern catalog to enhance prompt engineering with large language models.
-arXiv preprint arXiv:2302.11382
-(2023)
-\end{botherref}
+\begin{bchapter}
+\bauthor{\bsnm{White}, \binits{J.}},
+\bauthor{\bsnm{Fu}, \binits{Q.}},
+\bauthor{\bsnm{Hays}, \binits{S.}},
+\bauthor{\bsnm{Sandborn}, \binits{M.}},
+\bauthor{\bsnm{Olea}, \binits{C.}},
+\bauthor{\bsnm{Gilbert}, \binits{H.}},
+\bauthor{\bsnm{Elnashar}, \binits{A.}},
+\bauthor{\bsnm{Spencer-Smith}, \binits{J.}},
+\bauthor{\bsnm{Schmidt}, \binits{D.C.}}:
+\bctitle{A prompt pattern catalog to enhance prompt engineering with chatgpt}.
+In: \bbtitle{Proceedings of the 30th Conference on Pattern Languages of Programs}.
+\bsertitle{PLoP '23}.
+\bpublisher{The Hillside Group},
+\blocation{USA}
+(\byear{2023})
+\end{bchapter}
 \endbibitem
 
 %%% 9
-\bibitem[\protect\citeauthoryear{Rahimi and Gervasi}{2023}]{rahimi2023}
-\begin{barticle}
-\bauthor{\bsnm{Rahimi}, \binits{M.}},
-\bauthor{\bsnm{Gervasi}, \binits{V.}}:
-\batitle{Natural language processing for requirements engineering: A systematic mapping study}.
-\bjtitle{IEEE Access}
-\bvolume{11},
-\bfpage{25130}--\blpage{25152}
-(\byear{2023})
-\doiurl{10.1109/ACCESS.2023.3251234}
-\end{barticle}
+\bibitem[\protect\citeauthoryear{Zhao et~al.}{2021}]{rahimi2023}
+\begin{botherref}
+\oauthor{\bsnm{Zhao}, \binits{L.}},
+\oauthor{\bsnm{Alhoshan}, \binits{W.}},
+\oauthor{\bsnm{Ferrari}, \binits{A.}},
+\oauthor{\bsnm{Letsholo}, \binits{K.J.}},
+\oauthor{\bsnm{Ajagbe}, \binits{M.A.}},
+\oauthor{\bsnm{Chioasca}, \binits{E.-V.}},
+\oauthor{\bsnm{Batista-Navarro}, \binits{R.T.}}:
+Natural language processing for requirements engineering: A systematic mapping study.
+ACM Comput. Surv.
+\textbf{54}(3)
+(2021)
+\doiurl{10.1145/3444689}
+\end{botherref}
 \endbibitem
 
 %%% 10
-\bibitem[\protect\citeauthoryear{Sebban et~al.}{2024}]{sebban2024}
+\bibitem[\protect\citeauthoryear{Zadenoori et~al.}{2025}]{sebban2024}
 \begin{botherref}
-\oauthor{\bsnm{Sebban}, \binits{M.}}, et al.:
-Large language models for software requirements engineering: Opportunities and challenges.
-Empirical Software Engineering
-(2024)
+\oauthor{\bsnm{Zadenoori}, \binits{M.A.}},
+\oauthor{\bsnm{Dabrowski}, \binits{J.}},
+\oauthor{\bsnm{Alhoshan}, \binits{W.}},
+\oauthor{\bsnm{Zhao}, \binits{L.}},
+\oauthor{\bsnm{Ferrari}, \binits{A.}}:
+Large language models (llms) for requirements engineering (re): A systematic literature review.
+ArXiv
+\textbf{abs/2509.11446}
+(2025)
 \end{botherref}
 \endbibitem
 
 %%% 11
-\bibitem[\protect\citeauthoryear{Fucci et~al.}{2020}]{fucci2020}
-\begin{barticle}
-\bauthor{\bsnm{Fucci}, \binits{D.}},
-\bauthor{\bsnm{Palomares}, \binits{C.}},
-\bauthor{\bsnm{Franch}, \binits{X.}}:
-\batitle{Data-driven requirements engineering: Models and methods}.
-\bjtitle{Requirements Engineering}
-\bvolume{25},
-\bfpage{1}--\blpage{24}
-(\byear{2020})
-\doiurl{10.1007/s00766-019-00315-3}
-\end{barticle}
+\bibitem[\protect\citeauthoryear{Alhaizaey and Al-Mashari}{2025}]{fucci2020}
+\begin{botherref}
+\oauthor{\bsnm{Alhaizaey}, \binits{A.}},
+\oauthor{\bsnm{Al-Mashari}, \binits{M.}}:
+An aggregated dataset of agile user stories and use case taxonomy for ai-driven research.
+International Journal of Advanced Computer Science and Applications
+\textbf{16}(9)
+(2025)
+\doiurl{10.14569/IJACSA.2025.0160925}
+\end{botherref}
 \endbibitem
 
 %%% 12
-\bibitem[\protect\citeauthoryear{Liu et~al.}{2023}]{liu2023}
-\begin{botherref}
-\oauthor{\bsnm{Liu}, \binits{Y.}}, et al.:
-Synthetic data generation with large language models: Challenges and opportunities.
-arXiv preprint arXiv:2305.12867
-(2023)
-\end{botherref}
+\bibitem[\protect\citeauthoryear{Nadăș et~al.}{2025}]{liu2023}
+\begin{barticle}
+\bauthor{\bsnm{Nadăș}, \binits{M.}},
+\bauthor{\bsnm{Diosan}, \binits{L.}},
+\bauthor{\bsnm{Tomescu}, \binits{A.}}:
+\batitle{Synthetic data generation using large language models: Advances in text and code}.
+\bjtitle{IEEE Access}
+\bvolume{PP},
+\bfpage{1}--\blpage{1}
+(\byear{2025})
+\doiurl{10.1109/ACCESS.2025.3589503}
+\end{barticle}
 \endbibitem
 
 %%% 13
-\bibitem[\protect\citeauthoryear{Chiang and Lee}{2023}]{chiang2023}
-\begin{botherref}
-\oauthor{\bsnm{Chiang}, \binits{D.}},
-\oauthor{\bsnm{Lee}, \binits{J.-U.}}:
-Large language models are reasoning teachers.
-arXiv preprint arXiv:2305.08328
-(2023)
-\end{botherref}
+\bibitem[\protect\citeauthoryear{Ho et~al.}{2022}]{chiang2023}
+\begin{bchapter}
+\bauthor{\bsnm{Ho}, \binits{N.}},
+\bauthor{\bsnm{Schmid}, \binits{L.}},
+\bauthor{\bsnm{Yun}, \binits{S.-Y.}}:
+\bctitle{Large language models are reasoning teachers}.
+In: \bbtitle{Annual Meeting of the Association for Computational Linguistics}
+(\byear{2022}).
+\burl{https://api.semanticscholar.org/CorpusID:254877399}
+\end{bchapter}
 \endbibitem
 
 %%% 14
-\bibitem[\protect\citeauthoryear{Wang et~al.}{2023}]{wang2023}
+\bibitem[\protect\citeauthoryear{Wang et~al.}{2022}]{wang2023}
 \begin{botherref}
-\oauthor{\bsnm{Wang}, \binits{X.}}, et al.:
+\oauthor{\bsnm{Wang}, \binits{X.}},
+\oauthor{\bsnm{Wei}, \binits{J.}},
+\oauthor{\bsnm{Schuurmans}, \binits{D.}},
+\oauthor{\bsnm{Le}, \binits{Q.}},
+\oauthor{\bsnm{Chi}, \binits{E.H.}},
+\oauthor{\bsnm{Zhou}, \binits{D.}}:
 Self-consistency improves chain of thought reasoning in language models.
-arXiv preprint arXiv:2203.11171
-(2023)
+ArXiv
+\textbf{abs/2203.11171}
+(2022)
 \end{botherref}
 \endbibitem
 
 %%% 15
-\bibitem[\protect\citeauthoryear{Li et~al.}{2024}]{li2024}
+\bibitem[\protect\citeauthoryear{Li et~al.}{2022}]{li2024}
+\begin{bchapter}
+\bauthor{\bsnm{Li}, \binits{Y.}},
+\bauthor{\bsnm{Lin}, \binits{Z.}},
+\bauthor{\bsnm{Zhang}, \binits{S.D.}},
+\bauthor{\bsnm{Fu}, \binits{Q.}},
+\bauthor{\bsnm{Chen}, \binits{B.}},
+\bauthor{\bsnm{Lou}, \binits{J.-G.}},
+\bauthor{\bsnm{Chen}, \binits{W.}}:
+\bctitle{Making language models better reasoners with step-aware verifier}.
+In: \bbtitle{Annual Meeting of the Association for Computational Linguistics}
+(\byear{2022}).
+\burl{https://api.semanticscholar.org/CorpusID:259370847}
+\end{bchapter}
+\endbibitem
+
+%%% 16
+\bibitem[\protect\citeauthoryear{Niv}{2025}]{hematt2025}
+\begin{barticle}
+\bauthor{\bsnm{Niv}, \binits{S.}}:
+\batitle{Leveraging the performance of large language models in systems engineering applications}.
+\bjtitle{Journal of Information Systems Engineering and Management}
+\bvolume{10},
+\bfpage{677}--\blpage{687}
+(\byear{2025})
+\doiurl{10.52783/jisem.v10i27s.4524}
+\end{barticle}
+\endbibitem
+
+%%% 17
+\bibitem[\protect\citeauthoryear{Vogelsang and Fischbach}{2025}]{zadenoori2025}
+\begin{bbook}
+\bauthor{\bsnm{Vogelsang}, \binits{A.}},
+\bauthor{\bsnm{Fischbach}, \binits{J.}}:
+In: \beditor{\bsnm{Ferrari}, \binits{A.}},
+\beditor{\bsnm{Ginde}, \binits{G.}} (eds.)
+\bbtitle{Using Large Language Models for Natural Language Processing Tasks in Requirements Engineering: A Systematic Guideline},
+pp. \bfpage{435}--\blpage{456}.
+\bpublisher{Springer},
+\blocation{Cham}
+(\byear{2025}).
+\doiurl{10.1007/978-3-031-73143-3_16} .
+\burl{https://doi.org/10.1007/978-3-031-73143-3_16}
+\end{bbook}
+\endbibitem
+
+%%% 18
+\bibitem[\protect\citeauthoryear{Norheim et~al.}{2024}]{sami2024}
+\begin{barticle}
+\bauthor{\bsnm{Norheim}, \binits{J.J.}},
+\bauthor{\bsnm{Rebentisch}, \binits{E.}},
+\bauthor{\bsnm{Xiao}, \binits{D.}},
+\bauthor{\bsnm{Draeger}, \binits{L.}},
+\bauthor{\bsnm{Kerbrat}, \binits{A.}},
+\bauthor{\bsnm{Weck}, \binits{O.L.}}:
+\batitle{Challenges in applying large language models to requirements engineering tasks}.
+\bjtitle{Design Science}
+\bvolume{10},
+\bfpage{16}
+(\byear{2024})
+\doiurl{10.1017/dsj.2024.8}
+\end{barticle}
+\endbibitem
+
+%%% 19
+\bibitem[\protect\citeauthoryear{Ferrari and Spoletini}{2025}]{proci2025}
 \begin{botherref}
-\oauthor{\bsnm{Li}, \binits{Y.}}, et al.:
-Consensus-based evaluation of large language model outputs.
-arXiv preprint arXiv:2401.01335
+\oauthor{\bsnm{Ferrari}, \binits{A.}},
+\oauthor{\bsnm{Spoletini}, \binits{P.}}:
+Formal requirements engineering and large language models: A two-way roadmap.
+Inf. Softw. Technol.
+\textbf{181}(C)
+(2025)
+\doiurl{10.1016/j.infsof.2025.107697}
+\end{botherref}
+\endbibitem
+
+%%% 20
+\bibitem[\protect\citeauthoryear{Li et~al.}{2023}]{long2024}
+\begin{botherref}
+\oauthor{\bsnm{Li}, \binits{Z.}},
+\oauthor{\bsnm{Zhu}, \binits{H.}},
+\oauthor{\bsnm{Lu}, \binits{Z.}},
+\oauthor{\bsnm{Yin}, \binits{M.}}:
+Synthetic Data Generation with Large Language Models for Text Classification: Potential and Limitations.
+\doiurl{10.18653/v1/2023.emnlp-main.647} .
+\url{https://aclanthology.org/2023.emnlp-main.647/}
+\end{botherref}
+\endbibitem
+
+%%% 21
+\bibitem[\protect\citeauthoryear{Chakir and Lahsen-Cherif}{2025}]{fsidi2025}
+\begin{bchapter}
+\bauthor{\bsnm{Chakir}, \binits{Y.}},
+\bauthor{\bsnm{Lahsen-Cherif}, \binits{I.}}:
+\bctitle{Forensicsdata: A digital forensics dataset for large language models}.
+In: \bbtitle{2025 21th International Conference on Wireless and Mobile Computing, Networking and Communications (WiMob)},
+pp. \bfpage{1}--\blpage{6}
+(\byear{2025}).
+\doiurl{10.1109/WiMob66857.2025.11257556}
+\end{bchapter}
+\endbibitem
+
+%%% 22
+\bibitem[\protect\citeauthoryear{Ma et~al.}{2025}]{ma2025}
+\begin{botherref}
+\oauthor{\bsnm{Ma}, \binits{H.}},
+\oauthor{\bsnm{Lu}, \binits{Y.}},
+\oauthor{\bsnm{Xiao}, \binits{Z.}},
+\oauthor{\bsnm{Feng}, \binits{J.}},
+\oauthor{\bsnm{Zhang}, \binits{H.}},
+\oauthor{\bsnm{Yu}, \binits{J.}}:
+Sdd-lawllm: Advancing intelligent legal systems through synthetic data-driven fine-tuning of large language models.
+Electronics
+\textbf{14}(4)
+(2025)
+\doiurl{10.3390/electronics14040742}
+\end{botherref}
+\endbibitem
+
+%%% 23
+\bibitem[\protect\citeauthoryear{Do et~al.}{2025}]{daly2025}
+\begin{botherref}
+\oauthor{\bsnm{Do}, \binits{H.J.}},
+\oauthor{\bsnm{Ashktorab}, \binits{Z.}},
+\oauthor{\bsnm{Gajcin}, \binits{J.}},
+\oauthor{\bsnm{Miehling}, \binits{E.}},
+\oauthor{\bsnm{Cooper}, \binits{M.S.}},
+\oauthor{\bsnm{Pan}, \binits{Q.}},
+\oauthor{\bsnm{Daly}, \binits{E.M.}},
+\oauthor{\bsnm{Geyer}, \binits{W.}}:
+Generate, evaluate, iterate: Synthetic data for human-in-the-loop refinement of llm judges.
+ArXiv
+\textbf{abs/2511.04478}
+(2025)
+\end{botherref}
+\endbibitem
+
+%%% 24
+\bibitem[\protect\citeauthoryear{Chirkova et~al.}{2026}]{eigler2026}
+\begin{bchapter}
+\bauthor{\bsnm{Chirkova}, \binits{N.}},
+\bauthor{\bsnm{Ajayi}, \binits{T.O.}},
+\bauthor{\bsnm{Aycock}, \binits{S.}},
+\bauthor{\bsnm{Mujahid}, \binits{Z.M.}},
+\bauthor{\bsnm{Perli{\'c}}, \binits{V.}},
+\bauthor{\bsnm{Borisova}, \binits{E.}},
+\bauthor{\bsnm{Vartampetian}, \binits{M.}}:
+\bctitle{{LLM}-as-a-qualitative-judge: automating error analysis in natural language generation}.
+In: \beditor{\bsnm{Chen}, \binits{P.}},
+\beditor{\bsnm{Zouhar}, \binits{V.}},
+\beditor{\bsnm{Hu}, \binits{H.}},
+\beditor{\bsnm{Khanuja}, \binits{S.}},
+\beditor{\bsnm{Zhu}, \binits{W.}},
+\beditor{\bsnm{Haddow}, \binits{B.}},
+\beditor{\bsnm{Birch}, \binits{A.}},
+\beditor{\bsnm{Aji}, \binits{A.F.}},
+\beditor{\bsnm{Sennrich}, \binits{R.}},
+\beditor{\bsnm{Hooker}, \binits{S.}} (eds.)
+\bbtitle{Proceedings of the First Workshop on Multilingual Multicultural Evaluation},
+pp. \bfpage{99}--\blpage{132}.
+\bpublisher{Association for Computational Linguistics},
+\blocation{Rabat, Morocco}
+(\byear{2026}).
+\doiurl{10.18653/v1/2026.mme-main.7} .
+\burl{https://aclanthology.org/2026.mme-main.7/}
+\end{bchapter}
+\endbibitem
+
+%%% 25
+\bibitem[\protect\citeauthoryear{Lienhardt et~al.}{2024}]{dataflow_model}
+\begin{barticle}
+\bauthor{\bsnm{Lienhardt}, \binits{M.}},
+\bauthor{\bsnm{{ter Beek}}, \binits{M.H.}},
+\bauthor{\bsnm{Damiani}, \binits{F.}}:
+\batitle{Product lines of dataflows}.
+\bjtitle{Journal of Systems and Software}
+\bvolume{210},
+\bfpage{111928}
+(\byear{2024})
+\doiurl{10.1016/j.jss.2023.111928}
+\end{barticle}
+\endbibitem
+
+%%% 26
+\bibitem[\protect\citeauthoryear{Liang et~al.}{2025}]{dataflow_llm}
+\begin{botherref}
+\oauthor{\bsnm{Liang}, \binits{H.}},
+\oauthor{\bsnm{Ma}, \binits{X.}},
+\oauthor{\bsnm{Liu}, \binits{Z.}},
+\oauthor{\bsnm{Wong}, \binits{Z.H.}},
+\oauthor{\bsnm{Zhao}, \binits{Z.}},
+\oauthor{\bsnm{Meng}, \binits{Z.}},
+\oauthor{\bsnm{He}, \binits{R.}},
+\oauthor{\bsnm{Shen}, \binits{C.}},
+\oauthor{\bsnm{Cai}, \binits{Q.}},
+\oauthor{\bsnm{Han}, \binits{Z.}},
+\oauthor{\bsnm{Qiang}, \binits{M.}},
+\oauthor{\bsnm{Feng}, \binits{Y.}},
+\oauthor{\bsnm{Bai}, \binits{T.}},
+\oauthor{\bsnm{Pan}, \binits{Z.}},
+\oauthor{\bsnm{Guo}, \binits{Z.}},
+\oauthor{\bsnm{Jiang}, \binits{Y.}},
+\oauthor{\bsnm{Deng}, \binits{J.}},
+\oauthor{\bsnm{You}, \binits{Q.}},
+\oauthor{\bsnm{Lai}, \binits{P.}},
+\oauthor{\bsnm{Guo}, \binits{T.}},
+\oauthor{\bsnm{Tsai}, \binits{C.H.}},
+\oauthor{\bsnm{Feng}, \binits{H.}},
+\oauthor{\bsnm{Hu}, \binits{R.}},
+\oauthor{\bsnm{Yu}, \binits{W.-t.}},
+\oauthor{\bsnm{Niu}, \binits{J.}},
+\oauthor{\bsnm{Zeng}, \binits{B.}},
+\oauthor{\bsnm{An}, \binits{R.}},
+\oauthor{\bsnm{Ma}, \binits{L.}},
+\oauthor{\bsnm{Huang}, \binits{J.}},
+\oauthor{\bsnm{Zheng}, \binits{Y.}},
+\oauthor{\bsnm{He}, \binits{C.}},
+\oauthor{\bsnm{Tang}, \binits{L.}},
+\oauthor{\bsnm{Cui}, \binits{B.}},
+\oauthor{\bsnm{Weinan}, \binits{E.}},
+\oauthor{\bsnm{Zhang}, \binits{W.}}:
+Dataflow: An llm-driven framework for unified data preparation and workflow automation in the era of data-centric ai.
+ArXiv
+\textbf{abs/2512.16676}
+(2025)
+\end{botherref}
+\endbibitem
+
+%%% 27
+\bibitem[\protect\citeauthoryear{Zhu et~al.}{2025}]{llm_pipeline_eval}
+\begin{bchapter}
+\bauthor{\bsnm{Zhu}, \binits{C.}},
+\bauthor{\bsnm{Hong}, \binits{S.}},
+\bauthor{\bsnm{Wu}, \binits{J.}},
+\bauthor{\bsnm{Chawla}, \binits{K.}},
+\bauthor{\bsnm{Tang}, \binits{C.}},
+\bauthor{\bsnm{Yin}, \binits{Y.}},
+\bauthor{\bsnm{Wolfe}, \binits{N.}},
+\bauthor{\bsnm{Babinsky}, \binits{E.}},
+\bauthor{\bsnm{Liu}, \binits{D.}}:
+\bctitle{Raffles: Reasoning-based attribution of faults for llm systems}.
+In: \bbtitle{Conference of the European Chapter of the Association for Computational Linguistics}
+(\byear{2025}).
+\burl{https://api.semanticscholar.org/CorpusID:281204051}
+\end{bchapter}
+\endbibitem
+
+%%% 28
+\bibitem[\protect\citeauthoryear{Warnett et~al.}{2026}]{pipes_filters}
+\begin{barticle}
+\bauthor{\bsnm{Warnett}, \binits{S.J.}},
+\bauthor{\bsnm{Ntentos}, \binits{E.}},
+\bauthor{\bsnm{Zdun}, \binits{U.}}:
+\batitle{Mlops pipeline generation for reinforcement learning: A low-code approach using large language models}.
+\bjtitle{Journal of Systems and Software}
+\bvolume{235},
+\bfpage{112760}
+(\byear{2026})
+\doiurl{10.1016/j.jss.2025.112760}
+\end{barticle}
+\endbibitem
+
+%%% 29
+\bibitem[\protect\citeauthoryear{Schnabel et~al.}{2025}]{llm_multistage}
+\begin{botherref}
+\oauthor{\bsnm{Schnabel}, \binits{J.A.}},
+\oauthor{\bsnm{Trippas}, \binits{J.R.}},
+\oauthor{\bsnm{Scholer}, \binits{F.}},
+\oauthor{\bsnm{Hettiachchi}, \binits{D.}}:
+Multi-stage large language model pipelines can outperform gpt-4o in relevance assessment.
+Companion Proceedings of the ACM on Web Conference 2025
+(2025)
+\end{botherref}
+\endbibitem
+
+%%% 30
+\bibitem[\protect\citeauthoryear{Gu et~al.}{2024}]{llm_judge_survey}
+\begin{botherref}
+\oauthor{\bsnm{Gu}, \binits{J.}},
+\oauthor{\bsnm{Jiang}, \binits{X.}},
+\oauthor{\bsnm{Shi}, \binits{Z.}},
+\oauthor{\bsnm{Tan}, \binits{H.}},
+\oauthor{\bsnm{Zhai}, \binits{X.}},
+\oauthor{\bsnm{Xu}, \binits{C.}},
+\oauthor{\bsnm{Li}, \binits{W.}},
+\oauthor{\bsnm{Shen}, \binits{Y.}},
+\oauthor{\bsnm{Ma}, \binits{S.}},
+\oauthor{\bsnm{Liu}, \binits{H.}},
+\oauthor{\bsnm{Wang}, \binits{Y.}},
+\oauthor{\bsnm{Guo}, \binits{J.}}:
+A survey on llm-as-a-judge.
+ArXiv
+\textbf{abs/2411.15594}
 (2024)
+\end{botherref}
+\endbibitem
+
+%%% 31
+\bibitem[\protect\citeauthoryear{Kivim{\"a}ki}{2025}]{local_llm_privacy}
+\begin{botherref}
+\oauthor{\bsnm{Kivim{\"a}ki}, \binits{T.}}:
+Usability evaluation of the local large language models.
+Master's thesis,
+University of Turku,
+Turku, Finland
+(June 2025).
+\url{https://www.utupub.fi/handle/11111/20392}
+\end{botherref}
+\endbibitem
+
+%%% 32
+\bibitem[\protect\citeauthoryear{Carammia et~al.}{2024}]{local_llm_reproducibility}
+\begin{botherref}
+\oauthor{\bsnm{Carammia}, \binits{M.}},
+\oauthor{\bsnm{Iacus}, \binits{S.M.}},
+\oauthor{\bsnm{Porro}, \binits{G.}}:
+Rethinking scale: The efficacy of fine-tuned open-source llms in large-scale reproducible social science research.
+ArXiv
+\textbf{abs/2411.00890}
+(2024)
+\end{botherref}
+\endbibitem
+
+%%% 33
+\bibitem[\protect\citeauthoryear{Vatsal and Dubey}{2024}]{prompt_survey}
+\begin{botherref}
+\oauthor{\bsnm{Vatsal}, \binits{S.}},
+\oauthor{\bsnm{Dubey}, \binits{H.}}:
+A survey of prompt engineering methods in large language models for different nlp tasks.
+ArXiv
+\textbf{abs/2407.12994}
+(2024)
+\end{botherref}
+\endbibitem
+
+%%% 34
+\bibitem[\protect\citeauthoryear{Chen et~al.}{2025}]{prompt_engineering_review}
+\begin{barticle}
+\bauthor{\bsnm{Chen}, \binits{B.}},
+\bauthor{\bsnm{Zhang}, \binits{Z.}},
+\bauthor{\bsnm{Langrené}, \binits{N.}},
+\bauthor{\bsnm{Zhu}, \binits{S.}}:
+\batitle{Unleashing the potential of prompt engineering for large language models}.
+\bjtitle{Patterns}
+\bvolume{6}(\bissue{6}),
+\bfpage{101260}
+(\byear{2025})
+\doiurl{10.1016/j.patter.2025.101260}
+\end{barticle}
+\endbibitem
+
+%%% 35
+\bibitem[\protect\citeauthoryear{White et~al.}{2025}]{structured_prompting}
+\begin{barticle}
+\bauthor{\bsnm{White}, \binits{J.}},
+\bauthor{\bsnm{Elnashar}, \binits{A.}},
+\bauthor{\bsnm{Schmidt}, \binits{D.}}:
+\batitle{Prompt engineering for structured data a comparative evaluation of styles and llm performance}.
+\bjtitle{Preprints}
+(\byear{2025})
+\doiurl{10.20944/preprints202506.1937.v1}
+\end{barticle}
+\endbibitem
+
+%%% 36
+\bibitem[\protect\citeauthoryear{Baysan et~al.}{2025}]{llm_judge_frontiers_2025}
+\begin{botherref}
+\oauthor{\bsnm{Baysan}, \binits{M.S.}},
+\oauthor{\bsnm{Uysal}, \binits{S.}},
+\oauthor{\bsnm{İşlek}, \binits{�.}},
+\oauthor{\bsnm{Çığ~Karaman}, \binits{�.}},
+\oauthor{\bsnm{Güngör}, \binits{T.}}:
+Llm-as-a-judge: automated evaluation of search query parsing using large language models.
+Frontiers in Big Data
+\textbf{Volume 8 - 2025}
+(2025)
+\doiurl{10.3389/fdata.2025.1611389}
+\end{botherref}
+\endbibitem
+
+%%% 37
+\bibitem[\protect\citeauthoryear{International Organization for Standardization}{2018}]{iso29148}
+\begin{botherref}
+Systems and Software Engineering --- Life Cycle Processes --- Requirements Engineering.
+International Organization for Standardization.
+\url{https://www.iso.org/standard/72089.html}
+\end{botherref}
+\endbibitem
+
+%%% 38
+\bibitem[\protect\citeauthoryear{Wu and Leung}{2017}]{likert5to7range}
+\begin{barticle}
+\bauthor{\bsnm{Wu}, \binits{H.}},
+\bauthor{\bsnm{Leung}, \binits{S.-O.}}:
+\batitle{Can likert scales be treated as interval scales?}
+\bjtitle{Journal of Social Service Research}
+\bvolume{43}(\bissue{4}),
+\bfpage{527}--\blpage{532}
+(\byear{2017})
+\doiurl{10.1080/01488376.2017.1329775}
+\end{barticle}
+\endbibitem
+
+%%% 39
+\bibitem[\protect\citeauthoryear{{Consumer Council for Water}}{2013}]{threshold70}
+\begin{botherref}
+\oauthor{\bsnm{{Consumer Council for Water}}}:
+Research into threshold of acceptability.
+Technical report,
+Consumer Council for Water (CCW)
+(August 2013).
+Accessed: 2026-04-26.
+\url{https://www.ccw.org.uk/publication/research-into-threshold-of-acceptability/}
+\end{botherref}
+\endbibitem
+
+%%% 40
+\bibitem[\protect\citeauthoryear{Li et~al.}{2026}]{li2026temp}
+\begin{botherref}
+\oauthor{\bsnm{Li}, \binits{L.}},
+\oauthor{\bsnm{Sleem}, \binits{L.}},
+\oauthor{\bsnm{Xu}, \binits{Y.}},
+\oauthor{\bsnm{Song}, \binits{Y.}},
+\oauthor{\bsnm{Jia}, \binits{A.}},
+\oauthor{\bsnm{François}, \binits{J.}},
+\oauthor{\bsnm{State}, \binits{R.}}:
+The Necessity of Setting Temperature in LLM-as-a-Judge
+(2026).
+\doiurl{10.48550/arXiv.2603.28304}
 \end{botherref}
 \endbibitem
 

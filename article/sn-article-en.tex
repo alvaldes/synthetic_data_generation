@@ -1,15 +1,3 @@
-%Version 3.1 December 2024
-%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%                                                                 %%
-%% Please do not use \input{...} to include other tex files.       %%
-%% Submit your LaTeX manuscript as one .tex document.              %%
-%%                                                                 %%
-%% All additional figures and files should be attached             %%
-%% separately and not embedded in the \TeX\ document itself.       %%
-%%                                                                 %%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
 \documentclass[pdflatex,sn-mathphys-num]{sn-jnl}% Math and Physical Sciences Numbered Reference Style
 
 %%%% Standard Packages
@@ -48,38 +36,32 @@
 \title[LocalLLM-DataForge]{LocalLLM-DataForge: A Modular Pipeline for
 Synthetic User Story Decomposition Datasets with LLM-as-a-Judge Validation}
 
-\author[1]{\fnm{Angel Luis} \sur{Valdés Sánchez}}\email{alvaldes.dev@gmail.com}
+% ----------------------------------------------
+%  This part is hidden for blind review reasons
+% ----------------------------------------------
+%
+% \author[1]{\fnm{Angel Luis} \sur{Valdés Sánchez}}\email{alvaldes.dev@gmail.com}
+%
+% \author*[2]{\fnm{Carlos Alberto} \sur{Fernández y Fernández}}\email{caff@gs.utm.mx}
+%
+% \author[2]{\fnm{Verónica} \sur{Rodríguez López}}\email{veromix@gs.utm.mx}
+%
+% \affil[1]{\orgdiv{División de Estudios de Posgrado},
+%   \orgname{Universidad Tecnológica de la Mixteca},
+%   \orgaddress{\street{Av. Dr. Modesto Seara Vázquez No. 1},
+%     \city{Huajuapan de León}, \postcode{69004},
+%     \state{Oaxaca}, \country{México}}}
+%
+% \affil*[2]{\orgdiv{Instituto de Computación},
+%   \orgname{Universidad Tecnológica de la Mixteca},
+%   \orgaddress{\street{Av. Dr. Modesto Seara Vázquez No. 1},
+%     \city{Huajuapan de León}, \postcode{69004},
+%     \state{Oaxaca}, \country{México}}}
+% ----------------------------------------------
+%  End of hidden for blind review reasons
+% ----------------------------------------------
 
-\author*[2]{\fnm{Carlos Alberto} \sur{Fernández y Fernández}}\email{caff@gs.utm.mx}
-
-\author[2]{\fnm{Verónica} \sur{Rodríguez López}}\email{veromix@gs.utm.mx}
-
-\affil[1]{\orgdiv{División de Estudios de Posgrado},
-  \orgname{Universidad Tecnológica de la Mixteca},
-  \orgaddress{\street{Av. Dr. Modesto Seara Vázquez No. 1},
-    \city{Huajuapan de León}, \postcode{69004},
-    \state{Oaxaca}, \country{México}}}
-
-\affil*[2]{\orgdiv{Instituto de Computación},
-  \orgname{Universidad Tecnológica de la Mixteca},
-  \orgaddress{\street{Av. Dr. Modesto Seara Vázquez No. 1},
-    \city{Huajuapan de León}, \postcode{69004},
-    \state{Oaxaca}, \country{México}}}
-
-\abstract{Breaking user stories into concrete development tasks is a routine part of agile
-projects, but one that relies heavily on human judgment. While automating this
-step with machine learning is appealing, it often runs into two practical issues:
-a lack of annotated data and the cost of cloud-based LLMs. This paper introduces LocalLLM-DataForge, a modular, DataFrame-based framework for generating synthetic datasets using locally executed LLMs.
-The system runs through Ollama, includes an intelligent caching layer to avoid
-redundant computation, and applies automated quality checks inspired by LLM-as-a-Judge
-approaches. Two evaluation strategies are explored: one assesses a
-single generator against five explicit criteria, while the other compares outputs
-from two generators and selects the stronger decomposition. Experiments on
-the Salony dataset with models such as Llama 3.1 and Mistral suggest that
-caching significantly shortens experimentation cycles and that the resulting task
-decompositions remain logically consistent and broadly aligned with expert judgment.
-Overall, the framework offers a reproducible approach for requirements
-engineering without dependence on cloud services.}
+\abstract{User story decomposition into development tasks is a common practice in agile projects; however, it remains a process highly dependent on human judgment. Attempts to automate this activity using machine learning techniques often face two recurring limitations: the scarcity of annotated datasets and the reliance on cloud-based language models. This work presents \textit{LocalLLM-DataForge}, a modular DataFrame-based framework for the generation and evaluation of synthetic datasets aimed at user story decomposition using locally executed language models. The framework integrates generator and evaluator models within a reproducible pipeline, incorporating automatic validation mechanisms based on the \textit{LLM-as-a-Judge} paradigm and enabling experimentation with different model configurations and parameters. The proposal was evaluated on a dataset using multiple configurations of open-source models. The results show that it is possible to generate decompositions with consistent levels of quality, with notable differences in performance and stability depending on the model configuration. In particular, a trade-off between diversity and consistency is identified, associated with parameters such as temperature, as well as greater stability in structural criteria compared to higher variability in semantic criteria. These findings suggest that locally executed LLMs constitute a viable alternative for synthetic dataset generation in requirements engineering, providing advantages in terms of reproducibility, data control, and cost.}
 
 \keywords{Requirements engineering, Natural language processing, Large language models,
 Synthetic data generation, Task decomposition, Automated evaluation}
@@ -88,138 +70,410 @@ Synthetic data generation, Task decomposition, Automated evaluation}
 
 \section{Introduction}\label{sec1}
 
-User stories are one of the most widely used requirement artifacts in agile software
-development. Teams commonly rely on them to capture functional needs from the
-end-user perspective in a concise and accessible manner \cite{cohn2004, beck2001}. In practice, their role
-goes beyond communication: user stories are routinely used to support planning, effort
-estimation, and day-to-day development activities. In particular, the decomposition
-of stories into concrete development tasks becomes critical during backlog refinement
-and sprint planning \cite{rubin2012, schwaber2020}. Even so, this activity is still largely driven by manual effort
-and accumulated team experience.
+User stories are one of the most widely used requirement artifacts in agile software development. Teams commonly rely on them to capture functional needs from the end-user perspective in a concise and accessible manner \cite{cohn2004, beck2001}. In practice, their role extends beyond communication: user stories are routinely used to support planning, effort estimation, and day-to-day development activities. In particular, decomposing user stories into concrete development tasks is critical during backlog refinement and sprint planning \cite{rubin2012, schwaber2020}. Nevertheless, this activity still largely depends on manual work and the accumulated experience of the team.
 
-When task decomposition is handled manually, a number of recurring issues tend
-to appear. Different team members may interpret the same user story in slightly different
-ways, leading to inconsistent task granularity and implicit assumptions that are
-never fully documented. Important details can be overlooked, while other aspects are
-broken down too finely. Over time, these inconsistencies contribute to poorly structured
-backlogs that complicate estimation and task assignment \cite{lucassen2016}. The problem is
-often amplified in large or distributed teams, where the absence of shared decomposition
-practices weakens traceability and makes systematic automation in requirements
-engineering workflows more difficult \cite{gorschek2006}.
+When task decomposition is performed manually, a number of recurring issues tend to arise. Different team members may interpret the same user story in slightly different ways, leading to inconsistent levels of granularity and implicit assumptions that are never fully documented. Some relevant details may be overlooked (e.g., implicit functional constraints), while others may be excessively decomposed. Over time, these inconsistencies contribute to the creation of poorly structured backlogs, making estimation and task allocation more difficult \cite{lucassen2016}. The problem is often exacerbated in large or distributed teams, where the lack of shared decomposition practices weakens traceability and complicates the systematic automation of workflows in requirements engineering \cite{gorschek2006}.
 
-Recent advances in Natural Language Processing (NLP), together with the rapid
-evolution of Large Language Models (LLMs), have opened new possibilities for automating tasks that were traditionally
-handled by software engineers \cite{chen2021, white2023}. Prior studies have explored the use
-of LLMs for requirement classification, ambiguity detection, test case generation, and
-the derivation of development tasks from natural language descriptions \cite{rahimi2023, sebban2024}. However,
-most existing solutions rely on proprietary, cloud-based models. This reliance
-introduces practical concerns related to cost, data confidentiality, reproducibility, and
-long-term availability, both in research settings and industrial environments.
+Recent advances in Natural Language Processing (NLP), together with the rapid evolution of Large Language Models (LLMs), have opened new possibilities for automating tasks that have traditionally relied on software engineers \cite{chen2021, white2023}. Previous work has explored the use of LLMs for requirements classification, ambiguity detection, test case generation, and the derivation of development tasks from natural language descriptions \cite{rahimi2023, sebban2024}. However, most existing solutions depend on proprietary cloud-based models. This dependency introduces practical concerns related to cost, data confidentiality, reproducibility, and long-term availability, both in research and industrial contexts.
 
-A common limitation across many LLM-based approaches is the lack of suitable
-datasets for training and evaluation. Public datasets focused specifically on user story
-decomposition remain scarce, largely due to the high cost of expert annotation and
-the sensitive nature of real-world requirements \cite{fucci2020}. Synthetic data generation using
-LLMs has been proposed as a partial workaround. Still, many existing methods provide
-limited insight into how generated outputs are validated. As a result, assessing
-semantic correctness, completeness, or logical consistency becomes challenging \cite{liu2023}.
-Uncontrolled generation also increases the risk of hallucinations, which can undermine
-trust in the resulting datasets.
+A shared limitation among many LLM-based approaches is the lack of suitable datasets for training and evaluation. Public datasets specifically focused on user story decomposition remain scarce, largely due to the high cost of expert annotation and the sensitive nature of real-world requirements \cite{fucci2020}. Synthetic data generation using LLMs has been proposed as a partial solution. However, many existing methods provide limited visibility into how generated outputs are validated. As a result, evaluating semantic correctness, completeness, and logical consistency becomes challenging \cite{liu2023}. Moreover, poorly controlled generation increases the risk of hallucinations, which can reduce confidence in the resulting datasets.
 
-This paper introduces LocalLLM-DataForge, a modular framework designed to
-generate synthetic datasets for user story decomposition using locally executed LLMs.
-The framework is built around DataFrames to structure and manage intermediate
-results. It also integrates with Ollama to run modern open-source language models
-without relying on cloud services. One of its central components is an intelligent
-caching mechanism, which avoids repeated computations during iterative experiments
-and helps reduce execution time when exploring different generation settings.
+This work presents LocalLLM-DataForge, a modular framework designed to generate synthetic datasets for user story decomposition using locally executed LLMs. The framework leverages DataFrames to structure and manage intermediate results throughout the generation process. It also integrates with Ollama to run open-source language models without relying on cloud services. One of its core components is an intelligent caching mechanism, which avoids redundant computations during iterative experiments and helps reduce execution time when exploring different generation configurations.
 
-Quality control is addressed through automated validation mechanisms.
-LocalLLM-DataForge applies LLM-as-a-Judge strategies to assess the generated task
-decompositions. Two evaluation approaches are considered. The first relies on a single
-generator and evaluates its outputs against explicit quality criteria aligned with
-ISO/IEC/IEEE 29148:2018 standards: coherence, completeness, feasibility, format, and
-granularity \cite{chiang2023}. The second compares
-outputs produced by multiple generators and selects the most suitable decomposition.
-This comparative strategy leverages consensus principles known to improve reliability
-and reduce semantic errors in model outputs \cite{wang2023, li2024}.
+Quality control is addressed through automatic validation mechanisms. LocalLLM-DataForge applies LLM-as-a-Judge strategies to evaluate the generated task decompositions. Two evaluation approaches are considered. The first relies on a single generator and evaluates its outputs based on explicit quality criteria (i.e., coherence, completeness, feasibility, format, and granularity) \cite{chiang2023}. The second compares outputs produced by multiple generators and selects the most appropriate decomposition. This comparative strategy leverages consensus-based principles that have been shown to improve reliability and reduce semantic errors in model outputs \cite{wang2023, li2024}.
 
-This work makes three main contributions. First, it presents a fully local, extensible,
-and reproducible framework for generating synthetic datasets from user stories,
-explicitly addressing cost and privacy constraints. Second, it defines and operationalizes
-automated LLM-as-a-Judge validation strategies tailored to requirements engineering
-artifacts. Third, it reports empirical results on the Salony dataset using several
-open-source LLMs, highlighting both efficiency gains from caching and quality improvements
-obtained through comparative model selection.
+This work makes two main contributions. First, it presents a fully local, extensible, and reproducible framework for generating synthetic datasets from user stories, explicitly addressing cost and privacy constraints. Second, it defines and operationalizes automatic validation strategies based on the LLM-as-a-Judge paradigm, adapted to requirements engineering artifacts.
 
-The remainder of this paper is structured as follows. Section~\ref{sec2} reviews related work
-on LLM-based automation in requirements engineering and synthetic data generation.
-Section~\ref{sec3} describes the architecture and core components of LocalLLM-DataForge.
-Section~\ref{sec4} presents the experimental setup and evaluation methodology. Section~\ref{sec5}
-discusses the results, while Section~\ref{sec6} outlines conclusions and directions for future
-research.
+To evaluate the feasibility of the proposed approach, experiments are conducted on the Salony dataset using several open-source LLMs. The results enable the analysis of both the quality of the generated decompositions and the behavior of comparative evaluation strategies across models.
+
+The remainder of this paper is organized as follows. Section~\ref{sec2} reviews related work on LLM-based automation in requirements engineering and synthetic data generation. Section~\ref{sec3} describes the architecture and main components of LocalLLM-DataForge. Section~\ref{sec4} presents the experimental setup and the obtained results. Section~\ref{sec5} discusses the findings and their implications, while Section~\ref{sec6} concludes the paper and outlines future work.
 
 \section{Related Work}\label{sec2}
 
-% TODO: completar sección de trabajo relacionado
+The automation of activities within requirements engineering has attracted increasing attention in recent years, particularly with the advancement of NLP techniques and, more recently, LLMs. Several studies have explored the potential of these models to support tasks traditionally considered challenging in natural language (e.g., elicitation, analysis, reformulation, and validation of requirements). Recent research shows that LLMs can improve the quality of requirements artifacts and facilitate the partial automation of various activities within the requirements engineering process, including user story generation, requirements classification, and textual quality evaluation \cite{hematt2025, zadenoori2025}. In particular, some works have demonstrated the feasibility of using LLMs to generate derived requirement artifacts or assist in their semantic analysis within software development workflows \cite{sami2024, proci2025}. These advances suggest that generative models can act as intelligent assistants in early stages of the software lifecycle, although their systematic integration into requirements engineering processes remains in an exploratory phase.
+
+In parallel, synthetic data generation using generative models has emerged as a promising strategy to address the scarcity of annotated datasets across multiple domains. LLMs enable the production of large volumes of controlled textual data through prompt-based generation, facilitating the creation of datasets for training, evaluation, or augmentation of existing data. Recent studies have examined the use of LLMs for generating, curating, and evaluating synthetic data, highlighting their potential to complement or partially replace real datasets when these are limited or costly to obtain \cite{long2024}. Applications of this approach have been observed in various contexts, including the automatic generation of datasets in specialized domains such as digital forensics and AI-based legal systems \cite{fsidi2025, ma2025}. However, the literature also points out significant challenges related to the quality, coherence, and reliability of synthetically generated data, making it necessary to develop systematic validation and quality control mechanisms.
+
+In this context, the \textit{LLM-as-a-Judge} paradigm has recently emerged, where language models are used not only as content generators but also as automatic evaluators of outputs produced by other models. This approach has been adopted in multiple studies on generative model evaluation, where LLMs act as evaluators capable of assessing complex semantic criteria that cannot be easily captured through traditional automatic metrics \cite{daly2025}. Recent research has shown that this type of evaluation can reasonably approximate human judgment in natural language generation tasks, particularly when explicit criteria or comparison-based evaluation schemes are used \cite{eigler2026}. Nevertheless, the use of LLMs as evaluators also introduces methodological challenges, including potential biases, prompt dependency, and risks of circularity when models evaluate each other.
+
+Despite these advances, the current literature still presents a gap in the integration of these three research directions. In particular, there are few approaches that combine synthetic data generation, local model execution, and structured automatic evaluation mechanisms within a single framework tailored to requirements engineering artifacts. LocalLLM-DataForge addresses this gap by proposing a framework designed to integrate these elements into an environment capable of systematically generating and evaluating user story decompositions.
 
 \section{LocalLLM-DataForge Framework}\label{sec3}
 
-% TODO: completar descripción de arquitectura y componentes
+LocalLLM-DataForge is a framework designed for the generation, transformation, and automatic evaluation of requirements engineering artifacts using locally executed language models. Its main purpose is to provide a modular, reproducible, and extensible architecture that enables the integration of multiple processing stages within a unified workflow.
 
-\section{Methods}\label{sec4}
+Unlike traditional approaches focused on model training, LocalLLM-DataForge emphasizes the orchestration of pre-trained models for the controlled production of outputs and their systematic evaluation. This facilitates reproducible experimentation in environments without reliance on cloud-based services.
 
-The LocalLLM-DataForge tool was employed to design and execute an exploratory experimental study aimed at evaluating the feasibility of automatic synthetic decomposition of user stories using locally executed language models. The experimental environment consisted of an Apple computer equipped with an M2 chip (8 CPU cores), 16 GB of RAM, and running Python v3.13.7. Ollama v0.16.1 was used as the orchestration platform for the local execution of LLMs. All processing related to synthetic data generation and subsequent evaluation was performed entirely on this local hardware, without relying on cloud services. This setup ensured reproducibility, full control over computational resources, and confidentiality of the processed data.
+\subsection{General Architecture}
 
-The base dataset employed was Salony\footnote{Salony: User Story Dataset available on Hugging Face, \url{https://huggingface.co/datasets/salony/User_story}.}, which originally contains 1,999 user stories. In order to ensure structural consistency and avoid ambiguities derived from heterogeneous formats, a preprocessing step was conducted in which only stories strictly conforming to the canonical structure \textit{“As a(n) [role], I want [feature] so that [benefit]”} were retained. After this filtering process, the final dataset consisted of 1,139 valid user stories. These stories constituted the initial DataFrame of the pipeline and were used exclusively for synthetic generation purposes. No train/test split was performed, as the objective of the study was not to train predictive models but to evaluate the generative capability and methodological feasibility of the proposed approach.
+The framework is structured as a DataFrame-based processing pipeline, where each component represents an explicit transformation over the input data. This approach enables modeling the workflow as a sequence of deterministic and traceable operations, in which each stage produces new representations without modifying the original data. As a result, it promotes process auditability, intermediate result inspection, and experimental reproducibility.
 
-Once the experimental dataset was defined, the processing architecture was designed. This architecture was implemented using the \texttt{DataForgePipeline} class, which enables chaining specialized steps under a modular DataFrame-based design. In the first stage, the \texttt{LoadDataFrame} component loaded the preprocessed dataset into the processing pipeline. Subsequently, two independent instances of the \texttt{OllamaLLMStep} component were configured, corresponding to two differentiated generators. Generator A used the \texttt{llama3.1:8b} model with a \texttt{batch\_size} of 2, a temperature of 0.3 to favor more deterministic behavior, and a maximum output length of 1,000 tokens (\texttt{num\_predict}). Generator B employed the \texttt{qwen3:8b} model, also with \texttt{batch\_size} of 2 and a 1,000-token limit, but with a temperature of 0.7 to promote greater creativity in task generation. These configurations were selected to contrast a more deterministic model against one with higher generative variability, enabling qualitative observation of differences in decomposition patterns.
+The choice of a DataFrame-based model responds to the need to simultaneously manage multiple versions of generated artifacts. In particular, each user story may produce several decompositions generated by different models or configurations, which are stored as independent columns within the same structure. This organization enables systematic comparisons without requiring additional external structures or complex synchronization processes.
 
-Each generator produced an independent list of tasks for every user story, with results stored in separate DataFrame columns. Since each story generated two independent decompositions, a systematic comparative evaluation mechanism was required. This stage was implemented through the \texttt{ComparisonJudgeStep} component, which applies the LLM-as-a-Judge paradigm to contrast both outputs. This approach consists of employing a language model not as a generator, but as a structured evaluator of artifacts produced by other models. The paradigm has been increasingly adopted in experimental research contexts where traditional automatic metrics are insufficient to capture semantic quality, structural coherence, or contextual adequacy. In this study, the evaluator model (\texttt{llama3.1:8b}) was configured with a reduced temperature (0.2) and a \texttt{batch\_size} of 1 to maximize judgment consistency and minimize stochastic variability. Its role was not to replace human evaluation, but to provide a systematic, reproducible, and scalable mechanism to assess the quality of generated decompositions under explicitly defined criteria.
+The overall pipeline follows five main stages: (1) data loading, (2) artifact generation, (3) comparison and evaluation, (4) metrics computation, and (5) results storage. These stages are not implemented as monolithic blocks, but rather as decoupled components operating over the same DataFrame. This design allows parts of the pipeline to be reorganized, extended, or replaced without affecting the rest of the framework.
 
-The experimental design can be characterized as an exploratory feasibility study in which the independent variable was the generator configuration (model and temperature), while the primary dependent variable was the total quality score assigned by the evaluator model. Multiple experimental runs were conducted with variations in prompt formulations and parameter settings in order to observe consistency across results and analyze model behavior under different controlled configurations.
+A key aspect of the architecture is the explicit separation between generation and evaluation. While generator models are responsible for producing decompositions from user stories, the evaluator component operates independently to analyze the quality of these outputs under structured criteria. This separation enables experimentation with heterogeneous model configurations without introducing evaluation bias, and also facilitates the incorporation of new validation mechanisms in future extensions of the framework.
 
-Model calls were processed using a configurable batch processing scheme to optimize memory usage and prevent context window overflows imposed by local models. Batch size was determined considering hardware memory constraints and the potential length of generated outputs. Additionally, the internal caching mechanism of the pipeline was enabled through an optional parameter, preventing recomputation when inputs and configurations remained unchanged. This strategy reduced experimentation time and ensured exact reproducibility across successive executions. The complete pipeline was defined in reproducible scripts within the project repository, such as \texttt{examples/salonypipeline.py} and \texttt{examples/salonydualgeneratorpipeline.py}, which can be executed directly from the command line using Python.
+Figure~\ref{fig:dataforge_architecture} illustrates the overall behavior of the pipeline modeled using a UML activity diagram, explicitly representing the processing flow and the parallel execution of generator models. The process begins with loading the user story dataset, followed by a parallel generation stage in which multiple models produce independent decompositions under different configurations. Subsequently, an evaluator component based on the \textit{LLM-as-a-Judge} paradigm compares the generated outputs and assigns the computed metrics. Finally, the results are integrated into the output DataFrame, enabling their systematic analysis.
 
-Once the technical configuration of the pipeline and its execution mechanisms were described, it is essential to detail the evaluation scheme adopted in the study. For each user story, five evaluation criteria were considered: coherence, completeness, feasibility, format, and granularity. Each criterion was scored on a scale from 0 to 10, resulting in a maximum total score of 50 points. The selection and definition of these criteria is grounded in the quality principles for requirements established by the ISO/IEC/IEEE 29148:2018 standard \cite{iso29148}, which emphasizes characteristics such as clarity, consistency, completeness, and verifiability of requirements artifacts. In this sense, coherence evaluated the semantic correspondence between the generated tasks and the original user story, aligning with the consistency property. Completeness measured the degree of coverage of implicit and explicit requirements, in accordance with the completeness attribute defined by the standard. Feasibility analyzed whether the proposed tasks were technically realizable, which relates to the verifiability and feasibility of requirements. The format criterion verified the structure and clarity of the output, in line with the need for requirements to be understandable and unambiguous. Finally, granularity assessed the appropriateness of the decomposition level, supporting the proper specification and atomicity recommended in requirements engineering.
+This architectural design prioritizes modularity, transparency in data flow, and the ability to conduct controlled experimentation, which are essential aspects in studies aimed at evaluating the behavior of language models in requirements engineering tasks.
 
-Coherence evaluated the semantic correspondence between the generated tasks and the original user story, aligning with the consistency property emphasized in ISO/IEC/IEEE 29148:2018. Completeness measured the degree of coverage of implicit and explicit requirements, in accordance with the completeness attribute defined by the standard. Feasibility analyzed whether the proposed tasks were technically realizable, relating to the verifiability and feasibility of requirements. The format criterion verified the structure and clarity of the output, in line with the need for requirements to be understandable and unambiguous. Granularity assessed the appropriateness of the decomposition level, supporting the proper specification and atomicity recommended in requirements engineering.
+\begin{figure}[t]
+\centering
+\includegraphics[width=\columnwidth]{images/diagram_en.png}
+\caption{UML activity diagram of the LocalLLM-DataForge framework.}
+\label{fig:dataforge_architecture}
+\end{figure}
 
-This multidimensional evaluation avoided simplified binary judgments and provided a richer representation of model performance. Such an approach is particularly relevant in contexts where quality cannot be reduced to lexical similarity but depends on conceptual and structural adequacy.
+\subsection{Pipeline Execution Model}
 
-Furthermore, prompt design constituted a key methodological component of the experiment. The generation prompt was structured under an instruction–input–response schema, explicitly requiring the story to be decomposed into unique, actionable, and non-overlapping tasks while enforcing a rigid format based on sequential numbering and mandatory summary and description fields. This structural constraint aimed to reduce output variability and facilitate subsequent automated processing within the DataFrame. Similarly, the evaluator prompt was designed to operate as a multidimensional validation mechanism, explicitly defining the five evaluation criteria and establishing critical rejection rules in cases of threshold non-compliance or severe structural errors. The judge was required to output strictly valid JSON, without additional text, to guarantee reliable programmatic extraction of generated metrics.
+The operational core of the framework is the \texttt{DataForgePipeline} class, which implements an execution model based on the sequential composition of modular steps. In this approach, each step is defined as a transformation function that receives an input DataFrame and produces an enriched DataFrame, preserving the original columns while adding new derived representations. This type of organization is consistent with dataflow-based processing models, where computation is expressed as a sequence of transformations over data \cite{dataflow_model}.
 
-An approval threshold of 35 points (70\% of the maximum possible score) was established as the minimum acceptability criterion, ensuring that a decomposition satisfied a substantial proportion of the defined quality attributes. The evaluator model automatically generated partial scores and total scores for each instance, recording a boolean approval indicator. When the score fell below the defined threshold, the system additionally stored a list of identified issues and improvement recommendations. In parallel, expert human evaluators reviewed a representative sample of decompositions to contrast the consistency of automated judgments and determine the reliability of the LLM-as-a-Judge approach. Within this hybrid scheme, human evaluation was considered the definitive validation criterion, while the evaluator model functioned as a structured and scalable support mechanism.
+This model can be interpreted as a form of \textit{dataflow pipeline}, where the system state is explicitly materialized at each stage through tabular structures. Unlike traditional imperative architectures, in which transformations may overwrite previous information, the design adopted in LocalLLM-DataForge favors logical data immutability, enabling the traceability of the origin and evolution of each generated artifact throughout the process.
 
-Evaluation results were stored in specific DataFrame columns, such as \texttt{validacion\_coherencia}, \texttt{validacion\_completitud}, \texttt{validacion\_viabilidad}, \texttt{validacion\_formato}, \texttt{validacion\_granularidad}, \texttt{validacion\_total}, and \texttt{validacion\_aprobado}, enabling systematic subsequent analysis.
+A distinctive feature of the pipeline is its declarative nature. Experiments are defined by specifying an ordered sequence of steps and their configurations, without the need to explicitly manage internal control flow. This approach contrasts with traditional practices based on ad-hoc scripts, which often hinder reproducibility and the reuse of experimental configurations. In this sense, recent frameworks for LLM-based data processing have highlighted the importance of modular abstractions and configurable pipelines to improve experiment traceability and reproducibility \cite{dataflow_llm}.
 
-Overall, the methodology was designed to be modular, reproducible, and executable in local environments with limited resources. The combination of step-based architecture, batch processing, explicit hyperparameter configuration, and caching mechanisms ensures full traceability of the experimental process and allows replication of results under identical configuration and software version conditions, thereby consolidating the technical validity of the presented feasibility study.
+From an engineering perspective, this model promotes a high degree of decoupling between components. Each step encapsulates its processing logic and interacts with the rest of the pipeline exclusively through the shared DataFrame. This type of modular design has been widely adopted in modern data processing and machine learning systems, where the composition of reusable transformations enables the construction of complex workflows in a flexible manner \cite{dataflow_llm}.
+
+Additionally, the pipeline supports incremental execution and intermediate result inspection. Since each transformation produces a new version of the DataFrame, it is possible to analyze the system state at any point in the workflow, which is particularly useful for debugging, prompt validation, and qualitative analysis of outputs generated by language models.
+
+Overall, the pipeline model adopted in LocalLLM-DataForge provides a structured foundation for orchestrating LLMs in generation and evaluation tasks. In this way, it aligns with recent trends in the design of multi-stage LLM systems that integrate generative and evaluative components within a unified processing workflow \cite{llm_pipeline_eval}.
+
+\subsection{Pipeline Components}
+
+The framework incorporates a set of specialized components that encapsulate specific functionalities within the pipeline. This design follows principles of \textit{pipes-and-filters} architectures, in which processing is decomposed into a sequence of independent stages that progressively transform the input data. In this type of architecture, each component, or filter, performs a specific operation and passes its output to the next component through defined channels \cite{pipes_filters}. This approach has been widely adopted in data processing systems and machine learning pipelines, where the separation of concerns enables the construction of complex workflows from simple, decoupled transformations.
+
+Within this scheme, the \texttt{LoadDataFrame} component acts as the entry point of the pipeline, handling the ingestion of structured data and its normalization into a unified tabular representation. Its role is to establish a consistent initial state that allows subsequent transformations to be applied without structural ambiguity. In turn, the \texttt{OllamaLLMStep} component encapsulates the interaction with locally executed language models, enabling the parameterization of their behavior through explicit configurations such as temperature, batch size, and maximum number of tokens. This component materializes model-generated outputs as new columns within the DataFrame, directly integrating the generated artifacts into the processing workflow. The incorporation of language models into structured pipelines reflects a recent trend in multi-stage systems, where multiple models collaborate to solve complex tasks through progressive information generation and transformation \cite{llm_multistage}.
+
+The \texttt{ComparisonJudgeStep} component implements an evaluation mechanism based on the \textit{LLM-as-a-Judge} paradigm, in which a language model is used as an evaluator of outputs generated by other models. This approach has gained relevance as an alternative to traditional metrics in open-ended tasks, enabling the approximation of qualitative judgments through structured and reproducible evaluations \cite{llm_judge_survey}. In this context, the component receives multiple generated candidates and produces quality metrics that are directly integrated into the DataFrame, allowing for subsequent analysis without additional processing.
+
+Together, these components form an architecture in which each stage of processing is clearly defined and decoupled, from generation to evaluation. This separation of concerns not only enables the extension of the pipeline through the incorporation of new modules, but also supports experimentation with different model configurations and evaluation strategies without introducing rigid dependencies, aligning with fundamental design principles of data-oriented processing architectures.
+
+\subsection{Local Execution and Resource Management}
+
+A central feature of LocalLLM-DataForge is its focus on the local execution of language models, enabling full control over both the processed data and the computational resources used. Unlike cloud-based approaches, where inputs and outputs may be stored or processed by third parties, local execution ensures that all information remains within the user’s environment. This is particularly relevant in contexts involving sensitive data or subject to privacy regulations \cite{local_llm_privacy}. This aspect has been identified in the literature as one of the main advantages of open-source and locally deployed models, as it eliminates risks associated with data exposure and improves processing transparency \cite{local_llm_reproducibility}.
+
+From an experimental perspective, local execution also contributes significantly to the reproducibility of results. In environments based on external APIs, factors such as changes in model versions, undocumented internal updates, or infrastructure variations may affect the obtained results. In contrast, using local models allows fixing specific versions, configurations, and execution conditions, ensuring that experiments can be replicated under identical settings \cite{local_llm_reproducibility}. This property is particularly important in studies aimed at evaluating the behavior of language models, where even minor environmental variations can significantly impact generated outputs.
+
+However, local execution also introduces challenges related to efficient computational resource management. Language models require substantial memory and processing capacity, which necessitates mechanisms to optimize their use under hardware constraints. In this context, the framework implements a configurable batch processing scheme that controls the number of instances processed simultaneously, preventing context overflows and reducing memory pressure. This approach enables dynamic adaptation of pipeline execution to available hardware capabilities, maintaining a balance between performance and operational stability.
+
+Additionally, an optional caching system is incorporated to reuse previously generated results when inputs and configurations remain unchanged. This strategy is particularly useful in iterative experimentation scenarios, where multiple executions with similar parameters are common. Reusing results not only reduces execution time but also contributes to experimental consistency by avoiding unnecessary variations in generated outputs.
+
+Overall, the local execution approach adopted in LocalLLM-DataForge not only addresses privacy and data control considerations, but also represents a methodological choice aimed at ensuring reproducibility, traceability, and stability in the experimental process—key aspects for the rigorous evaluation of systems based on language models.
+
+\subsection{Prompt Design}
+
+Prompt design constitutes a central methodological component within the framework, as it defines how language models interpret tasks and generate their responses. In the context of LLMs, a prompt can be understood as a form of implicit programming, through which the behavior of the model can be guided without modifying its internal parameters \cite{prompt_survey}. Several studies have shown that the quality, structure, and clarity of prompts directly influence the accuracy, consistency, and usefulness of generated outputs, positioning prompt engineering as a key discipline for effectively leveraging these models \cite{prompt_engineering_review}.
+
+In LocalLLM-DataForge, prompts are designed following a structured approach based on instruction–input–response schemas, where both content constraints and the expected output format are explicitly specified. This type of structuring has been identified as an effective strategy to improve result consistency and facilitate automatic processing, especially in tasks that require generating structured data \cite{structured_prompting}. In particular, enforcing rigid formats reduces ambiguity in outputs and enables their direct integration into the pipeline without requiring additional cleaning or normalization stages.
+
+The framework employs two main prompts: (i) a \textit{task generation prompt}, responsible for decomposing user stories into structured sets of tasks, and (ii) an \textit{evaluation prompt under the LLM-as-a-Judge approach}, aimed at assessing the quality of such decompositions according to defined criteria.
+
+The \textit{generation prompt} follows an instruction–input–response scheme, explicitly specifying decomposition constraints such as non-overlapping tasks, clarity in phrasing, and the requirement of a structured format based on summary and description fields. These constraints delimit the model’s output space, promoting the generation of consistent and comparable artifacts.
+
+The \textit{evaluation prompt}, in turn, instructs the model to compare two alternative decompositions of the same user story and produce a structured judgment. The evaluation is based on five quality criteria and outputs a JSON-formatted response that includes numerical scores and a final decision indicating the preferred alternative.
+
+Both prompts are designed under homogeneous principles of structure and control, while serving distinct functional objectives within the pipeline. To ensure experimental reproducibility and methodological transparency, the complete versions of these prompts are provided in Appendix~\ref{appendix:task_generation_prompt} and Appendix~\ref{appendix:llm_judge_prompt}, respectively.
+
+In generation tasks, the prompt is specifically designed to produce user story decompositions under defined constraints, such as non-overlapping tasks, clarity in wording, and the inclusion of structured fields like summary and description. These constraints act as control mechanisms that bound the model’s output space, favoring the production of consistent and comparable artifacts. In evaluation tasks, the LLM-as-a-Judge prompt explicitly defines quality criteria and decision rules, instructing the model to produce structured judgments in formats such as JSON. This approach enables the transformation of qualitative assessments into quantifiable representations that can be directly integrated into the processing pipeline.
+
+Additionally, the use of standardized prompts across different models enables fairer and more controlled comparisons, avoiding biases introduced by model-specific prompt tuning. Recent literature has highlighted that consistency in prompt design is a critical factor for ensuring the validity of comparative evaluations across LLMs, as even minor variations in phrasing can significantly impact the results \cite{structured_prompting}. In this sense, the framework adopts a uniform approach to prompt definition, ensuring that observed differences in outputs are primarily attributable to model characteristics rather than variations in instructions.
+
+For this reason, prompt design in LocalLLM-DataForge is not merely a configuration task, but a fundamental element of the experimental process, acting as the control interface between the researcher and the model. This perspective aligns with recent trends that consider prompt engineering as a key abstraction layer in systems based on language models.
+
+\section{Results}\label{sec4}
+
+This section presents the results of the experimental study conducted to evaluate the performance of the proposed \textit{framework} in the automatic generation of user story decompositions. First, the experimental setup is described, including the execution environment, the models used, and the evaluation scheme. Next, the aggregated results obtained across the different tests are presented, followed by a detailed criterion-level analysis that allows the identification of behavioral patterns and differences between models. Finally, the most relevant findings derived from the study are discussed.
+
+\subsection{Experimental Setup}
+
+The experimental study was conducted using the \textit{LocalLLM-DataForge} framework, aimed at evaluating the automated generation of user story decompositions through locally deployed LLMs.
+
+The hardware environment consisted of a Dell server equipped with an AMD EPYC 9124 processor at 3.0 GHz (16 cores, 32 threads, 64 MB cache), 64 GB of DDR5-4800 RAM (4 $\times$ 16 GB modules), and an NVIDIA Ampere A2 GPU with 16 GB of VRAM. The pipeline was implemented using Python v3.13.7, with Ollama v0.21.2 serving as the orchestration platform for local model execution. The GPU was utilized to accelerate model inference, thereby reducing generation and evaluation times during the experimental trials.
+
+The primary dataset was Salony\footnote{Salony: User Story Dataset available on Hugging Face, \url{https://huggingface.co/datasets/salony/User_story}.}, from which 1,139 out of 1,998 user stories were selected based on their adherence to the canonical structure: \textit{“As a(n) [role], I want [feature] so that [benefit]”}. Each story was processed by two generator models (G1 and G2), configured with distinct temperature settings. Specifically, G1 operated at a temperature of 0.3 to favor deterministic outputs, whereas G2 was set to 0.7 to promote output diversity. The judge model utilized a temperature of 0.2 to ensure consistency in its evaluative judgments.
+
+The generated decompositions were assessed using an \textit{LLM-as-a-Judge} paradigm, assigning scores across five criteria: coherence, completeness, feasibility, format, and granularity \cite{llm_judge_frontiers_2025}. 
+
+The selection of these criteria is grounded in the requirements quality principles established by the ISO/IEC/IEEE 29148:2018 standard \cite{iso29148}. In this context, coherence assesses semantic correspondence with the user story; completeness measures the degree of requirement coverage; feasibility evaluates the technical viability of the tasks; format examines the clarity and structure of the output; and granularity determines the appropriateness of the decomposition level.
+
+Each criterion was evaluated on a scale from 0 to 10, resulting in a maximum possible score of 50 points \cite{likert5to7range}. The total score for each instance was calculated as the sum of the five criteria. Based on these scores, a passing threshold of 35 points (70\%) was established to classify each instance as either valid or invalid \cite{threshold70}.
+
+Aggregate metrics, including the mean and standard deviation of total scores, were calculated for the evaluated set. The pass rate was defined as the percentage of instances exceeding the established threshold. Furthermore, the win rate was calculated through head-to-head comparisons between two decompositions, representing the percentage of instances in which one decomposition was preferred over another based on the total score assigned by the judge model.
+
+To analyze the impact of different LLM configurations, four experimental setups (C1, C2, C3, and C4) were defined. Each configuration comprised two generator models (G1 and G2) and one \textit{LLM-as-a-Judge} evaluator. The evaluated configurations, presented in Table~\ref{tab:model_configs}, include models from various families, sizes, and architectures.
+
+\begin{table}[ht]
+\centering
+\caption{Model configurations evaluated in experimental tests}
+\label{tab:model_configs}
+\begin{tabular}{lcccc}
+\toprule
+Config. & Role & Model & Architecture & Size \\
+\midrule
+\multirow{3}{*}{C1}  
+& G1 & Llama 3.1 & Dense Transformer (decoder) with GQA & 8B \\
+& G2 & Mistral & Transformer with Sliding Window Attention & 7B \\
+& Judge & Qwen 3 & Hybrid Transformer with GQA \& Reasoning Mode & 14B \\
+\midrule
+\multirow{3}{*}{C2}  
+& G1 & Qwen 3 & Hybrid Transformer with GQA \& Reasoning Mode & 8B \\
+& G2 & Gemma 4 (E4B) & Efficient Transformer with PLE & 4B \\
+& Judge & Qwen 2.5 & Dense Transformer with SwiGLU \& GQA & 14B \\
+\midrule
+\multirow{3}{*}{C3}  
+& G1 & Gemma 3 & Multimodal Transformer with QK Norm & 12B \\
+& G2 & Mistral Nemo & Dense Transformer (decoder) with GQA & 12B \\
+& Judge & Qwen 3 & Hybrid Transformer with GQA \& Reasoning Mode & 14B \\
+\midrule
+\multirow{3}{*}{C4}  
+& G1 & Qwen 3 & Hybrid Transformer with GQA \& Reasoning Mode & 14B \\
+& G2 & Phi-4 & Dense Transformer (10T synthetic data tokens) & 14B \\
+& Judge & GPT-OSS & Sparse MoE (3.6B active) with Variable CoT & 20B \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+In each configuration, both generators processed the same set of user stories, producing alternative decompositions for each instance. This ensures input consistency across models and facilitates a direct comparison of their outputs. Subsequently, the judge model analyzed both decompositions and assigned scores based on the five quality criteria, determining a winner for each case.
+
+\subsection{Global Results}
+
+To identify consistent patterns in the behavior of the evaluated models, a comparative analysis was conducted by aggregating the results of the experimental tests. This approach enables the observation of global trends regarding performance, stability, and relative behavior between models.
+
+Table~\ref{tab:global_results} presents the aggregate metrics for each test, including the average score with its corresponding standard deviation (\textit{Mean} $\pm$ \textit{Std}), as well as the pass rate (\textit{Pass}) and the win rate in head-to-head comparisons (\textit{Win}).
+
+\begin{table}[ht]
+\centering
+\caption{Aggregate results per experimental test}
+\label{tab:global_results}
+\begin{tabular}{cllccc}
+\toprule
+Config. & Generator & Mean $\pm$ Std & Pass (\%) & Win (\%) \\
+\midrule
+C1 & G1: Llama 3.1 & $35.71 \pm 9.88$ & 55.22 & 72.78  \\
+C1 & G2: Mistral & $35.95 \pm 10.26$ & 55.22 & 27.22 \\
+\midrule
+C2 & G1: Qwen 3 & $39.45 \pm 5.50$ & 90.61 & 18.70  \\
+C2 & G2: Gemma 4 & $42.00 \pm 3.30$ & 97.63 & 81.30  \\
+\midrule
+C3 & G1: Gemma 3 & $47.23 \pm 8.05$ & 90.87 & 99.56 \\
+C3 & G2: Mistral Nemo & $37.35 \pm 5.04$ & 83.93 & 0.44 \\
+\midrule
+C4 & G1: Qwen 3 & $37.60 \pm 8.59$ & 73.22 & 54.96 \\
+C4 & G2: Phi 4 & $38.43 \pm 7.96$ & 75.33 & 45.04 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+As illustrated, model behavior varies significantly across configurations. In C1, both generators exhibit similar mean scores, although G1 achieves a higher win rate. In C2, G2 clearly outperforms G1 in terms of mean score, pass rate, and win rate. Conversely, C3 shows a marked dominance by G1, featuring a substantial difference in mean score and a win rate approaching 100\%.
+
+In contrast to the previous setups, C4 presents a more balanced behavior between both generators, with minimal differences in both mean scores and win rates. This result suggests a performance convergence scenario, where neither model clearly dominates the other.
+
+The experimental results evidence distinct patterns in the behavior of the generator models across the various evaluated configurations. While mean scores remain close in some instances, significant disparities in both performance and win rates are observed in others, indicating that model performance is heavily dependent on the specific configuration employed.
+
+Furthermore, an analysis of the score distribution reveals clearer differences in model stability and variability. Figure~\ref{fig:global_boxplot} depicts the distribution of total scores for each configuration and generator.
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=\columnwidth]{images/total_score_distribution.png}
+\caption{Distribution of total scores by configuration for generators with low temperature (G1: T=0.3) and high temperature (G2: T=0.7).}
+\label{fig:global_boxplot}
+\end{figure}
+
+In configurations such as C3, G1 not only achieves higher values but also exhibits a more concentrated distribution, indicating greater consistency in the quality of the decompositions. In contrast, G2 shows higher dispersion in several configurations, reflecting greater variability in its outputs.
+
+Likewise, differences in the median and the concentration of values are identifiable. In setups like C3, G1 achieves higher and more consistent scores, while G2 presents greater dispersion and lower values by comparison. This behavior suggests that, even when global averages may appear similar, the quality of the decompositions generated by G1 remains more consistent in specific scenarios.
+
+\subsection{Criterion-based Analysis}
+
+Table~\ref{tab:global_criteria} presents the average scores per criterion for each experimental test.
+
+\begin{table}[ht]
+\centering
+\caption{Average scores per criterion across experimental tests}
+\label{tab:global_criteria}
+\begin{tabular}{clccccc}
+\toprule
+Config. & Generator  & Coherence & Completeness & Feasibility & Format & Granularity \\
+\midrule
+C1 & G1: Llama 3.1 & 4.92 & 4.58 & 4.97 & 5.27 & 4.48 \\
+C1 & G2: Mistral & 4.79 & 4.88 & 4.94 & 5.27 & 4.57 \\
+\midrule
+C2 & G1: Qwen 3 & 8.62 & 7.82 & 7.83 & 8.88 & 6.66 \\
+C2 & G2: Gemma 4 & 8.72 & 9.33 & 8.16 & 8.96 & 7.06 \\
+\midrule
+C3 & G1: Gemma 3 & 8.63 & 8.98 & 8.45 & 8.97 & 8.46 \\
+C3 & G2: Mistral Nemo & 7.19 & 6.13 & 7.27 & 7.58 & 6.21 \\
+\midrule
+C4 & G1: Qwen 3 & 6.53 & 5.89 & 6.59 & 6.64 & 5.84 \\
+C4 & G2: Phi 4 & 6.44 & 6.63 & 6.43 & 6.64 & 6.20 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The disaggregated analysis by criterion allows for the identification of specific patterns in model behavior. Figure~\ref{fig:global_criteria_plot} illustrates the comparison across the five evaluation criteria for each configuration and generator.
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=\columnwidth]{images/criterion_comparison_all.png}
+\caption{Comparison of criteria by configuration and generator.}
+\label{fig:global_criteria_plot}
+\end{figure}
+
+Regarding the \textit{coherence} criterion, both models exhibit similar performance across all configurations with minimal variance. In C2, both achieve high and nearly equivalent values, while in C3, a slight advantage for G1 is observed. This trend persists in C4, with closely aligned scores, reinforcing the stability of this criterion regardless of configuration changes.
+
+In terms of \textit{completeness}, distinct behaviors emerge. G2 outperforms G1 in configuration C2, reaching significantly higher values. However, in C3, G1 achieves a considerably superior score, indicating that performance in this criterion is heavily dependent on the model configuration. In C4, G2 regains a marginal lead, though with less pronounced differences, suggesting a more balanced performance between both models.
+
+As for \textit{feasibility}, both models yield comparable results in C1 and C2, with G2 showing a slight advantage in C2. Nevertheless, in C3, G1 demonstrates superior performance, achieving higher and more consistent values. In C4, G1 maintains a marginal advantage, although the disparities between models are reduced compared to previous configurations.
+
+The \textit{format} criterion exhibits one of the most stable behaviors among the models. In C1 and C2, both generators present nearly identical values, suggesting that adherence to formal structures is relatively independent of the model. However, in C3, G1 clearly outperforms G2. In C4, both models again achieve identical scores, further confirming the consistency of this criterion across different setups.
+
+Finally, \textit{granularity} reveals more pronounced differences. Although both models show similar values in C1, G2 gains a slight advantage in C2. However, in C3, G1 significantly outperforms G2, achieving a more appropriate level of task decomposition. In C4, G2 again shows a slight lead, albeit within a context of narrowing performance gaps.
+
+Overall, the results indicate that model performance is not uniform but highly dependent on the evaluated configuration. While G2 shows advantages in specific setups, G1 demonstrates more robust behavior in higher-complexity scenarios. These findings suggest that evaluation based solely on aggregate metrics may obscure relevant differences, highlighting the necessity of complementing the analysis with disaggregated criterion-based evaluations and score distribution assessments.
+
+In particular, G1 tends to deliver more consistent performance in complex configurations (such as C3), excelling in coherence, format, and granularity. Conversely, G2 shows specific strengths in criteria such as completeness in certain setups (notably C2), although with higher output variability.
+
+In general terms, G2 tends to excel in criteria related to requirement coverage, such as completeness, particularly in configurations like C2. On the other hand, G1 exhibits better performance in criteria associated with the structural quality of the decompositions, such as coherence, format, and granularity, especially in more complex configurations like C3.
 
 \section{Discussion}\label{sec5}
 
-% TODO: completar discusión de resultados
+The results obtained allow for an analysis not only of the performance of the evaluated models but also of the implications of utilizing local LLMs within structured pipelines for generating requirements engineering artifacts.
+
+This behavior is consistent with recent literature regarding the application of LLMs in requirements engineering. Studies such as \cite{zadenoori2025} indicate that model performance in natural language processing tasks is heavily contingent upon factors such as prompt design, generation configuration, and the context of use. Furthermore, Norheim et al. \cite{sami2024} identify configuration sensitivity as one of the primary challenges when applying LLMs to requirements engineering tasks, which aligns with the variations observed between configurations C2 and C3 in this study.
+
+Firstly, it is observed that model performance is non-uniform and highly dependent on the experimental setup. The marked differences between configurations such as C2 and C3 evidence that factors like model combination, size, and parameterization significantly influence the quality of the generated decompositions. This suggests that model selection within a multi-stage pipeline cannot be addressed in isolation; rather, it must be viewed as a joint configuration problem where the interaction between generators and judges plays a decisive role.
+
+In this context, configuration C4 introduces a particularly relevant scenario where both generators possess comparable capabilities in terms of model size. Under these conditions, performance disparities are considerably reduced, suggesting that part of the variability observed in other configurations may be associated not only with parameters such as temperature but also with differences in capacity and architecture between models. This result indicates that when factors like model size are controlled, systems tend to converge in performance, shifting differences toward finer aspects such as generation style or the prioritization of specific quality criteria.
+
+A significant finding is the systematic difference between generators G1 and G2 in terms of stability and variability. This phenomenon has also been reported in prior research. Specifically, Niv \cite{hematt2025} highlights that while LLMs can achieve high levels of average performance, their behavior may exhibit significant execution-to-execution variance, affecting result reproducibility. While G2 occasionally achieves higher average scores (e.g., in C2), its results show greater dispersion, indicating lower consistency in output quality. In contrast, G1 tends to produce more stable decompositions, particularly in more complex setups like C3.
+
+This behavior can be partly explained by the difference in the temperature utilized during generation. Studies have demonstrated that temperature has a direct impact on output stability; lower values favor deterministic outputs and improve consistency, whereas higher values introduce diversity and increase variability \cite{li2026temp}. Moreover, this relationship is non-trivial and task-dependent, reinforcing the need to meticulously calibrate this parameter in generation and evaluation pipelines.
+
+From the perspective of evaluation criteria, the results suggest a clear separation between structural and semantic dimensions of quality. Criteria such as \textit{format} and \textit{coherence} exhibit relatively stable behavior across models, indicating that LLMs can consistently adhere to structured constraints when explicitly specified in prompts. Conversely, criteria such as \textit{completeness} and \textit{granularity} show higher variability, reflecting the inherent difficulty of capturing more abstract aspects of the task decomposition process.
+
+This is consistent with trends in recent literature. Ferrari and Spoletini \cite{proci2025} note that although LLMs show solid performance in tasks with formal or structural constraints, they still face limitations in deep semantic understanding, such as content adequacy and requirement coverage. These limitations relate to concerns regarding the correctness and reliability of LLM-generated artifacts in requirements engineering, explaining the higher stability observed in format and coherence compared to the variability in completeness and granularity.
+
+Specifically, \textit{completeness} emerges as one of the criteria most sensitive to model configuration. While G2 performs better in this regard in C2, its performance significantly declines in more complex scenarios like C3. This suggests that requirement coverage depends not only on generative capacity but also on the model's ability to maintain semantic consistency as decomposition complexity increases.
+
+On the other hand, \textit{granularity} proves to be a key criterion for differentiating model performance. The differences observed in C3 indicate that certain models are better equipped to find an appropriate balance in task detail, avoiding both over-decomposition and the generation of overly general tasks. This aspect is particularly relevant in agile planning contexts, where decomposition quality directly impacts work estimation and execution.
+
+Another significant result is the effectiveness of the \textit{LLM-as-a-Judge} comparative approach. Utilizing an evaluator model to select among multiple decompositions allows for the identification of nuances that are not evident through aggregate metrics alone. In this sense, the win rate provides a complementary measure that captures relative preference, offering a richer view of model performance.
+
+This approach aligns with a growing research line proposing the use of models as automated evaluators. Recent studies have shown that these systems can reach levels comparable to human evaluators in various tasks \cite{eigler2026}. However, important limitations have also been identified, such as biases and score variability. It has been noted that these systems may favor certain generation styles or response structures depending on the judge model and its configuration. This is consistent with the present study, where configuration differences show that parameters like temperature influence not only generation but also the stability of automated evaluation. In this regard, approaches like that of Do et al. \cite{daly2025} suggest incorporating iterative processes and human validation to improve the reliability of automated evaluation systems.
+
+Regarding synthetic data generation, the results are consistent with works such as Li et al. \cite{long2024}, which state that LLMs can generate high-quality data for natural language processing, albeit with limitations in consistency and coverage. Similarly, Ma et al. \cite{ma2025} and Chakir and Lahsen-Cherif \cite{fsidi2025} show that synthetic data can improve performance in specific domains but requires robust validation mechanisms. These findings are reflected in this study, where decomposition quality depends significantly on model configuration and the evaluation process.
+
+In terms of implications, the results suggest that using local LLMs constitutes a promising alternative for generating synthetic datasets in requirements engineering, provided that structured validation mechanisms are integrated into the pipeline. The combination of controlled generation and automated evaluation helps mitigate inherent model variability. Nonetheless, the results also indicate that the quality achieved is heavily dependent on the configuration used; therefore, these approaches should be considered support tools rather than direct substitutes for human validation.
+
+However, this study presents certain limitations. Regarding internal validity, using an LLM as a judge raises the question of whether the metrics reflect actual decomposition quality or are influenced by the judge's characteristics and prompt. Although explicit criteria and conservative temperature settings were used, systematic biases cannot be entirely ruled out.
+
+In terms of construct validity, while the five criteria (coherence, completeness, feasibility, format, and granularity) are grounded in requirements engineering literature, they may not capture all relevant dimensions of user story decomposition quality. Aspects such as traceability, task dependencies, or alignment with business goals were not explicitly addressed.
+
+Regarding external validity, experiments were conducted on a single dataset (Salony), which limits the generalizability of the results to other domains or requirement types. The user stories used have a relatively homogeneous structure, which might favor model performance compared to more heterogeneous or less structured scenarios.
+
+Finally, these results open several lines for future work. These include incorporating hybrid evaluators that combine automated metrics with human validation, exploring consensus strategies among multiple judges, and extending the framework to other types of requirements artifacts. Furthermore, it would be relevant to analyze the impact of more advanced prompting techniques and fine-tuning on the quality of generated decompositions.
 
 \section{Conclusion}\label{sec6}
 
-% TODO: completar conclusiones y trabajo futuro
+This paper presented \textit{LocalLLM-DataForge}, a modular framework designed for the automated generation and evaluation of user story decompositions using locally executed large language models. The proposal addresses two significant challenges in requirements engineering: the scarcity of annotated datasets and the reliance on cloud-based services for LLM deployment. Through an architecture based on DataFrame-driven pipelines, the framework enables the reproducible orchestration of generation, comparison, and validation processes, integrating generator and evaluator models within a unified workflow.
+
+Experimental results demonstrate that it is feasible to generate task decompositions with consistent quality levels using open-source models executed locally. Furthermore, it was observed that model performance is significantly influenced by the chosen configuration, particularly the combination of models and parameters such as temperature. Nonetheless, scenarios were identified where performance gaps between models narrow considerably, evidencing a convergence behavior when models of similar capabilities are employed. This suggests that the observed variability depends not only on generation parameters but also on factors such as model size and architecture. In this context, the \textit{LLM-as-a-Judge} evaluation strategy proved effective in comparing alternative outputs and capturing nuances that remain obscured when using aggregate metrics alone.
+
+The criterion-based analysis revealed that models tend to exhibit more stable behavior in structural dimensions, such as format and coherence, while showing greater variability in semantic aspects, such as completeness and granularity. This pattern persists even in scenarios where global performance is similar across models, suggesting that disparities shift toward specific quality dimensions rather than overall performance.
+
+Overall, this work demonstrates that local LLMs constitute a viable alternative for supporting the generation of synthetic datasets in requirements engineering research, offering advantages in terms of data control, reproducibility, and cost-efficiency. Additionally, the proposed approach contributes to the integration of automated generation and validation within structured experimental pipelines.
+
+In relation to the contributions outlined at the outset, this work fulfills two primary objectives. First, it introduces a fully local, extensible, and reproducible framework for generating synthetic datasets from user stories. This framework is based on experimental pipelines that allow for the controlled orchestration of generation and evaluation processes, thereby reducing dependence on cloud services. Second, automated validation strategies based on \textit{LLM-as-a-Judge} were defined and operationalized. These proved effective for comparing decompositions and capturing differences not evident through aggregate metrics, although they remain subject to variability depending on the model configuration.
+
+Future work is proposed in several directions. First, we plan to incorporate hybrid evaluation schemes that combine automated judgments with human validation to enhance metric reliability. Second, we consider exploring consensus strategies among multiple evaluator models to mitigate potential biases. Furthermore, it would be relevant to expand the dataset to include more diverse and less structured domains to analyze the generalizability of the approach. Finally, we intend to extend the framework to other requirements engineering artifacts—such as use cases, acceptance criteria, or functional specifications—and to integrate advanced prompting and fine-tuning techniques to further improve output quality.
 
 \backmatter
 
-\bmhead{Acknowledgements}
+\begin{appendices}
 
-% TODO: agregar agradecimientos si aplica
+\section{Task Generation Prompt}
+\label{appendix:task_generation_prompt}
 
-\section*{Declarations}
+\begin{lstlisting}[basicstyle=\ttfamily\small, breaklines=true, caption={Prompt for Task Generation}, label={lst:task_generation_prompt}]
+Below is an instruction that describes a task, paired with an input that provides a user story.
 
-\begin{itemize}
-\item Funding: Not applicable
-\item Conflict of interest: The authors declare no competing interests.
-\item Ethics approval and consent to participate: Not applicable
-\item Consent for publication: Not applicable
-\item Data availability: The datasets and pipeline code are available at the project repository.
-\item Code availability: The source code for LocalLLM-DataForge is publicly available.
-\item Author contribution: All authors contributed to the design and development of the framework. A.L.V.S. led implementation and experiments. C.A.F.F. and V.R.L. supervised the research and contributed to methodology.
-\end{itemize}
+Write a response that appropriately completes the request.
+
+Instruction:
+
+Break this user story into smaller development tasks to help the developers implement it efficiently. You can divide this user story into as many tasks as needed, depending on its complexity. Each task must be unique, actionable, and non-overlapping.
+
+Use the following format for the response:
+
+1. summary: <task summary 1>
+description: <task description 1>
+2. summary: <task summary 2>
+description: <task description 2>
+
+N. summary: <task summary N>
+description: <task description N>
+
+Input:
+
+{user_story}
+
+Response:
+\end{lstlisting}
+
+\section{LLM-as-a-Judge Evaluation Prompt}
+\label{appendix:llm_judge_prompt}
+
+\begin{lstlisting}[basicstyle=\ttfamily\small, breaklines=true, caption={LLM-as-a-Judge Prompt}, label={lst:llm_judge_prompt}]
+You are an expert software development manager evaluating two different breakdowns of a user story into development tasks.
+
+Your job is to compare both breakdowns and determine which one is better overall.
+
+USER STORY:
+{user_story}
+
+BREAKDOWN A:
+{tasks_a}
+
+BREAKDOWN B:
+{tasks_b}
+
+Evaluate both breakdowns based on these criteria (0-10 points each), aligned with ISO/IEC/IEEE 29148:2018 quality standards:
+
+1. COHERENCE: Semantic correspondence between the generated tasks and the original user story. Does it maintain consistency with the user story intent? (0-10)
+2. COMPLETENESS: Degree of coverage of implicit and explicit requirements. Does it cover all necessary aspects of the user story? (0-10)
+3. FEASIBILITY: Technical feasibility of the proposed tasks. Are the tasks realistically implementable? (0-10)
+4. FORMAT: Structure and clarity of the output. Is the response well-formatted, unambiguous, and easy to understand? (0-10)
+5. GRANULARITY: Appropriateness of the decomposition level. Are tasks properly sized (not too big, not too small) and atomic? (0-10)
+
+Respond in this exact JSON format:
+{
+  "breakdown_a": {
+    "coherence": [score_0_to_10],
+    "completeness": [score_0_to_10],
+    "feasibility": [score_0_to_10],
+    "format": [score_0_to_10],
+    "granularity": [score_0_to_10],
+    "total_score": [sum_of_all_scores],
+    "strengths": "[brief_description_of_strengths]",
+    "weaknesses": "[brief_description_of_weaknesses]"
+  },
+  "breakdown_b": {
+    "coherence": [score_0_to_10],
+    "completeness": [score_0_to_10],
+    "feasibility": [score_0_to_10],
+    "format": [score_0_to_10],
+    "granularity": [score_0_to_10],
+    "total_score": [sum_of_all_scores],
+    "strengths": "[brief_description_of_strengths]",
+    "weaknesses": "[brief_description_of_weaknesses]"
+  },
+  "winner": "[A_or_B]",
+  "reason": "[brief_explanation_of_why_the_winner_is_better]"
+}
+\end{lstlisting}
+
+\end{appendices}
 
 \bibliography{sn-bibliography}
 
