@@ -247,6 +247,15 @@ plt.tight_layout()
 
 plt.savefig(os.path.join(OUTPUTS_DIR, "total_score_distribution.png"), dpi=300)
 
+plt.figure()
+plt.boxplot(boxplot_data, tick_labels=boxplot_labels, vert=True)
+plt.ylabel("Puntajes Totales")
+plt.title("Distribución de Puntajes entre Tests")
+plt.xticks(rotation=0, ha="center", fontsize=8)
+plt.tight_layout()
+
+plt.savefig(os.path.join(OUTPUTS_DIR, "total_score_distribution_es.png"), dpi=300)
+
 # ============================
 # SUBPLOTS
 # ============================
@@ -306,6 +315,67 @@ for idx, label in enumerate(CRITERIA_LABELS_EN):
 plt.tight_layout()
 plt.savefig(
     os.path.join(OUTPUTS_DIR, "criteria_subplots.png"),
+    dpi=300,
+    bbox_inches="tight",
+)
+plt.close()
+
+# ============================
+# SUBPLOTS (ES)
+# ============================
+fig = plt.figure(figsize=(10, 10))
+gs = GridSpec(3, 2, figure=fig)
+
+axes = [
+    fig.add_subplot(gs[0, 0]),
+    fig.add_subplot(gs[0, 1]),
+    fig.add_subplot(gs[1, 0]),
+    fig.add_subplot(gs[1, 1]),
+    fig.add_subplot(gs[2, :]),
+]
+
+for idx, label in enumerate(CRITERIA_LABELS_ES):
+    ax = axes[idx]
+
+    g1_vals = pivot_df[(CRITERIA_LABELS_EN[idx], "G1")].values
+    g2_vals = pivot_df[(CRITERIA_LABELS_EN[idx], "G2")].values
+
+    bars_g1 = ax.bar(x - width / 2, g1_vals, width, label="G1")
+    bars_g2 = ax.bar(x + width / 2, g2_vals, width, label="G2")
+
+    if idx == 4:
+        for i, bar in enumerate(bars_g1):
+            config = configs[i]
+            ax.text(
+                bar.get_x() + bar.get_width() / 2,
+                bar.get_height(),
+                model_map[config]["G1"],
+                ha="center",
+                va="bottom",
+                fontsize=7,
+            )
+
+        for i, bar in enumerate(bars_g2):
+            config = configs[i]
+            ax.text(
+                bar.get_x() + bar.get_width() / 2,
+                bar.get_height(),
+                model_map[config]["G2"],
+                ha="center",
+                va="bottom",
+                fontsize=7,
+            )
+
+    ax.set_title(label)
+    ax.set_xticks(x)
+    ax.set_xticklabels(configs)
+    ax.set_ylabel("Puntaje Promedio")
+    ax.set_ylim(0, 10)
+    ax.legend()
+
+plt.tight_layout()
+plt.savefig(
+    os.path.join(OUTPUTS_DIR, "criteria_subplots_es.png"),
     dpi=300,
     bbox_inches="tight",
 )
