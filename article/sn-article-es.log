@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.29 (TeX Live 2026) (preloaded format=pdflatex 2026.3.15)  29 APR 2026 12:20
+This is pdfTeX, Version 3.141592653-2.6-1.40.29 (TeX Live 2026) (preloaded format=pdflatex 2026.3.15)  8 JUN 2026 12:20
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -421,12 +421,41 @@ Package: natbib 2010/09/13 8.31b (PWD, AO)
 \bibsep=\skip64
 LaTeX Info: Redefining \cite on input line 694.
 \c@NAT@ctr=\count313
-)) (/usr/local/texlive/2026/texmf-dist/tex/latex/multirow/multirow.sty
+)) (/usr/local/texlive/2026/texmf-dist/tex/generic/babel/babel.sty
+Package: babel 2026/02/14 v26.3 The multilingual framework for LuaLaTeX, pdfLaTeX and XeLaTeX
+\babel@savecnt=\count314
+LaTeX Encoding Info:    Redeclaring text command \ij (encoding OT1) on input line 2078.
+LaTeX Encoding Info:    Redeclaring text command \IJ (encoding OT1) on input line 2080.
+LaTeX Encoding Info:    Redeclaring text command \ij (encoding T1) on input line 2082.
+LaTeX Encoding Info:    Redeclaring text command \IJ (encoding T1) on input line 2083.
+LaTeX Encoding Info:    Ignoring declaration for text command \ij (encoding ?) on input line 2084.
+LaTeX Encoding Info:    Ignoring declaration for text command \IJ (encoding ?) on input line 2086.
+LaTeX Encoding Info:    Ignoring declaration for text command \SS (encoding ?) on input line 2111.
+\U@D=\dimen186
+\l@unhyphenated=\language91
+ (/usr/local/texlive/2026/texmf-dist/tex/generic/babel/txtbabel.def)
+\bbl@readstream=\read2
+\bbl@dirlevel=\count315
+ (/usr/local/texlive/2026/texmf-dist/tex/generic/babel/locale/es/babel-spanish.tex)
+Package babel Info: Importing font and identification data for spanish
+(babel)             from babel-es.ini. Reported on input line 4330.
+ (/usr/local/texlive/2026/texmf-dist/tex/generic/babel-spanish/spanish.ldf
+Language: spanish.ldf 2021/05/27 v5.0q Spanish support from the babel system
+\es@quottoks=\toks30
+\es@quotdepth=\count316
+Package babel Info: Making " an active character on input line 570.
+Package babel Info: Making . an active character on input line 675.
+Package babel Info: Making < an active character on input line 722.
+Package babel Info: Making > an active character on input line 722.
+))
+LaTeX Encoding Info:    Redeclaring text command \guillemotleft (encoding OT1) on input line 5.
+LaTeX Encoding Info:    Redeclaring text command \guillemotright (encoding OT1) on input line 5.
+ (/usr/local/texlive/2026/texmf-dist/tex/latex/multirow/multirow.sty
 Package: multirow 2024/11/12 v2.9 Span multiple rows of a table
 \multirow@colwidth=\skip65
-\multirow@cntb=\count314
+\multirow@cntb=\count317
 \multirow@dima=\skip66
-\bigstrutjot=\dimen186
+\bigstrutjot=\dimen187
 ) (/usr/local/texlive/2026/texmf-dist/tex/latex/amsmath/amsmath.sty
 Package: amsmath 2025/07/09 v2.17z AMS math features
 \@mathmargin=\skip67
@@ -436,22 +465,22 @@ For additional information on amsmath, use the `?' option.
 Package: amstext 2024/11/17 v2.01 AMS text
  (/usr/local/texlive/2026/texmf-dist/tex/latex/amsmath/amsgen.sty
 File: amsgen.sty 1999/11/30 v2.0 generic functions
-\@emptytoks=\toks30
-\ex@=\dimen187
+\@emptytoks=\toks31
+\ex@=\dimen188
 )) (/usr/local/texlive/2026/texmf-dist/tex/latex/amsmath/amsbsy.sty
 Package: amsbsy 1999/11/29 v1.2d Bold Symbols
-\pmbraise@=\dimen188
+\pmbraise@=\dimen189
 ) (/usr/local/texlive/2026/texmf-dist/tex/latex/amsmath/amsopn.sty
 Package: amsopn 2022/04/08 v2.04 operator names
 )
-\inf@bad=\count315
+\inf@bad=\count318
 LaTeX Info: Redefining \frac on input line 233.
-\uproot@=\count316
-\leftroot@=\count317
+\uproot@=\count319
+\leftroot@=\count320
 LaTeX Info: Redefining \overline on input line 398.
 LaTeX Info: Redefining \colon on input line 409.
-\classnum@=\count318
-\DOTSCASE@=\count319
+\classnum@=\count321
+\DOTSCASE@=\count322
 LaTeX Info: Redefining \ldots on input line 495.
 LaTeX Info: Redefining \dots on input line 498.
 LaTeX Info: Redefining \cdots on input line 619.
@@ -461,34 +490,34 @@ LaTeX Info: Redefining \big on input line 721.
 LaTeX Info: Redefining \Big on input line 722.
 LaTeX Info: Redefining \bigg on input line 723.
 LaTeX Info: Redefining \Bigg on input line 724.
-\big@size=\dimen189
+\big@size=\dimen190
 LaTeX Font Info:    Redeclaring font encoding OML on input line 742.
 LaTeX Font Info:    Redeclaring font encoding OMS on input line 743.
-\macc@depth=\count320
+\macc@depth=\count323
 LaTeX Info: Redefining \bmod on input line 904.
 LaTeX Info: Redefining \pmod on input line 909.
 LaTeX Info: Redefining \smash on input line 939.
 LaTeX Info: Redefining \relbar on input line 969.
 LaTeX Info: Redefining \Relbar on input line 970.
-\c@MaxMatrixCols=\count321
+\c@MaxMatrixCols=\count324
 \dotsspace@=\muskip18
-\c@parentequation=\count322
-\dspbrk@lvl=\count323
-\tag@help=\toks31
-\row@=\count324
-\column@=\count325
-\maxfields@=\count326
-\andhelp@=\toks32
-\eqnshift@=\dimen190
-\alignsep@=\dimen191
-\tagshift@=\dimen192
-\tagwidth@=\dimen193
-\totwidth@=\dimen194
-\lineht@=\dimen195
-\@envbody=\toks33
+\c@parentequation=\count325
+\dspbrk@lvl=\count326
+\tag@help=\toks32
+\row@=\count327
+\column@=\count328
+\maxfields@=\count329
+\andhelp@=\toks33
+\eqnshift@=\dimen191
+\alignsep@=\dimen192
+\tagshift@=\dimen193
+\tagwidth@=\dimen194
+\totwidth@=\dimen195
+\lineht@=\dimen196
+\@envbody=\toks34
 \multlinegap=\skip68
 \multlinetaggap=\skip69
-\mathdisplay@stack=\toks34
+\mathdisplay@stack=\toks35
 LaTeX Info: Redefining \[ on input line 2950.
 LaTeX Info: Redefining \] on input line 2951.
 ) (/usr/local/texlive/2026/texmf-dist/tex/latex/amsfonts/amssymb.sty
@@ -526,75 +555,75 @@ Package: manyfoot 2019/08/03 v1.11 Many Footnote Levels Package (NCC)
  (/usr/local/texlive/2026/texmf-dist/tex/latex/ncctools/nccfoots.sty
 Package: nccfoots 2005/02/03 v1.2 NCC Footnotes Package (NCC)
 )
-\MFL@columnwidth=\dimen196
+\MFL@columnwidth=\dimen197
 ) (/usr/local/texlive/2026/texmf-dist/tex/latex/booktabs/booktabs.sty
 Package: booktabs 2020/01/12 v1.61803398 Publication quality tables
-\heavyrulewidth=\dimen197
-\lightrulewidth=\dimen198
-\cmidrulewidth=\dimen199
-\belowrulesep=\dimen256
-\belowbottomsep=\dimen257
-\aboverulesep=\dimen258
-\abovetopsep=\dimen259
-\cmidrulesep=\dimen260
-\cmidrulekern=\dimen261
-\defaultaddspace=\dimen262
-\@cmidla=\count327
-\@cmidlb=\count328
-\@aboverulesep=\dimen263
-\@belowrulesep=\dimen264
-\@thisruleclass=\count329
-\@lastruleclass=\count330
-\@thisrulewidth=\dimen265
+\heavyrulewidth=\dimen198
+\lightrulewidth=\dimen199
+\cmidrulewidth=\dimen256
+\belowrulesep=\dimen257
+\belowbottomsep=\dimen258
+\aboverulesep=\dimen259
+\abovetopsep=\dimen260
+\cmidrulesep=\dimen261
+\cmidrulekern=\dimen262
+\defaultaddspace=\dimen263
+\@cmidla=\count330
+\@cmidlb=\count331
+\@aboverulesep=\dimen264
+\@belowrulesep=\dimen265
+\@thisruleclass=\count332
+\@lastruleclass=\count333
+\@thisrulewidth=\dimen266
 ) (/usr/local/texlive/2026/texmf-dist/tex/latex/algorithms/algorithm.sty
 Package: algorithm 2009/08/24 v0.1 Document Style `algorithm' - floating environment
  (/usr/local/texlive/2026/texmf-dist/tex/latex/float/float.sty
 Package: float 2001/11/08 v1.3d Float enhancements (AL)
-\c@float@type=\count331
-\float@exts=\toks35
+\c@float@type=\count334
+\float@exts=\toks36
 \float@box=\box74
-\@float@everytoks=\toks36
+\@float@everytoks=\toks37
 \@floatcapt=\box75
 )
-\@float@every@algorithm=\toks37
-\c@algorithm=\count332
+\@float@every@algorithm=\toks38
+\c@algorithm=\count335
 ) (/usr/local/texlive/2026/texmf-dist/tex/latex/algorithmicx/algorithmicx.sty
 Package: algorithmicx 2005/04/27 v1.2 Algorithmicx
 
 Document Style algorithmicx 1.2 - a greatly improved `algorithmic' style
-\c@ALG@line=\count333
-\c@ALG@rem=\count334
-\c@ALG@nested=\count335
+\c@ALG@line=\count336
+\c@ALG@rem=\count337
+\c@ALG@nested=\count338
 \ALG@tlm=\skip70
 \ALG@thistlm=\skip71
-\c@ALG@Lnr=\count336
-\c@ALG@blocknr=\count337
-\c@ALG@storecount=\count338
-\c@ALG@tmpcounter=\count339
+\c@ALG@Lnr=\count339
+\c@ALG@blocknr=\count340
+\c@ALG@storecount=\count341
+\c@ALG@tmpcounter=\count342
 \ALG@tmplength=\skip72
 ) (/usr/local/texlive/2026/texmf-dist/tex/latex/algorithmicx/algpseudocode.sty
 Package: algpseudocode 
 
 Document Style - pseudocode environments for use with the `algorithmicx' style
 ) (/usr/local/texlive/2026/texmf-dist/tex/latex/listings/listings.sty
-\lst@mode=\count340
+\lst@mode=\count343
 \lst@gtempboxa=\box76
-\lst@token=\toks38
-\lst@length=\count341
-\lst@currlwidth=\dimen266
-\lst@column=\count342
-\lst@pos=\count343
-\lst@lostspace=\dimen267
-\lst@width=\dimen268
-\lst@newlines=\count344
-\lst@lineno=\count345
-\lst@maxwidth=\dimen269
+\lst@token=\toks39
+\lst@length=\count344
+\lst@currlwidth=\dimen267
+\lst@column=\count345
+\lst@pos=\count346
+\lst@lostspace=\dimen268
+\lst@width=\dimen269
+\lst@newlines=\count347
+\lst@lineno=\count348
+\lst@maxwidth=\dimen270
  (/usr/local/texlive/2026/texmf-dist/tex/latex/listings/lstpatch.sty
 File: lstpatch.sty 2025/11/14 1.11b (Carsten Heinz)
 ) (/usr/local/texlive/2026/texmf-dist/tex/latex/listings/lstmisc.sty
 File: lstmisc.sty 2025/11/14 1.11b (Carsten Heinz)
-\c@lstnumber=\count346
-\lst@skipnumbers=\count347
+\c@lstnumber=\count349
+\lst@skipnumbers=\count350
 \lst@framebox=\box77
 ) (/usr/local/texlive/2026/texmf-dist/tex/latex/listings/listings.cfg
 File: listings.cfg 2025/11/14 1.11b listings configuration
@@ -607,34 +636,39 @@ Package: listings 2025/11/14 1.11b (Carsten Heinz)
     but found:
         2025/11/14 1.11b (Carsten Heinz)
     so I'm assuming it got fixed.
-\c@theorem=\count348
-\c@example=\count349
-\c@remark=\count350
-\c@definition=\count351
+\c@theorem=\count351
+\c@example=\count352
+\c@remark=\count353
+\c@definition=\count354
 (/usr/local/texlive/2026/texmf-dist/tex/latex/l3backend/l3backend-pdftex.def
 File: l3backend-pdftex.def 2025-10-09 L3 backend support: PDF output (pdfTeX)
-\l__color_backend_stack_int=\count352
-) (./sn-article-es.aux)
+\l__color_backend_stack_int=\count355
+) (./sn-article-es.aux
+LaTeX Info: Redefining \. on input line 14.
+LaTeX Info: Redefining \% on input line 14.
+Package babel Info: 'spanish' activates 'spanish' shorthands.
+(babel)             Reported on input line 14.
+)
 \openout1 = `sn-article-es.aux'.
 
-LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 35.
-LaTeX Font Info:    ... okay on input line 35.
-LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 35.
-LaTeX Font Info:    ... okay on input line 35.
-LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 35.
-LaTeX Font Info:    ... okay on input line 35.
-LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 35.
-LaTeX Font Info:    ... okay on input line 35.
-LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 35.
-LaTeX Font Info:    ... okay on input line 35.
-LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 35.
-LaTeX Font Info:    ... okay on input line 35.
-LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 35.
-LaTeX Font Info:    ... okay on input line 35.
-LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 35.
-LaTeX Font Info:    ... okay on input line 35.
-LaTeX Font Info:    Checking defaults for PU/pdf/m/n on input line 35.
-LaTeX Font Info:    ... okay on input line 35.
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 36.
+LaTeX Font Info:    ... okay on input line 36.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 36.
+LaTeX Font Info:    ... okay on input line 36.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 36.
+LaTeX Font Info:    ... okay on input line 36.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 36.
+LaTeX Font Info:    ... okay on input line 36.
+LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 36.
+LaTeX Font Info:    ... okay on input line 36.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 36.
+LaTeX Font Info:    ... okay on input line 36.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 36.
+LaTeX Font Info:    ... okay on input line 36.
+LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 36.
+LaTeX Font Info:    ... okay on input line 36.
+LaTeX Font Info:    Checking defaults for PU/pdf/m/n on input line 36.
+LaTeX Font Info:    ... okay on input line 36.
 
 *geometry* driver: auto-detecting
 *geometry* detected driver: pdftex
@@ -673,45 +707,47 @@ LaTeX Font Info:    ... okay on input line 35.
 
 (/usr/local/texlive/2026/texmf-dist/tex/context/base/mkii/supp-pdf.mkii
 [Loading MPS to PDF converter (version 2006.09.02).]
-\scratchcounter=\count353
-\scratchdimen=\dimen270
+\scratchcounter=\count356
+\scratchdimen=\dimen271
 \scratchbox=\box78
-\nofMPsegments=\count354
-\nofMParguments=\count355
-\everyMPshowfont=\toks39
-\MPscratchCnt=\count356
-\MPscratchDim=\dimen271
-\MPnumerator=\count357
-\makeMPintoPDFobject=\count358
-\everyMPtoPDFconversion=\toks40
+\nofMPsegments=\count357
+\nofMParguments=\count358
+\everyMPshowfont=\toks40
+\MPscratchCnt=\count359
+\MPscratchDim=\dimen272
+\MPnumerator=\count360
+\makeMPintoPDFobject=\count361
+\everyMPtoPDFconversion=\toks41
 ) (/usr/local/texlive/2026/texmf-dist/tex/latex/epstopdf-pkg/epstopdf-base.sty
 Package: epstopdf-base 2020-01-24 v2.11 Base part for package epstopdf
 Package epstopdf-base Info: Redefining graphics rule for `.eps' on input line 485.
  (/usr/local/texlive/2026/texmf-dist/tex/latex/latexconfig/epstopdf-sys.cfg
 File: epstopdf-sys.cfg 2010/07/13 v1.3 Configuration of (r)epstopdf for TeX Live
 ))
-LaTeX Info: Redefining \S on input line 35.
-LaTeX Font Info:    Redeclaring symbol font `AMSa' on input line 35.
+LaTeX Info: Redefining \S on input line 36.
+LaTeX Font Info:    Redeclaring symbol font `AMSa' on input line 36.
 LaTeX Font Info:    Overwriting symbol font `AMSa' in version `normal'
-(Font)                  U/msa/m/n --> U/msa/m/n on input line 35.
+(Font)                  U/msa/m/n --> U/msa/m/n on input line 36.
 LaTeX Font Info:    Overwriting symbol font `AMSa' in version `bold'
-(Font)                  U/msa/m/n --> U/msa/m/n on input line 35.
-Package hyperref Info: Link coloring ON on input line 35.
+(Font)                  U/msa/m/n --> U/msa/m/n on input line 36.
+Package hyperref Info: Link coloring ON on input line 36.
  (./sn-article-es.out) (./sn-article-es.out)
 \@outlinefile=\write3
 \openout3 = `sn-article-es.out'.
 
-\c@lstlisting=\count359
-LaTeX Font Info:    Calculating math sizes for size <10.03749> on input line 73.
-LaTeX Font Info:    Trying to load font information for U+msa on input line 73.
+LaTeX Info: Redefining \. on input line 36.
+LaTeX Info: Redefining \% on input line 36.
+\c@lstlisting=\count362
+LaTeX Font Info:    Calculating math sizes for size <10.03749> on input line 74.
+LaTeX Font Info:    Trying to load font information for U+msa on input line 74.
  (/usr/local/texlive/2026/texmf-dist/tex/latex/amsfonts/umsa.fd
 File: umsa.fd 2013/01/14 v3.01 AMS symbols A
 )
-LaTeX Font Info:    Trying to load font information for U+msb on input line 73.
+LaTeX Font Info:    Trying to load font information for U+msb on input line 74.
  (/usr/local/texlive/2026/texmf-dist/tex/latex/amsfonts/umsb.fd
 File: umsb.fd 2013/01/14 v3.01 AMS symbols B
 )
-LaTeX Font Info:    Trying to load font information for U+rsfs on input line 73.
+LaTeX Font Info:    Trying to load font information for U+rsfs on input line 74.
  (/usr/local/texlive/2026/texmf-dist/tex/latex/jknapltx/ursfs.fd
 File: ursfs.fd 1998/03/24 rsfs font definition file (jk)
 )
@@ -729,23 +765,23 @@ Underfull \vbox (badness 10000) has occurred while \output is active []
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
  [4]
+<images/diagram_en.png, id=155, 550.055pt x 418.56375pt>
+File: images/diagram_en.png Graphic file (type png)
+<use images/diagram_en.png>
+Package pdftex.def Info: images/diagram_en.png  used on input line 126.
+(pdftex.def)             Requested size: 372.0pt x 283.08037pt.
+
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
  [5]
-<images/diagram_es.png, id=154, 555.07375pt x 418.56375pt>
-File: images/diagram_es.png Graphic file (type png)
-<use images/diagram_es.png>
-Package pdftex.def Info: images/diagram_es.png  used on input line 222.
-(pdftex.def)             Requested size: 372.0pt x 280.51288pt.
-
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
  [6
 pdfTeX warning (ext4): destination with the same identifier (name{figure.1}) has been already used, duplicate ignored
 <argument> ...shipout:D \box_use:N \l_shipout_box 
                                                   \__shipout_drop_firstpage_...
-l.233 U
-       na característica distintiva del pipeline es su naturaleza declarati... <./images/diagram_es.png>]
+l.143 O
+       verall, the pipeline model adopted in LocalLLM-DataForge provides a s... <./images/diagram_en.png>]
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
  [7]
@@ -758,115 +794,101 @@ Underfull \vbox (badness 10000) has occurred while \output is active []
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
  [10]
-Overfull \vbox (4.32115pt too high) has occurred while \output is active []
+LaTeX Font Info:    Calculating math sizes for size <8.03> on input line 213.
+
+
+LaTeX Font Warning: Font shape `U/rsfs/m/n' in size <4.015> not available
+(Font)              size <5> substituted on input line 213.
+
+
+Overfull \hbox (3.4046pt too wide) in paragraph at lines 209--238
+ [] 
+ []
 
 
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
- [11]
-LaTeX Font Info:    Calculating math sizes for size <8.03> on input line 310.
-
-
-LaTeX Font Warning: Font shape `U/rsfs/m/n' in size <4.015> not available
-(Font)              size <5> substituted on input line 310.
-
-
-Overfull \hbox (3.4046pt too wide) in paragraph at lines 306--335
- [] 
- []
-
+ [11
+pdfTeX warning (ext4): destination with the same identifier (name{table.1}) has been already used, duplicate ignored
+<argument> ...shipout:D \box_use:N \l_shipout_box 
+                                                  \__shipout_drop_firstpage_...
+l.273 I
+       n particular, low mean values observed in configurations such as C1 a...]
+<images/total_score_distribution_es.png, id=231, 462.528pt x 346.896pt>
+File: images/total_score_distribution_es.png Graphic file (type png)
+<use images/total_score_distribution_es.png>
+Package pdftex.def Info: images/total_score_distribution_es.png  used on input line 287.
+(pdftex.def)             Requested size: 372.0pt x 279.01514pt.
 
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
  [12
-pdfTeX warning (ext4): destination with the same identifier (name{table.1}) has been already used, duplicate ignored
+pdfTeX warning (ext4): destination with the same identifier (name{table.2}) has been already used, duplicate ignored
 <argument> ...shipout:D \box_use:N \l_shipout_box 
                                                   \__shipout_drop_firstpage_...
-l.369 
-      ]
-<images/total_score_distribution.png, id=234, 462.528pt x 346.896pt>
-File: images/total_score_distribution.png Graphic file (type png)
-<use images/total_score_distribution.png>
-Package pdftex.def Info: images/total_score_distribution.png  used on input line 378.
-(pdftex.def)             Requested size: 372.0pt x 279.01514pt.
-
-Overfull \hbox (13.74927pt too wide) in paragraph at lines 392--414
+l.296 T
+       hese findings underscore the importance of considering both central t...]
+Overfull \hbox (13.74927pt too wide) in paragraph at lines 302--323
  [] 
  []
 
-<images/criterion_comparison_all.png, id=238, 714.7503pt x 715.2321pt>
-File: images/criterion_comparison_all.png Graphic file (type png)
-<use images/criterion_comparison_all.png>
-Package pdftex.def Info: images/criterion_comparison_all.png  used on input line 420.
-(pdftex.def)             Requested size: 372.0pt x 372.26115pt.
+<images/criterion_comparison_all_es.png, id=242, 715.2321pt x 714.9912pt>
+File: images/criterion_comparison_all_es.png Graphic file (type png)
+<use images/criterion_comparison_all_es.png>
+Package pdftex.def Info: images/criterion_comparison_all_es.png  used on input line 328.
+(pdftex.def)             Requested size: 372.0pt x 371.87393pt.
 
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
  [13
-pdfTeX warning (ext4): destination with the same identifier (name{table.2}) has been already used, duplicate ignored
-<argument> ...shipout:D \box_use:N \l_shipout_box 
-                                                  \__shipout_drop_firstpage_...
-l.423 \end{figure}
-                  ]
-Underfull \vbox (badness 10000) has occurred while \output is active []
-
- [14
 pdfTeX warning (ext4): destination with the same identifier (name{figure.2}) has been already used, duplicate ignored
 <argument> ...shipout:D \box_use:N \l_shipout_box 
                                                   \__shipout_drop_firstpage_...
-l.431 E
-       l criterio de \textit{formato} muestra uno de los comportamientos má... <./images/total_score_distribution.png>]
+l.337 I
+       n contrast, \textit{completeness} shows more variability. In C2, Gemm... <./images/total_score_distribution_es.png>]
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
- [15
+ [14
 pdfTeX warning (ext4): destination with the same identifier (name{table.3}) has been already used, duplicate ignored
 <argument> ...shipout:D \box_use:N \l_shipout_box 
                                                   \__shipout_drop_firstpage_...
-l.445 E
-       ste comportamiento es consistente con lo reportado en la literatura r...]
+l.353 T
+       his behavior is consistent with recent literature on the application ...]
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
- [16
+ [15
 pdfTeX warning (ext4): destination with the same identifier (name{figure.3}) has been already used, duplicate ignored
 <argument> ...shipout:D \box_use:N \l_shipout_box 
                                                   \__shipout_drop_firstpage_...
-l.447 E
-       n primer lugar, se observa que el desempeño de los modelos no es uni... <./images/criterion_comparison_all.png>]
+l.356 
+       <./images/criterion_comparison_all_es.png>]
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
+ [16]
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
  [17]
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
  [18]
+Package hyperref Info: bookmark level for unknown lstlisting defaults to 0 on input line 410.
+
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
- [19]
+ [19] (./sn-article-es.bbl
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
  [20]
-Package hyperref Info: bookmark level for unknown lstlisting defaults to 0 on input line 536.
-
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
  [21]
-Underfull \vbox (badness 10000) has occurred while \output is active []
-
- [22] (./sn-article-es.bbl
-Underfull \vbox (badness 10000) has occurred while \output is active []
-
- [23]
 Underfull \hbox (badness 1342) in paragraph at lines 301--314
 []\OT1/cmr/m/n/10 Li, Y., Lin, Z., Zhang, S.D., Fu, Q., Chen, B., Lou, J.-G., Chen, W.:
  []
 
 
-Underfull \hbox (badness 4193) in paragraph at lines 301--314
-\OT1/cmr/m/n/10 Mak-ing lan-guage mod-els bet-ter rea-son-ers with step-aware ver-i-fier. In:
- []
-
-
-Underfull \hbox (badness 1226) in paragraph at lines 301--314
-\OT1/cmr/m/n/10 Annual Meet-ing of the Asso-ci-a-tion for Com-pu-ta-tional Lin-guis-tics (2022).
+Underfull \hbox (badness 3547) in paragraph at lines 301--314
+\OT1/cmr/m/n/10 nual Mee-ting of the As-so-cia-tion for Compu-tatio-nal Lin-guis-tics (2022).
  []
 
 ./sn-article-es.bbl:341: Missing $ inserted.
@@ -911,17 +933,12 @@ really didn't forget anything, try typing `2' now; then
 my insertion and my current dilemma will both disappear.
 
 
-Underfull \hbox (badness 1067) in paragraph at lines 331--344
-[][]$\OT1/cmr/m/n/10 https : / / doi . org / 10 . 1007 / 978-[]3-[]031-[]73143-[]3[]16$[][] . \OT1/cmss/m/n/10.03749 https://doi.org/10.1007/978-3-
- []
-
-
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
- [24]
+ [22]
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
- [25]
+ [23]
 
 ./sn-article-es.bbl:669: LaTeX Error: Invalid UTF-8 byte sequence (�.).
 
@@ -952,13 +969,13 @@ or specify an encoding such as \usepackage [latin1]{inputenc}
 in the document preamble.
 Alternatively, save the file in UTF-8 using your editor or another tool
 
-
+)
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
- [26])
-Underfull \vbox (badness 10000) has occurred while \output is active []
-
- [27] (./sn-article-es.aux)
+ [24] (./sn-article-es.aux
+LaTeX Info: Redefining \. on input line 14.
+LaTeX Info: Redefining \% on input line 14.
+)
  ***********
 LaTeX2e <2025-11-01>
 L3 programming layer <2026-01-19>
@@ -969,21 +986,21 @@ LaTeX Font Warning: Size substitutions with differences
 (Font)              up to 0.985pt have occurred.
 
 Package rerunfilecheck Info: File `sn-article-es.out' has not changed.
-(rerunfilecheck)             Checksum: 902FB6A81A0894D92E1DFE2A3947CFC4;2666.
+(rerunfilecheck)             Checksum: DC2AE1FB68C89F07BC83C8FAED64ADCB;2379.
  ) 
 Here is how much of TeX's memory you used:
- 15034 strings out of 467525
- 228279 string characters out of 5418982
- 860141 words of memory out of 5000000
- 43552 multiletter control sequences out of 15000+600000
+ 16480 strings out of 467525
+ 253303 string characters out of 5418982
+ 884915 words of memory out of 5000000
+ 44985 multiletter control sequences out of 15000+600000
  643166 words of font info for 101 fonts, out of 8000000 for 9000
  1151 hyphenation exceptions out of 8191
- 90i,12n,93p,1853b,2056s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 90i,12n,93p,1553b,2072s stack positions out of 10000i,1000n,20000p,200000b,200000s
 </usr/local/texlive/2026/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb></usr/local/texlive/2026/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb></usr/local/texlive/2026/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx8.pfb></usr/local/texlive/2026/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx9.pfb></usr/local/texlive/2026/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi8.pfb></usr/local/texlive/2026/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/local/texlive/2026/texmf-dist/fonts/type1/public/amsfonts/cm/cmr17.pfb></usr/local/texlive/2026/texmf-dist/fonts/type1/public/amsfonts/cm/cmr5.pfb></usr/local/texlive/2026/texmf-dist/fonts/type1/public/amsfonts/cm/cmr7.pfb></usr/local/texlive/2026/texmf-dist/fonts/type1/public/amsfonts/cm/cmr8.pfb></usr/local/texlive/2026/texmf-dist/fonts/type1/public/amsfonts/cm/cmr9.pfb></usr/local/texlive/2026/texmf-dist/fonts/type1/public/amsfonts/cm/cmss10.pfb></usr/local/texlive/2026/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/local/texlive/2026/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy8.pfb></usr/local/texlive/2026/texmf-dist/fonts/type1/public/amsfonts/cm/cmti10.pfb></usr/local/texlive/2026/texmf-dist/fonts/type1/public/amsfonts/cm/cmti9.pfb></usr/local/texlive/2026/texmf-dist/fonts/type1/public/amsfonts/cm/cmtt10.pfb></usr/local/texlive/2026/texmf-dist/fonts/type1/public/amsfonts/cm/cmtt9.pfb>
-Output written on sn-article-es.pdf (27 pages, 605256 bytes).
+Output written on sn-article-es.pdf (24 pages, 607808 bytes).
 PDF statistics:
- 557 PDF objects out of 1000 (max. 8388607)
- 481 compressed objects within 5 object streams
- 167 named destinations out of 1000 (max. 500000)
+ 547 PDF objects out of 1000 (max. 8388607)
+ 474 compressed objects within 5 object streams
+ 164 named destinations out of 1000 (max. 500000)
  144 words of extra memory for PDF output out of 10000 (max. 10000000)
 

@@ -1,13 +1,13 @@
 # Fdb version 4
-["bibtex sn-article-es"] 1777448730.70588 "sn-article-es.aux" "sn-article-es.bbl" "sn-article-es" 1777486860.84594 0
+["bibtex sn-article-es"] 1777448730.70588 "sn-article-es.aux" "sn-article-es.bbl" "sn-article-es" 1780942848.38826 0
   "./sn-bibliography.bib" 1777448729.2655 50705 60b466f7db63c72b893589f194f420f9 ""
   "./sn-mathphys-num.bst" 1776713223.43365 64164 943df446db725f71d6bb625fc0d6f4fc ""
-  "sn-article-es.aux" 1777486860.53265 8543 74978c30974a1f1a8e9845252a243f94 "pdflatex"
+  "sn-article-es.aux" 1780942848.02081 8759 cf61333b81d55b0ed6943a4c3381fd61 "pdflatex"
   (generated)
   "sn-article-es.bbl"
   "sn-article-es.blg"
   (rewritten before read)
-["pdflatex"] 1777486859.0616 "sn-article-es.tex" "sn-article-es.pdf" "sn-article-es" 1777486860.84612 2
+["pdflatex"] 1780942846.00309 "sn-article-es.tex" "sn-article-es.pdf" "sn-article-es" 1780942848.38839 2
   "/usr/local/texlive/2026/texmf-dist/fonts/map/fontname/texfonts.map" 1577235249 3524 cb3e574dea2d1052e39280babc910dc8 ""
   "/usr/local/texlive/2026/texmf-dist/fonts/tfm/public/amsfonts/cmextra/cmex7.tfm" 1246382020 1004 54797486969f23fa377b128694d548df ""
   "/usr/local/texlive/2026/texmf-dist/fonts/tfm/public/amsfonts/cmextra/cmex8.tfm" 1246382020 988 bdf658c3bfc2d96d3c8b02cfc1c94c20 ""
@@ -62,6 +62,11 @@
   "/usr/local/texlive/2026/texmf-dist/fonts/type1/public/amsfonts/cm/cmtt10.pfb" 1248133631 31099 c85edf1dd5b9e826d67c9c7293b6786c ""
   "/usr/local/texlive/2026/texmf-dist/fonts/type1/public/amsfonts/cm/cmtt9.pfb" 1248133631 29078 718ea4567ceff944262b0f5b0800e1d9 ""
   "/usr/local/texlive/2026/texmf-dist/tex/context/base/mkii/supp-pdf.mkii" 1461363279 71627 94eb9990bed73c364d7f53f960cc8c5b ""
+  "/usr/local/texlive/2026/texmf-dist/tex/generic/babel-spanish/spanish.ldf" 1622145181 26965 3b6d1655ad716f98e788b1fb9f2e87b8 ""
+  "/usr/local/texlive/2026/texmf-dist/tex/generic/babel/babel.sty" 1771111869 147019 f2ca437186bfeb562e1066ad59426a04 ""
+  "/usr/local/texlive/2026/texmf-dist/tex/generic/babel/locale/es/babel-es.ini" 1763931111 4303 c450545e79f0d9ac3027df4bd9b132d8 ""
+  "/usr/local/texlive/2026/texmf-dist/tex/generic/babel/locale/es/babel-spanish.tex" 1749585145 374 26aa36054295520df734dd14cd75addc ""
+  "/usr/local/texlive/2026/texmf-dist/tex/generic/babel/txtbabel.def" 1768770623 5231 c1599e5bf7d2ee42743212a7f8d20a56 ""
   "/usr/local/texlive/2026/texmf-dist/tex/generic/bigintcalc/bigintcalc.sty" 1576625341 40635 c40361e206be584d448876bba8a64a3b ""
   "/usr/local/texlive/2026/texmf-dist/tex/generic/bitset/bitset.sty" 1576016050 33961 6b5c75130e435b2bfdb9f480a09a39f9 ""
   "/usr/local/texlive/2026/texmf-dist/tex/generic/gettitlestring/gettitlestring.sty" 1576625223 8371 9d55b8bd010bc717624922fb3477d92e ""
@@ -142,13 +147,13 @@
   "/usr/local/texlive/2026/texmf-var/fonts/map/pdftex/updmap/pdftex.map" 1773607367 5541377 04880c840ca220163a28f1a3af0ee662 ""
   "/usr/local/texlive/2026/texmf-var/web2c/pdftex/pdflatex.fmt" 1773607353 3636761 16fc6b309df5a4edac5b0cd32d8a7488 ""
   "/usr/local/texlive/2026/texmf.cnf" 1772409725 577 648cd9f92f9c0eac486f4c71c85cfbbe ""
-  "images/criterion_comparison_all.png" 1777484252.3645 177178 fd5fe97ce476279a6d0c60452e112668 ""
-  "images/diagram_es.png" 1776713223.4232 8768 6f0658cf2bc44c223890b347fc2971b8 ""
-  "images/total_score_distribution.png" 1777484251.91688 102637 94710917544c6efed2e74bbe0fd5cc9c ""
-  "sn-article-es.aux" 1777486860.53265 8543 74978c30974a1f1a8e9845252a243f94 "pdflatex"
+  "images/criterion_comparison_all_es.png" 1780942804.34539 165126 c022f345c502b33ae312042281568db4 ""
+  "images/diagram_en.png" 1776713223.42297 8281 116fed5033737b30f255fa68030373c7 ""
+  "images/total_score_distribution_es.png" 1780942261.88258 95083 590bfe483d95a2c2178c1444f65e397a ""
+  "sn-article-es.aux" 1780942848.02081 8759 cf61333b81d55b0ed6943a4c3381fd61 "pdflatex"
   "sn-article-es.bbl" 1777448730.88763 25215 064746556b347e3cba37d17664841ba8 "bibtex sn-article-es"
-  "sn-article-es.out" 1777486860.53536 2666 902fb6a81a0894d92e1dfe2a3947cfc4 "pdflatex"
-  "sn-article-es.tex" 1777486858.55662 69984 c00623a5d4d373612dbbffb890e02f10 ""
+  "sn-article-es.out" 1780942848.02369 2379 dc2ae1fb68c89f07bc83c8faed64adcb "pdflatex"
+  "sn-article-es.tex" 1780942844.2285 58682 259ca384735d092d084de9c33165930d ""
   "sn-jnl.cls" 1776713223.43344 55857 c14ef9d34b3d95356940eaf177aff85f ""
   (generated)
   "sn-article-es.aux"
