@@ -1,0 +1,65 @@
+2026-04-20 23:07:52 - INFO: Logging to: examples/tests/salony_dual_test1_output.log
+2026-04-20 23:07:52 - INFO: Loading data from: /home/alvaldes/dev/synthetic_data_generation/data/salony_train.csv
+2026-04-20 23:07:52 - INFO: HTTP Request: GET http://127.0.0.1:11434/api/tags "HTTP/1.1 200 OK"
+2026-04-20 23:07:52 - WARNING: Removed 1 rows with missing/empty input data
+2026-04-20 23:07:52 - INFO: Loaded 1998 user stories
+2026-04-20 23:07:52 - INFO: Configuring dual generator pipeline:
+2026-04-20 23:07:52 - INFO:   Generator A: llama3.1:8b (temp=0.3)
+2026-04-20 23:07:52 - INFO:   Generator B: mistral:7b (temp=0.7)
+2026-04-20 23:07:52 - INFO:   Judge: qwen3:14b
+2026-04-20 23:07:52 - INFO:   Batch size: 20
+2026-04-20 23:07:52 - INFO: Added step: load
+2026-04-20 23:07:52 - INFO: Added step: validate_format
+2026-04-20 23:07:52 - INFO: Added step: generator_a
+2026-04-20 23:07:52 - INFO: Added step: generator_b
+2026-04-20 23:07:52 - INFO: Added step: comparison_judge
+2026-04-20 23:07:52 - INFO: Added step: add_us_id
+2026-04-20 23:07:52 - INFO: Executing dual generator pipeline with judge comparison...
+2026-04-20 23:07:52 - INFO: Starting pipeline: salony-dual-generator-pipeline
+2026-04-20 23:07:52 - INFO: Number of steps: 6
+2026-04-20 23:07:52 - INFO: Executing generator step: load
+2026-04-20 23:07:52 - INFO: Executing step: validate_format
+2026-04-20 23:07:52 - INFO:   ✓ Loaded from cache
+2026-04-20 23:07:52 - INFO: Executing step: generator_a
+2026-04-20 23:07:52 - INFO:   ✓ Loaded from cache
+2026-04-20 23:07:52 - INFO: Executing step: generator_b
+2026-04-20 23:07:52 - INFO:   ✓ Loaded from cache
+2026-04-20 23:07:52 - INFO: Executing step: comparison_judge
+2026-04-20 23:07:52 - INFO:   ✓ Loaded from cache
+2026-04-20 23:07:52 - INFO: Executing step: add_us_id
+2026-04-20 23:07:52 - INFO:   ✓ Loaded from cache
+2026-04-20 23:07:52 - INFO: Pipeline execution complete!
+2026-04-20 23:07:52 - INFO: Successfully compared 1139 user stories with dual generators
+2026-04-20 23:07:52 - INFO: 
+Saving judge results to: examples/tests/salony_dual_test1_output_judge_results.csv
+2026-04-20 23:07:52 - INFO: ✅ Judge results saved (1139 user stories)
+2026-04-20 23:07:52 - INFO: 
+Exploding Generator A tasks...
+2026-04-20 23:07:52 - INFO: Exploding Generator B tasks...
+2026-04-20 23:07:52 - INFO: Merging exploded tasks...
+2026-04-20 23:07:52 - INFO: 
+Saving tasks comparison to: examples/tests/salony_dual_test1_output.csv
+2026-04-20 23:07:52 - INFO: ✅ Tasks saved (7690 tasks from 1139 user stories)
+2026-04-20 23:07:52 - INFO: 
+=== JUDGE SELECTION STATISTICS ===
+2026-04-20 23:07:52 - INFO: Generator A (llama3.1:8b) wins: 829 (72.8%)
+2026-04-20 23:07:52 - INFO: Generator B (mistral:7b) wins: 310 (27.2%)
+2026-04-20 23:07:52 - INFO: Average total scores: A=35.7/50, B=36.0/50
+2026-04-20 23:07:52 - INFO: 
+=== AVERAGE SCORES BY CRITERIA (out of 10) ===
+2026-04-20 23:07:52 - INFO: Coherencia          : A=4.9, B=4.8
+2026-04-20 23:07:52 - INFO: Completitud         : A=4.6, B=4.9
+2026-04-20 23:07:52 - INFO: Viabilidad          : A=5.0, B=4.9
+2026-04-20 23:07:52 - INFO: Formato             : A=5.3, B=5.3
+2026-04-20 23:07:52 - INFO: Granularidad        : A=4.5, B=4.6
+2026-04-20 23:07:52 - INFO: 
+=== TIMING STATISTICS (seconds) ===
+2026-04-20 23:07:52 - INFO: Average generation time A: 10.43s
+2026-04-20 23:07:52 - INFO: Average generation time B: 14.94s
+2026-04-20 23:07:52 - INFO: Average judge time:        108.52s
+2026-04-20 23:07:52 - INFO: Average total time:        133.89s
+2026-04-20 23:07:52 - INFO: Total pipeline time:       0.07s
+2026-04-20 23:07:52 - INFO: 
+✅ Dual generator pipeline with judge comparison completed successfully!
+2026-04-20 23:07:52 - INFO:    - Tasks comparison: examples/tests/salony_dual_test1_output.csv
+2026-04-20 23:07:52 - INFO:    - Judge results: examples/tests/salony_dual_test1_output_judge_results.csv

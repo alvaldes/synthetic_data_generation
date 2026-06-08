@@ -1,0 +1,154 @@
+"""
+ValidateUserStories step for filtering user stories based on Agile format.
+
+This step validates that user stories follow the standard format:
+"As a(n) [role], I want [feature] so that [benefit]"
+"""
+
+import re
+import pandas as pd
+from pathlib import Path
+from typing import List, Optional
+from datetime import datetime
+
+from dataforge.base_step import BaseStep
+from dataforge.utils.logging import setup_logger
+
+
+class ValidateUserStories(BaseStep):
+    """
+    Validates user stories against the standard Agile format.
+
+    Filters out stories that don't match: "As a(n) [role], I want [feature] so that [benefit]"
+
+    Automatically exports validated stories to CSV in the data/ directory.
+
+    Args:
+        name: Step name for logging and caching
+        story_column: Column containing user stories to validate
+        case_sensitive: Whether to enforce case-sensitive matching (default: False)
+        export_filename: Optional custom filename for export (default: timestamped)
+
+    Examples:
+        >>> step = ValidateUserStories(name="validate", story_column="input")
+        >>> result = step.process(df)
+        # Exports to: data/validated_stories_20260209_143025.csv
+
+        >>> step = ValidateUserStories(
+        ...     name="validate",
+        ...     story_column="input",
+        ...     export_filename="clean_stories.csv"
+        ... )
+        >>> result = step.process(df)
+        # Exports to: data/clean_stories.csv
+    """
+
+    def __init__(
+        self,
+        name: str,
+        story_column: str,
+        case_sensitive: bool = False,
+        export_filename: Optional[str] = None,
+        **kwargs,
+    ):
+        super().__init__(name=name, **kwargs)
+        self.story_column = story_column
+        self.case_sensitive = case_sensitive
+        self.export_filename = export_filename
+        self.logger = setup_logger(f"dataforge.steps.{name}")
+
+        self.pattern = r"^As\s+an?\s+(.+?),\s+I\s+want\s+(.+?)\s+so\s+that\s+(.+)$"
+
+    @property
+    def inputs(self) -> List[str]:
+        """Required input columns."""
+        return [self.story_column]
+
+    @property
+    def outputs(self) -> List[str]:
+        """This step doesn't add new columns, only filters rows."""
+        return []
+
+    def _export_validated_stories(self, df: pd.DataFrame) -> None:
+        """
+        Export validated stories to CSV in data/ directory.
+
+        Args:
+            df: DataFrame with validated stories
+        """
+        if len(df) == 0:
+            self.logger.warning("No valid stories to export")
+            return
+
+        data_dir = Path("data")
+        data_dir.mkdir(parents=True, exist_ok=True)
+
+        if self.export_filename:
+            filename = self.export_filename
+        else:
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            filename = f"validated_stories_{timestamp}.csv"
+
+        export_path = data_dir / filename
+
+        try:
+            df.to_csv(export_path, index=False)
+            self.logger.info(
+                f"✓ Exported {len(df)} validated stories to: {export_path}"
+            )
+        except Exception as e:
+            self.logger.error(f"Failed to export validated stories: {e}")
+            raise RuntimeError(f"CSV export failed: {e}")
+
+    def process(self, df: pd.DataFrame) -> pd.DataFrame:
+        """
+        Validate and filter user stories.
+
+        Args:
+            df: Input DataFrame with user stories
+
+        Returns:
+            Filtered DataFrame containing only valid user stories
+        """
+        total_stories = len(df)
+        self.logger.info(f"Validating {total_stories} user stories...")
+
+        normalized = (
+            df[self.story_column]
+            .astype(str)
+            .str.replace(r"\s+", " ", regex=True)
+            .str.strip()
+        )
+
+        valid_mask = normalized.str.match(
+            self.pattern, case=self.case_sensitive, na=False
+        )
+
+        valid_count = valid_mask.sum()
+        invalid_count = total_stories - valid_count
+
+        self.logger.info(
+            f"Valid stories: {valid_count}/{total_stories} ({
+                valid_count / total_stories * 100:.1f}%)"
+        )
+        self.logger.info(
+            f"Invalid stories: {invalid_count}/{total_stories} ({
+                invalid_count / total_stories * 100:.1f}%)"
+        )
+
+        if invalid_count > 0:
+            invalid_stories = df[~valid_mask][self.story_column].head(3).tolist()
+            self.logger.warning(f"Sample invalid stories (first 3):")
+            for i, story in enumerate(invalid_stories, 1):
+                self.logger.warning(f"  {i}. {story}")
+
+        result_df = df[valid_mask].copy()
+
+        if len(result_df) == 0:
+            self.logger.warning(
+                "All user stories were invalid! Returning empty DataFrame."
+            )
+
+        self._export_validated_stories(result_df)
+
+        return result_df

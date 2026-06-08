@@ -33,8 +33,7 @@
 
 \begin{document}
 
-\title[LocalLLM-DataForge]{LocalLLM-DataForge: A Modular Pipeline for
-Synthetic User Story Decomposition Datasets with LLM-as-a-Judge Validation}
+\title[LocalLLM-DataForge]{LocalLLM-DataForge: A Modular Framework for Synthetic User Story Decomposition with Local LLMs and LLM-as-a-Judge Validation}
 
 % ----------------------------------------------
 %  This part is hidden for blind review reasons
@@ -61,7 +60,7 @@ Synthetic User Story Decomposition Datasets with LLM-as-a-Judge Validation}
 %  End of hidden for blind review reasons
 % ----------------------------------------------
 
-\abstract{User story decomposition into development tasks is a common practice in agile projects; however, it remains a process highly dependent on human judgment. Attempts to automate this activity using machine learning techniques often face two recurring limitations: the scarcity of annotated datasets and the reliance on cloud-based language models. This work presents \textit{LocalLLM-DataForge}, a modular DataFrame-based framework for the generation and evaluation of synthetic datasets aimed at user story decomposition using locally executed language models. The framework integrates generator and validator models within a reproducible pipeline, incorporating automatic validation mechanisms based on the \textit{LLM-as-a-Judge} paradigm and enabling experimentation with different model configurations and parameters. The proposal was evaluated on a dataset using multiple configurations of open-source models. The results show that it is possible to generate decompositions with consistent levels of quality, with notable differences in performance and stability depending on the model configuration. In particular, a trade-off between diversity and consistency is identified, associated with parameters such as temperature, as well as greater stability in structural criteria compared to higher variability in semantic criteria. These findings suggest that locally executed LLMs constitute a viable alternative for synthetic dataset generation in requirements engineering, providing advantages in terms of reproducibility, data control, and cost.}
+\abstract{User story decomposition into development tasks is a common practice in agile projects that depends highly on human judgment. Attempts to automate this activity using machine learning techniques often face two recurring limitations: the scarcity of annotated datasets and the reliance on cloud-based language models. This work presents \textit{LocalLLM-DataForge}, a modular DataFrame-based framework for the generation and evaluation of synthetic datasets aimed at user story decomposition using locally executed language models. The framework integrates generator and validator models within a reproducible pipeline, incorporating automatic validation mechanisms based on the \textit{LLM-as-a-Judge} paradigm and enabling experimentation with different model configurations and parameters. The proposal was evaluated on a dataset using multiple configurations of open-source models. The results show that it is possible to generate decompositions with consistent levels of quality, with notable differences in performance and stability depending on the model configuration. In particular, a trade-off between diversity and consistency is identified, associated with parameters such as temperature, as well as greater stability in structural criteria compared to higher variability in semantic criteria. These findings suggest that locally executed LLMs constitute a viable alternative for synthetic dataset generation in requirements engineering, providing advantages in terms of reproducibility, data control, and cost.}
 
 \keywords{Requirements engineering, Natural language processing, Large language models,
 Synthetic data generation, Task decomposition, Automated evaluation}
@@ -74,9 +73,9 @@ User stories are one of the most widely used requirement artifacts in agile soft
 
 When task decomposition is performed manually, a number of recurring issues tend to arise. Different team members may interpret the same user story in slightly different ways, leading to inconsistent levels of granularity and implicit assumptions that are never fully documented. Some relevant details may be overlooked (e.g., implicit functional constraints), while others may be excessively decomposed. Over time, these inconsistencies contribute to the creation of poorly structured backlogs, making estimation and task allocation more difficult \cite{lucassen2016}. The problem is often exacerbated in large or distributed teams, where the lack of shared decomposition practices weakens traceability and complicates the systematic automation of workflows in requirements engineering \cite{gorschek2006}.
 
-Recent advances in Natural Language Processing (NLP), together with the rapid evolution of Large Language Models (LLMs), have opened new possibilities for automating tasks that have traditionally relied on software engineers \cite{chen2021, white2023}. Previous work has explored the use of LLMs for requirements classification, ambiguity detection, test case generation, and the derivation of development tasks from natural language descriptions \cite{rahimi2023, sebban2024}. However, most existing solutions depend on proprietary cloud-based models. This dependency introduces practical concerns related to cost, data confidentiality, reproducibility, and long-term availability, both in research and industrial contexts.
+Recent advances in Natural Language Processing (NLP), together with the rapid evolution of Large Language Models (LLMs), have opened new possibilities for automating tasks that have traditionally relied on software engineers \cite{chen2021, white2023}. Although previous works have explored the use of LLMs for requirements classification, ambiguity detection, test case generation, and the derivation of development tasks from natural language descriptions \cite{rahimi2023, sebban2024}, most of them depend on proprietary cloud-based models. This dependency introduces practical concerns related to cost, data confidentiality, reproducibility, and long-term availability, both in research and industrial contexts.
 
-A shared limitation among many LLM-based approaches is the lack of suitable datasets for training and evaluation. Public datasets specifically focused on user story decomposition remain scarce, largely due to the high cost of expert annotation and the sensitive nature of real-world requirements \cite{fucci2020}. Synthetic data generation using LLMs has been proposed as a partial solution. However, many existing methods provide limited visibility into how generated outputs are validated. As a result, evaluating semantic correctness, completeness, and logical consistency becomes challenging \cite{liu2023}. Moreover, poorly controlled generation increases the risk of hallucinations, which can reduce confidence in the resulting datasets.
+A common limitation among many LLM-based approaches is the lack of suitable datasets for training and evaluation. Public datasets specifically focused on user story decomposition remain scarce, largely due to the high cost of expert annotation and the sensitive nature of real-world requirements \cite{fucci2020}. The generation of synthetic data using LLMs has been proposed as a partial solution with limited visibility into how the generated results are validated. As a result, evaluating semantic correctness, completeness, and logical consistency becomes challenging \cite{liu2023}. Moreover, poorly controlled generation increases the risk of hallucinations, which can reduce confidence in the resulting datasets.
 
 This work presents LocalLLM-DataForge, a modular framework designed to generate synthetic datasets for user story decomposition using locally executed LLMs. The framework leverages DataFrames to structure and manage intermediate results throughout the generation process. It also integrates with Ollama to run open-source language models without relying on cloud services. One of its core components is an intelligent caching mechanism, which avoids redundant computations during iterative experiments and helps reduce execution time when exploring different generation configurations.
 
@@ -238,9 +237,9 @@ In each configuration, both generators processed the same set of user stories, p
 
 \subsection{Global Results}
 
-To identify consistent patterns in the behavior of the evaluated models, a comparative analysis was conducted by aggregating the results of the experimental tests. This approach enables the observation of global trends regarding performance, stability, and relative behavior between models.
+To identify consistent patterns in the behavior of the validator models, a comparative analysis was conducted by aggregating the results of the experimental tests. This approach enables the observation of global trends regarding performance, stability, and relative behavior between models.
 
-Table~\ref{tab:global_results} presents the aggregate metrics for each test, including the average score with its corresponding standard deviation (\textit{Mean} $\pm$ \textit{Std}), as well as the pass rate (\textit{Pass}) and the win rate in head-to-head comparisons (\textit{Win}).
+Table~\ref{tab:global_results} presents the aggregate metrics for each configuration, including the average score with its corresponding standard deviation (\textit{Mean} $\pm$ \textit{Std}), as well as the pass rate (\textit{Pass}) and the win rate in head-to-head comparisons (\textit{Win}).
 
 \begin{table}[ht]
 \centering
@@ -250,28 +249,34 @@ Table~\ref{tab:global_results} presents the aggregate metrics for each test, inc
 \toprule
 Config. & Generator & Mean $\pm$ Std & Pass (\%) & Win (\%) \\
 \midrule
-C1 & G1: Llama 3.1 & $35.71 \pm 9.88$ & 55.22 & 72.78  \\
-C1 & G2: Mistral & $35.95 \pm 10.26$ & 55.22 & 27.22 \\
+C1 & G1: Llama 3.1 & $24.21 \pm 21.86$ & 55.14 & 72.78 \\
+C1 & G2: Mistral & $24.46 \pm 22.13$ & 55.31 & 27.22 \\
 \midrule
-C2 & G1: Qwen 3 & $39.45 \pm 5.50$ & 90.61 & 18.70  \\
-C2 & G2: Gemma 4 & $42.00 \pm 3.30$ & 97.63 & 81.30  \\
+C2 & G1: Qwen 3 & $39.74 \pm 5.29$ & 94.91 & 18.70 \\
+C2 & G2: Gemma 4 & $42.23 \pm 2.89$ & 99.56 & 81.30 \\
 \midrule
-C3 & G1: Gemma 3 & $47.23 \pm 8.05$ & 90.87 & 99.56 \\
-C3 & G2: Mistral Nemo & $37.35 \pm 5.04$ & 83.93 & 0.44 \\
+C3 & G1: Gemma 3 & $43.51 \pm 13.88$ & 90.87 & 99.56 \\
+C3 & G2: Mistral Nemo & $34.39 \pm 11.15$ & 83.93 & 0.44 \\
 \midrule
-C4 & G1: Qwen 3 & $37.60 \pm 8.59$ & 73.22 & 54.96 \\
-C4 & G2: Phi 4 & $38.43 \pm 7.96$ & 75.33 & 45.04 \\
+C4 & G1: Qwen 3 & $31.50 \pm 18.33$ & 73.22 & 54.96 \\
+C4 & G2: Phi 4 & $32.34 \pm 18.39$ & 75.33 & 45.04 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-As illustrated, model behavior varies significantly across configurations. In C1, both generators exhibit similar mean scores, although G1 achieves a higher win rate. In C2, G2 clearly outperforms G1 in terms of mean score, pass rate, and win rate. Conversely, C3 shows a marked dominance by G1, featuring a substantial difference in mean score and a win rate approaching 100\%.
+Overall, model behavior varies significantly across configurations, with notable differences in both performance and stability. However, the interpretation of mean scores requires careful consideration due to the presence of skewed distributions.
 
-In contrast to the previous setups, C4 presents a more balanced behavior between both generators, with minimal differences in both mean scores and win rates. This result suggests a performance convergence scenario, where neither model clearly dominates the other.
+In particular, low mean values observed in configurations such as C1 and C4 are strongly influenced by the occurrence of zero-score instances. These values are not random noise but correspond to cases where the generated decompositions were fully rejected by the validator model. As a result, the score distributions are highly skewed, with a substantial gap between mean and median values.
 
-The experimental results evidence distinct patterns in the behavior of the generator models across the various evaluated configurations. While mean scores remain close in some instances, significant disparities in both performance and win rates are observed in others, indicating that model performance is heavily dependent on the specific configuration employed.
+This effect is especially evident in C1, where both generators exhibit similar mean scores despite the boxplot in Figure~\ref{fig:global_boxplot} showing relatively high median values. This indicates that while models such as Llama 3.1 and Mistral are capable of producing high-quality outputs, they also frequently generate invalid decompositions that fail to meet the evaluator criteria.
 
-Furthermore, an analysis of the score distribution reveals clearer differences in model stability and variability. Figure~\ref{fig:global_boxplot} depicts the distribution of total scores for each configuration and generator.
+In contrast, C2 presents a more stable scenario, with higher mean scores and lower standard deviation. The tighter distribution suggests more consistent performance, particularly for Gemma 4, which outperforms Qwen 3 across all reported metrics.
+
+C3 exhibits the clearest separation between generators, where Gemma 3 achieves both higher scores and a more concentrated distribution compared to Mistral Nemo. This indicates not only better average performance but also greater reliability in the generated outputs.
+
+C4, on the other hand, represents a high-variance scenario rather than true convergence. Although both generators (Qwen 3 and Phi 4) show similar mean values, the distribution reveals wide dispersion and multiple zero-score instances, indicating unstable behavior and inconsistent output quality.
+
+Figure~\ref{fig:global_boxplot} further illustrates these patterns by showing the full distribution of scores across configurations.
 
 \begin{figure}[ht]
 \centering
@@ -280,17 +285,19 @@ Furthermore, an analysis of the score distribution reveals clearer differences i
 \label{fig:global_boxplot}
 \end{figure}
 
-In configurations such as C3, G1 not only achieves higher values but also exhibits a more concentrated distribution, indicating greater consistency in the quality of the decompositions. In contrast, G2 shows higher dispersion in several configurations, reflecting greater variability in its outputs.
+The discrepancy between mean values and medians observed in several configurations highlights the limitations of relying solely on average-based metrics. In skewed distributions, a high median combined with a low mean indicates the presence of frequent failure cases that significantly impact overall performance.
 
-Likewise, differences in the median and the concentration of values are identifiable. In setups like C3, G1 achieves higher and more consistent scores, while G2 presents greater dispersion and lower values by comparison. This behavior suggests that, even when global averages may appear similar, the quality of the decompositions generated by G1 remains more consistent in specific scenarios.
+From a distributional perspective, configurations such as C1 and C4 exhibit large variability and a high number of low-score outliers, reflecting instability in generation quality. In contrast, configurations like C2 show tighter score distributions, suggesting more reliable and consistent behavior.
+
+These findings underscore the importance of considering both central tendency and variability when evaluating model performance. From an engineering standpoint, reliability becomes a critical factor: a model that occasionally produces high-quality outputs but frequently fails validation may be less desirable than one that consistently generates moderate but valid results.
 
 \subsection{Criterion-based Analysis}
 
-Table~\ref{tab:global_criteria} presents the average scores per criterion for each experimental test.
+The disaggregated analysis by criterion enables a more detailed understanding of model behavior beyond aggregate metrics. Table~\ref{tab:global_criteria} presents the average scores per evaluation criterion for each configuration. Additionally, Figure~\ref{fig:global_criteria_plot} illustrates the comparison across the five evaluation criteria for each configuration and generator.
 
 \begin{table}[ht]
 \centering
-\caption{Average scores per criterion across experimental tests}
+\caption{Average scores per criterion across the configurations and generators.}
 \label{tab:global_criteria}
 \begin{tabular}{clccccc}
 \toprule
@@ -299,19 +306,18 @@ Config. & Generator  & Coherence & Completeness & Feasibility & Format & Granula
 C1 & G1: Llama 3.1 & 4.92 & 4.58 & 4.97 & 5.27 & 4.48 \\
 C1 & G2: Mistral & 4.79 & 4.88 & 4.94 & 5.27 & 4.57 \\
 \midrule
-C2 & G1: Qwen 3 & 8.62 & 7.82 & 7.83 & 8.88 & 6.66 \\
-C2 & G2: Gemma 4 & 8.72 & 9.33 & 8.16 & 8.96 & 7.06 \\
+C2 & G1: Qwen 3 & 8.60 & 7.81 & 7.82 & 8.86 & 6.64 \\
+C2 & G2: Gemma 4 & 8.72 & 9.33 & 8.16 & 8.97 & 7.06 \\
 \midrule
 C3 & G1: Gemma 3 & 8.63 & 8.98 & 8.45 & 8.97 & 8.46 \\
 C3 & G2: Mistral Nemo & 7.19 & 6.13 & 7.27 & 7.58 & 6.21 \\
 \midrule
-C4 & G1: Qwen 3 & 6.53 & 5.89 & 6.59 & 6.64 & 5.84 \\
+C4 & G1: Qwen 3 & 6.53 & 5.89 & 6.60 & 6.64 & 5.85 \\
 C4 & G2: Phi 4 & 6.44 & 6.63 & 6.43 & 6.64 & 6.20 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-The disaggregated analysis by criterion allows for the identification of specific patterns in model behavior. Figure~\ref{fig:global_criteria_plot} illustrates the comparison across the five evaluation criteria for each configuration and generator.
 
 \begin{figure}[ht]
 \centering
@@ -320,75 +326,75 @@ The disaggregated analysis by criterion allows for the identification of specifi
 \label{fig:global_criteria_plot}
 \end{figure}
 
-Regarding the \textit{coherence} criterion, both models exhibit similar performance across all configurations with minimal variance. In C2, both achieve high and nearly equivalent values, while in C3, a slight advantage for G1 is observed. This trend persists in C4, with closely aligned scores, reinforcing the stability of this criterion regardless of configuration changes.
+Overall, the results reveal that performance varies not only across configurations but also across evaluation criteria, with no single model consistently outperforming the other in all dimensions.
 
-In terms of \textit{completeness}, distinct behaviors emerge. G2 outperforms G1 in configuration C2, reaching significantly higher values. However, in C3, G1 achieves a considerably superior score, indicating that performance in this criterion is heavily dependent on the model configuration. In C4, G2 regains a marginal lead, though with less pronounced differences, suggesting a more balanced performance between both models.
+The \textit{coherence} criterion exhibits relatively stable behavior across configurations, with both generators achieving similar scores and only minor variations. This suggests that maintaining logical consistency in the generated decompositions is less sensitive to model or configuration changes.
 
-As for \textit{feasibility}, both models yield comparable results in C1 and C2, with G2 showing a slight advantage in C2. Nevertheless, in C3, G1 demonstrates superior performance, achieving higher and more consistent values. In C4, G1 maintains a marginal advantage, although the disparities between models are reduced compared to previous configurations.
+In contrast, \textit{completeness} shows more variability. In C2, Gemma 4 clearly outperforms Qwen 3, indicating stronger coverage of requirements. However, this trend reverses in C3, where Gemma 3 achieves significantly higher scores. This pattern suggests that completeness is highly dependent on the interaction between model and configuration.
 
-The \textit{format} criterion exhibits one of the most stable behaviors among the models. In C1 and C2, both generators present nearly identical values, suggesting that adherence to formal structures is relatively independent of the model. However, in C3, G1 clearly outperforms G2. In C4, both models again achieve identical scores, further confirming the consistency of this criterion across different setups.
+For \textit{feasibility}, both models perform comparably in simpler configurations such as C1 and C2. However, in C3, Gemma 3 achieves higher scores, indicating better alignment with implementable task decomposition. Differences in C4 are less pronounced, reflecting a more balanced behavior.
 
-Finally, \textit{granularity} reveals more pronounced differences. Although both models show similar values in C1, G2 gains a slight advantage in C2. However, in C3, G1 significantly outperforms G2, achieving a more appropriate level of task decomposition. In C4, G2 again shows a slight lead, albeit within a context of narrowing performance gaps.
+The \textit{format} criterion remains one of the most stable across all configurations. Both generators achieve nearly identical scores in C1, C2, and C4, suggesting that adherence to structural formatting constraints is largely independent of the model. A noticeable difference appears only in C3, where Gemma 3 outperforms Mistral Nemo.
 
-Overall, the results indicate that model performance is not uniform but highly dependent on the evaluated configuration. While G2 shows advantages in specific setups, G1 demonstrates more robust behavior in higher-complexity scenarios. These findings suggest that evaluation based solely on aggregate metrics may obscure relevant differences, highlighting the necessity of complementing the analysis with disaggregated criterion-based evaluations and score distribution assessments.
+Finally, \textit{granularity} reveals more significant variation. While differences are minor in C1 and C4, C3 again shows a clear advantage for Gemma 3, indicating a more appropriate level of task decomposition. In C2, Gemma 4 exhibits slightly better performance, although the difference is less pronounced than in C3.
 
-In particular, G1 tends to deliver more consistent performance in complex configurations (such as C3), excelling in coherence, format, and granularity. Conversely, G2 shows specific strengths in criteria such as completeness in certain setups (notably C2), although with higher output variability.
+It is important to note that these criterion-level averages are also influenced by the presence of zero-score instances discussed in the previous section. Fully rejected outputs contribute low values across all criteria, thereby affecting the overall averages and reinforcing the need to interpret these results in conjunction with distribution-based analyses.
 
-In general terms, G2 tends to excel in criteria related to requirement coverage, such as completeness, particularly in configurations like C2. On the other hand, G1 exhibits better performance in criteria associated with the structural quality of the decompositions, such as coherence, format, and granularity, especially in more complex configurations like C3.
+Overall, the findings indicate that model performance is highly configuration-dependent and varies across evaluation dimensions. Rather than exhibiting consistent superiority, each model demonstrates strengths under specific conditions. In particular, differences become more pronounced in complex configurations such as C3, where both performance level and variability across criteria increase.
 
 \section{Discussion}\label{sec5}
 
-The results obtained allow for an analysis not only of the performance of the evaluated models but also of the implications of utilizing local LLMs within structured pipelines for generating requirements engineering artifacts.
+The results obtained enable an analysis not only of model performance but also of the implications of using local LLMs within structured pipelines for generating requirements engineering artifacts.
 
-This behavior is consistent with recent literature regarding the application of LLMs in requirements engineering. Studies such as \cite{zadenoori2025} indicate that model performance in natural language processing tasks is heavily contingent upon factors such as prompt design, generation configuration, and the context of use. Furthermore, Norheim et al. \cite{sami2024} identify configuration sensitivity as one of the primary challenges when applying LLMs to requirements engineering tasks, which aligns with the variations observed between configurations C2 and C3 in this study.
+This behavior is consistent with recent literature on the application of LLMs in requirements engineering. Studies such as \cite{zadenoori2025} indicate that performance in natural language processing tasks is highly dependent on factors such as prompt design, generation configuration, and usage context. Similarly, Norheim et al. \cite{sami2024} identify configuration sensitivity as a central challenge, aligning with the variations observed between configurations C2 and C3 in this study.
 
-Firstly, it is observed that model performance is non-uniform and highly dependent on the experimental setup. The marked differences between configurations such as C2 and C3 evidence that factors like model combination, size, and parameterization significantly influence the quality of the generated decompositions. This suggests that model selection within a multi-stage pipeline cannot be addressed in isolation; rather, it must be viewed as a joint configuration problem where the interaction between generators and judges plays a decisive role.
+Overall, model performance is non-uniform and strongly dependent on the experimental setup. The differences observed between configurations such as C2 and C3 suggest that factors such as model selection, parameterization, and interaction within the pipeline significantly influence the quality of generated decompositions. This reinforces the idea that model selection cannot be treated in isolation but rather as part of a joint configuration problem involving both generators and validators.
 
-In this context, configuration C4 introduces a particularly relevant scenario where both generators possess comparable capabilities in terms of model size. Under these conditions, performance disparities are considerably reduced, suggesting that part of the variability observed in other configurations may be associated not only with parameters such as temperature but also with differences in capacity and architecture between models. This result indicates that when factors like model size are controlled, systems tend to converge in performance, shifting differences toward finer aspects such as generation style or the prioritization of specific quality criteria.
+Configuration C4 provides a particularly relevant scenario in which generators operate under more comparable capacity conditions. In this context, performance differences are reduced, suggesting that part of the variability observed in other configurations may be associated not only with parameters such as temperature but also with differences in model capacity and architecture. When these factors are more controlled, performance tends to converge, and differences become more subtle, relating to generation style or prioritization of quality criteria.
 
-A significant finding is the systematic difference between generators G1 and G2 in terms of stability and variability. This phenomenon has also been reported in prior research. Specifically, Niv \cite{hematt2025} highlights that while LLMs can achieve high levels of average performance, their behavior may exhibit significant execution-to-execution variance, affecting result reproducibility. While G2 occasionally achieves higher average scores (e.g., in C2), its results show greater dispersion, indicating lower consistency in output quality. In contrast, G1 tends to produce more stable decompositions, particularly in more complex setups like C3.
+A key observation concerns the difference between generators G1 and G2 in terms of stability and variability. This phenomenon has been reported in prior work. Niv \cite{hematt2025} notes that LLMs can achieve high average performance while exhibiting significant variability across executions. In this study, G2 occasionally achieves higher average scores (e.g., in C2), but with greater dispersion, indicating less consistent output quality. In contrast, G1 tends to produce more stable results, particularly in more complex configurations such as C3.
 
-This behavior can be partly explained by the difference in the temperature utilized during generation. Studies have demonstrated that temperature has a direct impact on output stability; lower values favor deterministic outputs and improve consistency, whereas higher values introduce diversity and increase variability \cite{li2026temp}. Moreover, this relationship is non-trivial and task-dependent, reinforcing the need to meticulously calibrate this parameter in generation and evaluation pipelines.
+This behavior can be partially explained by the temperature parameter used during generation. Lower temperatures favor more deterministic outputs and improved consistency, while higher temperatures introduce diversity at the cost of increased variability \cite{li2026temp}. However, this relationship is task-dependent, highlighting the importance of careful parameter calibration within generation pipelines.
 
-From the perspective of evaluation criteria, the results suggest a clear separation between structural and semantic dimensions of quality. Criteria such as \textit{format} and \textit{coherence} exhibit relatively stable behavior across models, indicating that LLMs can consistently adhere to structured constraints when explicitly specified in prompts. Conversely, criteria such as \textit{completeness} and \textit{granularity} show higher variability, reflecting the inherent difficulty of capturing more abstract aspects of the task decomposition process.
+From the perspective of evaluation criteria, the results suggest a distinction between structural and semantic dimensions of quality. Criteria such as \textit{format} and \textit{coherence} exhibit relatively stable behavior across configurations, indicating that LLMs can reliably adhere to structural constraints when these are explicitly defined. In contrast, criteria such as \textit{completeness} and \textit{granularity} show greater variability, reflecting the increased difficulty of capturing deeper semantic aspects of task decomposition.
 
-This is consistent with trends in recent literature. Ferrari and Spoletini \cite{proci2025} note that although LLMs show solid performance in tasks with formal or structural constraints, they still face limitations in deep semantic understanding, such as content adequacy and requirement coverage. These limitations relate to concerns regarding the correctness and reliability of LLM-generated artifacts in requirements engineering, explaining the higher stability observed in format and coherence compared to the variability in completeness and granularity.
+This observation aligns with findings reported by Ferrari and Spoletini \cite{proci2025}, who note that LLMs perform well in tasks involving formal constraints but face challenges in aspects requiring deeper semantic understanding, such as requirement coverage. These limitations help explain the higher stability observed in structural criteria compared to semantic ones.
 
-Specifically, \textit{completeness} emerges as one of the criteria most sensitive to model configuration. While G2 performs better in this regard in C2, its performance significantly declines in more complex scenarios like C3. This suggests that requirement coverage depends not only on generative capacity but also on the model's ability to maintain semantic consistency as decomposition complexity increases.
+In particular, \textit{completeness} emerges as one of the most configuration-sensitive criteria. While G2 performs better in C2, its performance decreases in more complex scenarios such as C3, suggesting that requirement coverage depends not only on generative capacity but also on the ability to maintain semantic consistency as task complexity increases.
 
-On the other hand, \textit{granularity} proves to be a key criterion for differentiating model performance. The differences observed in C3 indicate that certain models are better equipped to find an appropriate balance in task detail, avoiding both over-decomposition and the generation of overly general tasks. This aspect is particularly relevant in agile planning contexts, where decomposition quality directly impacts work estimation and execution.
+Similarly, \textit{granularity} plays a key role in differentiating model behavior. The results observed in C3 indicate that certain models are better able to balance the level of detail in task decomposition, avoiding both excessive fragmentation and overly coarse outputs. This aspect is particularly relevant in agile planning contexts, where decomposition quality directly impacts estimation and execution.
 
-Another significant result is the effectiveness of the \textit{LLM-as-a-Judge} comparative approach. Utilizing an validator model to select among multiple decompositions allows for the identification of nuances that are not evident through aggregate metrics alone. In this sense, the win rate provides a complementary measure that captures relative preference, offering a richer view of model performance.
+Another relevant finding is the effectiveness of the \textit{LLM-as-a-Judge} approach. Using a validator model to compare alternative decompositions enables the identification of qualitative differences that are not captured by aggregate metrics alone. In this context, the win rate serves as a complementary indicator of relative preference.
 
-This approach aligns with a growing research line proposing the use of models as automated validators. Recent studies have shown that these systems can reach levels comparable to human evaluators in various tasks \cite{eigler2026}. However, important limitations have also been identified, such as biases and score variability. It has been noted that these systems may favor certain generation styles or response structures depending on the judge model and its configuration. This is consistent with the present study, where configuration differences show that parameters like temperature influence not only generation but also the stability of automated evaluation. In this regard, approaches like that of Do et al. \cite{daly2025} suggest incorporating iterative processes and human validation to improve the reliability of automated evaluation systems.
+This approach is consistent with recent research advocating the use of LLMs as automated validators \cite{eigler2026}. While these systems can achieve performance comparable to human evaluators, they also present limitations, including potential biases and variability in scoring. In this study, configuration differences suggest that parameters such as temperature influence not only generation but also evaluation stability. Approaches such as \cite{daly2025} propose combining automated evaluation with iterative refinement and human validation to improve reliability.
 
-Regarding synthetic data generation, the results are consistent with works such as Li et al. \cite{long2024}, which state that LLMs can generate high-quality data for natural language processing, albeit with limitations in consistency and coverage. Similarly, Ma et al. \cite{ma2025} and Chakir and Lahsen-Cherif \cite{fsidi2025} show that synthetic data can improve performance in specific domains but requires robust validation mechanisms. These findings are reflected in this study, where decomposition quality depends significantly on model configuration and the evaluation process.
+Regarding synthetic data generation, the results are consistent with studies such as \cite{long2024}, which indicate that LLMs can produce high-quality synthetic data, albeit with limitations in consistency and coverage. Similarly, \cite{ma2025, fsidi2025} highlight the importance of robust validation mechanisms when using synthetic data in domain-specific applications. These findings are reflected in this study, where decomposition quality depends strongly on both configuration and evaluation processes.
 
-In terms of implications, the results suggest that using local LLMs constitutes a promising alternative for generating synthetic datasets in requirements engineering, provided that structured validation mechanisms are integrated into the pipeline. The combination of controlled generation and automated evaluation helps mitigate inherent model variability. Nonetheless, the results also indicate that the quality achieved is heavily dependent on the configuration used; therefore, these approaches should be considered support tools rather than direct substitutes for human validation.
+From a practical perspective, the results suggest that local LLMs constitute a viable alternative for generating synthetic datasets in requirements engineering, provided that structured validation mechanisms are incorporated into the pipeline. While controlled generation combined with automated evaluation can mitigate variability, the results also indicate that output quality remains highly configuration-dependent. Therefore, these systems should be considered as support tools rather than replacements for human validation.
 
-However, this study presents certain limitations. Regarding internal validity, using an LLM as a judge raises the question of whether the metrics reflect actual decomposition quality or are influenced by the judge's characteristics and prompt. Although explicit criteria and conservative temperature settings were used, systematic biases cannot be entirely ruled out.
+This study also presents several limitations. In terms of internal validity, the use of an LLM as a judge raises questions about whether the evaluation reflects actual decomposition quality or is influenced by the characteristics of the validator model. Although explicit criteria and conservative configurations were used, potential biases cannot be fully eliminated.
 
-In terms of construct validity, while the five criteria (coherence, completeness, feasibility, format, and granularity) are grounded in requirements engineering literature, they may not capture all relevant dimensions of user story decomposition quality. Aspects such as traceability, task dependencies, or alignment with business goals were not explicitly addressed.
+Regarding construct validity, while the selected criteria (coherence, completeness, feasibility, format, and granularity) are grounded in the literature, they may not capture all relevant aspects of decomposition quality, such as traceability or alignment with business objectives.
 
-Regarding external validity, experiments were conducted on a single dataset (Salony), which limits the generalizability of the results to other domains or requirement types. The user stories used have a relatively homogeneous structure, which might favor model performance compared to more heterogeneous or less structured scenarios.
+In terms of external validity, the experiments were conducted using a single dataset (Salony), which limits the generalizability of the results. The relatively homogeneous structure of the user stories may also favor model performance compared to more diverse or unstructured datasets.
 
-Finally, these results open several lines for future work. These include incorporating hybrid validators that combine automated metrics with human validation, exploring consensus strategies among multiple judges, and extending the framework to other types of requirements artifacts. Furthermore, it would be relevant to analyze the impact of more advanced prompting techniques and fine-tuning on the quality of generated decompositions.
+Finally, these results open several directions for future work, including the incorporation of hybrid evaluation strategies combining automated and human validation, the exploration of consensus mechanisms among multiple evaluators, and the extension of the framework to other types of requirements artifacts. Additionally, further research could analyze the impact of advanced prompting techniques and fine-tuning strategies on decomposition quality.
 
 \section{Conclusion}\label{sec6}
 
-This paper presented \textit{LocalLLM-DataForge}, a modular framework designed for the automated generation and evaluation of user story decompositions using locally executed large language models. The proposal addresses two significant challenges in requirements engineering: the scarcity of annotated datasets and the reliance on cloud-based services for LLM deployment. Through an architecture based on DataFrame-driven pipelines, the framework enables the reproducible orchestration of generation, comparison, and validation processes, integrating generator and validator models within a unified workflow.
+This paper presented \textit{LocalLLM-DataForge}, a modular framework for the automated generation and validation of user story decompositions using locally executed large language models. The proposed approach addresses two key challenges in requirements engineering: the scarcity of annotated datasets and the dependence on cloud-based LLM services. By leveraging a DataFrame-driven pipeline architecture, the framework enables reproducible and controlled experimentation, integrating both generation and validation processes within a unified workflow.
 
-Experimental results demonstrate that it is feasible to generate task decompositions with consistent quality levels using open-source models executed locally. Furthermore, it was observed that model performance is significantly influenced by the chosen configuration, particularly the combination of models and parameters such as temperature. Nonetheless, scenarios were identified where performance gaps between models narrow considerably, evidencing a convergence behavior when models of similar capabilities are employed. This suggests that the observed variability depends not only on generation parameters but also on factors such as model size and architecture. In this context, the \textit{LLM-as-a-Judge} evaluation strategy proved effective in comparing alternative outputs and capturing nuances that remain obscured when using aggregate metrics alone.
+The experimental results show that it is feasible to generate high-quality task decompositions using open-source models deployed locally. However, performance was found to be highly sensitive to configuration, including the combination of models and generation parameters such as temperature. This sensitivity manifests not only in average performance but also in variability, highlighting a trade-off between output quality and stability. In particular, scenarios involving models with comparable capacity show reduced performance gaps, suggesting that differences shift from overall quality to more subtle aspects such as consistency and generation behavior.
 
-The criterion-based analysis revealed that models tend to exhibit more stable behavior in structural dimensions, such as format and coherence, while showing greater variability in semantic aspects, such as completeness and granularity. This pattern persists even in scenarios where global performance is similar across models, suggesting that disparities shift toward specific quality dimensions rather than overall performance.
+The analysis further revealed that model performance varies across evaluation dimensions. Structural criteria, such as \textit{format} and \textit{coherence}, exhibit stable behavior across configurations, whereas semantic criteria, including \textit{completeness} and \textit{granularity}, show greater variability. This indicates that while LLMs can reliably adhere to formal constraints, capturing deeper semantic aspects of decomposition remains more challenging and configuration-dependent.
 
-Overall, this work demonstrates that local LLMs constitute a viable alternative for supporting the generation of synthetic datasets in requirements engineering research, offering advantages in terms of data control, reproducibility, and cost-efficiency. Additionally, the proposed approach contributes to the integration of automated generation and validation within structured experimental pipelines.
+Additionally, the \textit{LLM-as-a-Judge} strategy proved effective as a comparative evaluation mechanism, enabling the identification of qualitative differences not captured by aggregate metrics alone. Nevertheless, the results also highlight that automated validation is subject to variability and potential bias, reinforcing the need for careful configuration and complementary validation strategies.
 
-In relation to the contributions outlined at the outset, this work fulfills two primary objectives. First, it introduces a fully local, extensible, and reproducible framework for generating synthetic datasets from user stories. This framework is based on experimental pipelines that allow for the controlled orchestration of generation and evaluation processes, thereby reducing dependence on cloud services. Second, automated validation strategies based on \textit{LLM-as-a-Judge} were defined and operationalized. These proved effective for comparing decompositions and capturing differences not evident through aggregate metrics, although they remain subject to variability depending on the model configuration.
+Overall, this work demonstrates that local LLM-based pipelines constitute a viable and practical approach for synthetic dataset generation in requirements engineering. Beyond reducing dependency on external services, the proposed framework enables controlled experimentation and systematic evaluation, contributing to reproducibility in LLM-based research.
 
-This work demonstrates that local LLM pipelines provide a controlled methodology for synthetic data generation in user story decomposition, specifically tailored to meet rigorous reproducibility constraints.
+The main contributions of this work can be summarized as follows: (i) the design and implementation of a fully local and extensible framework for synthetic data generation from user stories; (ii) the integration of automated validation mechanisms based on \textit{LLM-as-a-Judge} within reproducible experimental pipelines; and (iii) an empirical analysis highlighting the impact of configuration on both performance and stability.
 
-Future work is proposed in several directions. First, we plan to incorporate hybrid evaluation schemes that combine automated judgments with human validation to enhance metric reliability. Second, we consider exploring consensus strategies among multiple validator models to mitigate potential biases. Furthermore, it would be relevant to expand the dataset to include more diverse and less structured domains to analyze the generalizability of the approach. Finally, we intend to extend the framework to other requirements engineering artifacts—such as use cases, acceptance criteria, or functional specifications—and to integrate advanced prompting and fine-tuning techniques to further improve output quality.
+Future work will focus on improving evaluation reliability through hybrid approaches that combine automated and human validation, as well as exploring consensus mechanisms among multiple validator models to mitigate bias. Additionally, extending the dataset to more diverse and less structured domains will be essential to assess the generalizability of the approach. Finally, further research will investigate the impact of advanced prompting techniques and fine-tuning strategies, as well as the application of the framework to other requirements engineering artifacts such as use cases and functional specifications.
 
 \backmatter
 
