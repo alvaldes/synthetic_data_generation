@@ -7,11 +7,12 @@ from tqdm import tqdm
 import time
 import json
 import re
-from ..utils.logging import setup_logger
 import logging
 
 from ..base_step import BaseStep
-from ..utils.batching import batch_dataframe, get_num_batches
+from ..config import get_settings, PromptLoader
+from ..utils.batching import batch_dataframe
+from ..utils.logging import setup_logger
 
 
 class OllamaJudgeStep(BaseStep):
@@ -25,31 +26,45 @@ class OllamaJudgeStep(BaseStep):
     - Format: Correct structure of each task
     - Granularity: Appropriate level of detail
 
-    Returns structured scores and approval status.
+    The judge prompt is loaded from :file:`config/prompts/single_judge.j2`.
+    Criteria, thresholds, and column names come from the centralised
+    :ref:`config <DataForgeSettings>`.
     """
+
+    PROMPT_TEMPLATE = "single_judge.j2"
 
     def __init__(
         self,
         name: str,
-        model_name: str,
-        historia_usuario_column: str,
-        tareas_generadas_column: str,
-        approval_threshold: float = 35.0,
-        batch_size: int = 4,
+        model_name: Optional[str] = None,
+        historia_usuario_column: Optional[str] = None,
+        tareas_generadas_column: Optional[str] = None,
+        approval_threshold: Optional[float] = None,
+        batch_size: Optional[int] = None,
         generation_kwargs: Optional[Dict[str, Any]] = None,
-        ollama_host: str = "http://localhost:11434",
-        max_retries: int = 3,
+        ollama_host: Optional[str] = None,
+        max_retries: Optional[int] = None,
         **kwargs,
     ):
         super().__init__(name, **kwargs)
-        self.model_name = model_name
+        cfg = get_settings()
+        llm_cfg = cfg.llm
+        judge_cfg = cfg.judge
+
+        self.model_name = model_name or judge_cfg.model or llm_cfg.default_model
         self.historia_usuario_column = historia_usuario_column
         self.tareas_generadas_column = tareas_generadas_column
-        self.approval_threshold = approval_threshold
-        self.batch_size = batch_size
-        self.generation_kwargs = generation_kwargs or {"temperature": 0.2}
-        self.ollama_host = ollama_host
-        self.max_retries = max_retries
+        self.approval_threshold = (
+            approval_threshold if approval_threshold is not None
+            else judge_cfg.approval_threshold
+        )
+        self.batch_size = batch_size if batch_size is not None else judge_cfg.batch_size
+        self.generation_kwargs = generation_kwargs or {
+            "temperature": judge_cfg.temperature,
+            "num_predict": judge_cfg.num_predict,
+        }
+        self.ollama_host = ollama_host or llm_cfg.ollama_host
+        self.max_retries = max_retries if max_retries is not None else llm_cfg.max_retries
         self.client = None
         self.logger = setup_logger(name=f"OllamaJudgeStep.{name}", level=logging.INFO)
 
@@ -60,16 +75,18 @@ class OllamaJudgeStep(BaseStep):
 
     @property
     def outputs(self) -> List[str]:
+        cfg = get_settings()
+        p = cfg.judge.column_prefix
         return [
-            "validacion_coherencia",
-            "validacion_completitud",
-            "validacion_viabilidad",
-            "validacion_formato",
-            "validacion_granularidad",
-            "validacion_total",
-            "validacion_aprobado",
-            "validacion_problemas",
-            "validacion_recomendaciones",
+            f"{p}coherencia",
+            f"{p}completitud",
+            f"{p}viabilidad",
+            f"{p}formato",
+            f"{p}granularidad",
+            f"{p}total",
+            f"{p}aprobado",
+            f"{p}problemas",
+            f"{p}recomendaciones",
         ]
 
     # -------- Ciclo de vida --------
@@ -85,72 +102,20 @@ class OllamaJudgeStep(BaseStep):
 
     # -------- Utilidades internas --------
     def _create_judge_prompt(self, historia_usuario: str, tareas_generadas: str) -> str:
-        """Crea el prompt optimizado para el LLM juez."""
-        prompt = f"""Eres un experto QA que valida si una lista de tareas derivadas de una historia de usuario es correcta y completa.
-
-**HISTORIA DE USUARIO:**
-{historia_usuario}
-
-**TAREAS GENERADAS:**
-{tareas_generadas}
-
-**INSTRUCCIONES DE VALIDACIÓN:**
-
-Evalúa las tareas generadas según estos criterios:
-
-1. **COHERENCIA (0-10):** ¿Todas las tareas están relacionadas directamente con la historia de usuario? ¿Hay tareas irrelevantes o fuera de alcance?
-
-2. **COMPLETITUD (0-10):** ¿Las tareas cubren todos los aspectos necesarios para completar la historia? ¿Falta algo crítico?
-
-3. **VIABILIDAD (0-10):** ¿Son las tareas técnicamente realizables? ¿Hay pasos imposibles o ilógicos?
-
-4. **FORMATO (0-10):** ¿Cada tarea tiene: título claro, descripción, criterios de aceptación? ¿Está bien estructurada?
-
-5. **GRANULARIDAD (0-10):** ¿El nivel de detalle es apropiado? ¿Las tareas son muy amplias o demasiado atómicas?
-
-**REGLAS CRÍTICAS:**
-- Si la puntuación total es < {self.approval_threshold}/50, marca aprobado=false
-- Si falta algún elemento crítico del formato, marca aprobado=false
-- Si hay tareas completamente irrelevantes, marca aprobado=false
-- Sé estricto pero justo: no rechaces por detalles menores
-
-RESPONDE ÚNICAMENTE CON ESTE JSON VÁLIDO (sin markdown, sin explicaciones):
-
-{{
-  "coherence": {{
-    "puntuacion": 0-10,
-    "justificacion": "texto"
-  }},
-  "completeness": {{
-    "puntuacion": 0-10,
-    "justificacion": "texto",
-    "tareas_faltantes": []
-  }},
-  "feasibility": {{
-    "puntuacion": 0-10,
-    "justificacion": "texto"
-  }},
-  "format": {{
-    "puntuacion": 0-10,
-    "justificacion": "texto"
-  }},
-  "granularity": {{
-    "puntuacion": 0-10,
-    "justificacion": "texto"
-  }},
-  "puntuacion_total": 0-50,
-  "aprobado": true/false,
-  "problemas_criticos": [],
-  "recomendaciones": []
-}}"""
-        return prompt
+        """Render the judge prompt template with row data."""
+        return PromptLoader.render(
+            self.PROMPT_TEMPLATE,
+            {
+                "historia_usuario": historia_usuario,
+                "tareas_generadas": tareas_generadas,
+                "approval_threshold": str(self.approval_threshold),
+            },
+        )
 
     def _clean_json_response(self, response: str) -> str:
         """Cleans the response to extract valid JSON."""
-        # Remover markdown si existe
         response = response.replace("```json", "").replace("```", "").strip()
 
-        # Buscar JSON usando regex
         json_pattern = r"\{.*\}"
         match = re.search(json_pattern, response, re.DOTALL)
         if match:
@@ -238,20 +203,16 @@ RESPONDE ÚNICAMENTE CON ESTE JSON VÁLIDO (sin markdown, sin explicaciones):
             self.logger.warning(f"Ollama API error during validation: {e.error}")
             if e.status_code == 404:
                 self.logger.error(
-                    f"Judge model {self.model_name} not found. Try: ollama pull {
-                        self.model_name
-                    }"
+                    f"Judge model {self.model_name} not found. Try: ollama pull {self.model_name}"
                 )
             if retry_count < self.max_retries:
-                wait_time = 2**retry_count  # exponential backoff
+                wait_time = 2**retry_count
                 time.sleep(wait_time)
                 return self._validate_with_retry(
                     historia_usuario, tareas_generadas, retry_count + 1
                 )
             else:
-                self.logger.error(
-                    f"Judge validation failed after {self.max_retries} retries"
-                )
+                self.logger.error(f"Judge validation failed after {self.max_retries} retries")
                 return None
         except ConnectionError as e:
             self.logger.error(f"Connection error during validation: {e}")
@@ -262,9 +223,7 @@ RESPONDE ÚNICAMENTE CON ESTE JSON VÁLIDO (sin markdown, sin explicaciones):
                     historia_usuario, tareas_generadas, retry_count + 1
                 )
             else:
-                self.logger.error(
-                    "Ollama server appears to be down. Check with: ollama serve"
-                )
+                self.logger.error("Ollama server appears to be down. Check with: ollama serve")
                 return None
         except Exception as e:
             if retry_count < self.max_retries:
@@ -275,9 +234,7 @@ RESPONDE ÚNICAMENTE CON ESTE JSON VÁLIDO (sin markdown, sin explicaciones):
                 )
             else:
                 self.logger.error(
-                    f"Unexpected error in judge validation after {
-                        self.max_retries
-                    } retries: {e}"
+                    f"Unexpected error in judge validation after {self.max_retries} retries: {e}"
                 )
                 return None
 
@@ -292,26 +249,16 @@ RESPONDE ÚNICAMENTE CON ESTE JSON VÁLIDO (sin markdown, sin explicaciones):
             validation = self._validate_with_retry(historia, tareas)
 
             if validation is None:
-                # Usar valores por defecto en caso de error total
                 validation = {
-                    "coherence": {
-                        "puntuacion": 0,
-                        "justificacion": "Error de conexión",
-                    },
+                    "coherence": {"puntuacion": 0, "justificacion": "Error de conexión"},
                     "completeness": {
                         "puntuacion": 0,
                         "justificacion": "Error de conexión",
                         "tareas_faltantes": [],
                     },
-                    "feasibility": {
-                        "puntuacion": 0,
-                        "justificacion": "Error de conexión",
-                    },
+                    "feasibility": {"puntuacion": 0, "justificacion": "Error de conexión"},
                     "format": {"puntuacion": 0, "justificacion": "Error de conexión"},
-                    "granularity": {
-                        "puntuacion": 0,
-                        "justificacion": "Error de conexión",
-                    },
+                    "granularity": {"puntuacion": 0, "justificacion": "Error de conexión"},
                     "puntuacion_total": 0,
                     "aprobado": False,
                     "problemas_criticos": ["Error de conexión con modelo"],
@@ -319,37 +266,23 @@ RESPONDE ÚNICAMENTE CON ESTE JSON VÁLIDO (sin markdown, sin explicaciones):
                 }
 
             self.logger.info(
-                f"Validación para fila {row.name}: aprobado={
-                    validation['aprobado']
-                }, total={validation['puntuacion_total']}"
+                f"Validación para fila {row.name}: aprobado={validation['aprobado']}, "
+                f"total={validation['puntuacion_total']}"
             )
             results.append(validation)
 
-        # Create result DataFrame with all validation columns
         result_df = batch_df.copy()
 
-        # Add validation columns
-        result_df["validacion_coherencia"] = [
-            r["coherence"]["puntuacion"] for r in results
-        ]
-        result_df["validacion_completitud"] = [
-            r["completeness"]["puntuacion"] for r in results
-        ]
-        result_df["validacion_viabilidad"] = [
-            r["feasibility"]["puntuacion"] for r in results
-        ]
-        result_df["validacion_formato"] = [r["format"]["puntuacion"] for r in results]
-        result_df["validacion_granularidad"] = [
-            r["granularity"]["puntuacion"] for r in results
-        ]
-        result_df["validacion_total"] = [r["puntuacion_total"] for r in results]
-        result_df["validacion_aprobado"] = [r["aprobado"] for r in results]
-        result_df["validacion_problemas"] = [
-            str(r["problemas_criticos"]) for r in results
-        ]
-        result_df["validacion_recomendaciones"] = [
-            str(r["recomendaciones"]) for r in results
-        ]
+        p = get_settings().judge.column_prefix
+        result_df[f"{p}coherencia"] = [r["coherence"]["puntuacion"] for r in results]
+        result_df[f"{p}completitud"] = [r["completeness"]["puntuacion"] for r in results]
+        result_df[f"{p}viabilidad"] = [r["feasibility"]["puntuacion"] for r in results]
+        result_df[f"{p}formato"] = [r["format"]["puntuacion"] for r in results]
+        result_df[f"{p}granularidad"] = [r["granularity"]["puntuacion"] for r in results]
+        result_df[f"{p}total"] = [r["puntuacion_total"] for r in results]
+        result_df[f"{p}aprobado"] = [r["aprobado"] for r in results]
+        result_df[f"{p}problemas"] = [str(r["problemas_criticos"]) for r in results]
+        result_df[f"{p}recomendaciones"] = [str(r["recomendaciones"]) for r in results]
 
         return result_df
 
@@ -357,14 +290,10 @@ RESPONDE ÚNICAMENTE CON ESTE JSON VÁLIDO (sin markdown, sin explicaciones):
         """Processes the DataFrame in batches for validation."""
         results = []
 
-        # Verify that columns exist and have valid data
         for col in [self.historia_usuario_column, self.tareas_generadas_column]:
             if col not in df.columns:
-                raise ValueError(
-                    f"Columna requerida '{col}' no encontrada en DataFrame"
-                )
+                raise ValueError(f"Columna requerida '{col}' no encontrada en DataFrame")
 
-        # Filtrar filas con datos faltantes
         valid_rows = df.dropna(
             subset=[self.historia_usuario_column, self.tareas_generadas_column]
         )
@@ -373,7 +302,6 @@ RESPONDE ÚNICAMENTE CON ESTE JSON VÁLIDO (sin markdown, sin explicaciones):
                 f"Omitiendo {len(df) - len(valid_rows)} filas con datos faltantes"
             )
 
-        # Procesar en batches
         with tqdm(total=len(valid_rows), desc=f"Validating {self.name}") as pbar:
             for batch in batch_dataframe(valid_rows, self.batch_size):
                 processed_batch = self._process_batch(batch)
@@ -381,4 +309,3 @@ RESPONDE ÚNICAMENTE CON ESTE JSON VÁLIDO (sin markdown, sin explicaciones):
                 pbar.update(len(batch))
 
         return pd.concat(results, ignore_index=False)
-

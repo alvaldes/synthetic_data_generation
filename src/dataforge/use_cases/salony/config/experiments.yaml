@@ -1,0 +1,23 @@
+# =============================================================================
+# Salony — Experiment Model Mappings
+# =============================================================================
+# These are NOT pipeline configuration — they are *data* describing the
+# model pairs used in each dual-generator experiment configuration.
+#
+# Kept in YAML so that adding a new experiment doesn't require touching
+# Python code.
+# =============================================================================
+
+configs:
+  C1:
+    G1: "Llama 3.1"
+    G2: "Mistral"
+  C2:
+    G1: "Qwen 3"
+    G2: "Gemma 4"
+  C3:
+    G1: "Gemma 3"
+    G2: "Mistral Nemo"
+  C4:
+    G1: "Qwen 3"
+    G2: "Phi 4"

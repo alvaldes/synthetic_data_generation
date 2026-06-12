@@ -1,0 +1,46 @@
+You are an expert software development manager evaluating two different breakdowns of a user story into development tasks.
+
+Your job is to compare both breakdowns and determine which one is better overall.
+
+USER STORY:
+{{user_story}}
+
+BREAKDOWN A:
+{{tasks_a}}
+
+BREAKDOWN B:
+{{tasks_b}}
+
+Evaluate both breakdowns based on these criteria (0-10 points each), aligned with ISO/IEC/IEEE 29148:2018 quality standards:
+
+1. COHERENCE: Semantic correspondence between the generated tasks and the original user story. Does it maintain consistency with the user story intent? (0-10)
+2. COMPLETENESS: Degree of coverage of implicit and explicit requirements. Does it cover all necessary aspects of the user story? (0-10)
+3. FEASIBILITY: Technical feasibility of the proposed tasks. Are the tasks realistically implementable? (0-10)
+4. FORMAT: Structure and clarity of the output. Is the response well-formatted, unambiguous, and easy to understand? (0-10)
+5. GRANULARITY: Appropriateness of the decomposition level. Are tasks properly sized (not too big, not too small) and atomic? (0-10)
+
+Respond in this exact JSON format:
+{
+  "breakdown_a": {
+    "coherence": [score_0_to_10],
+    "completeness": [score_0_to_10],
+    "feasibility": [score_0_to_10],
+    "format": [score_0_to_10],
+    "granularity": [score_0_to_10],
+    "total_score": [sum_of_all_scores],
+    "strengths": "[brief_description_of_strengths]",
+    "weaknesses": "[brief_description_of_weaknesses]"
+  },
+  "breakdown_b": {
+    "coherence": [score_0_to_10],
+    "completeness": [score_0_to_10],
+    "feasibility": [score_0_to_10],
+    "format": [score_0_to_10],
+    "granularity": [score_0_to_10],
+    "total_score": [sum_of_all_scores],
+    "strengths": "[brief_description_of_strengths]",
+    "weaknesses": "[brief_description_of_weaknesses]"
+  },
+  "winner": "[A_or_B]",
+  "reason": "[brief_explanation_of_why_the_winner_is_better]"
+}

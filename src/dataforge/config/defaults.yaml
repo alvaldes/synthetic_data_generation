@@ -1,0 +1,47 @@
+# =============================================================================
+# DataForge — Default Configuration
+# =============================================================================
+# These values are the canonical defaults for the *core* library.
+# Use-case configs (e.g. use_cases/salony/config/config.yaml) override only
+# the keys they need — everything else falls back to these defaults.
+# =============================================================================
+
+llm:
+  default_model: "llama3.1:8b"
+  ollama_host: "http://localhost:11434"
+  max_retries: 3
+  batch_size: 8
+  temperature: 0.3
+  num_predict: 1000
+
+judge:
+  model: null                     # null → falls back to llm.default_model
+  approval_threshold: 35.0
+  max_score: 50
+  batch_size: 4
+  temperature: 0.2
+  num_predict: 800
+  column_prefix: "validacion_"
+  criteria:
+    - { key: "coherence",    label_es: "Coherencia",    label_en: "Coherence" }
+    - { key: "completeness", label_es: "Completitud",   label_en: "Completeness" }
+    - { key: "feasibility",  label_es: "Viabilidad",    label_en: "Feasibility" }
+    - { key: "format",       label_es: "Formato",       label_en: "Format" }
+    - { key: "granularity",  label_es: "Granularidad",  label_en: "Granularity" }
+
+comparison_judge:
+  model: null
+  batch_size: 1
+  temperature: 0.2
+  num_predict: 1000
+  column_prefix: "judge_"
+
+pipeline:
+  cache_dir: ".cache/dataforge"
+  log_level: "INFO"
+  description: ""
+
+paths:
+  data_dir: "data"
+  raw_dir: "data/raw"
+  output_dir: "data/outputs"

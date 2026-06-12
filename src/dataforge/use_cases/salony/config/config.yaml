@@ -1,0 +1,28 @@
+# =============================================================================
+# Salony — Use-Case Configuration
+# =============================================================================
+# Overrides for the Salony user-story → tasks pipeline.
+# Only the keys that differ from defaults.yaml need to be listed here.
+# =============================================================================
+
+llm:
+  default_model: "llama3.1:8b"
+  batch_size: 2
+  temperature: 0.3
+  num_predict: 1000
+
+judge:
+  batch_size: 2
+  approval_threshold: 35.0
+  temperature: 0.2
+  num_predict: 800
+
+comparison_judge:
+  batch_size: 1
+  temperature: 0.2
+  num_predict: 1000
+
+paths:
+  data_dir: "data"
+  raw_dir: "data/raw"
+  output_dir: "data/outputs"

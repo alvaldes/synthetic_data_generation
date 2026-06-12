@@ -5,49 +5,56 @@ from pathlib import Path
 import pandas as pd
 
 from .base_step import BaseStep
+from .config import get_settings
 from .utils.cache import CacheManager
 from .utils.logging import setup_logger
 import logging
 
+
 class DataForgePipeline:
-    """DataFrame-based pipeline for processing data step by step."""
+    """DataFrame-based pipeline for processing data step by step.
+
+    Default behaviour (cache dir, log level) comes from the centralised
+    :ref:`config <DataForgeSettings>`.  Explicit constructor arguments take
+    precedence.
+    """
 
     def __init__(
         self,
         name: str,
         description: str = "",
-        cache_dir: str = ".cache/dataforge",
-        log_level: str = "INFO"
+        cache_dir: Optional[str] = None,
+        log_level: Optional[str] = None,
     ):
+        cfg = get_settings().pipeline
+
         self.name = name
-        self.description = description
-        
-        # Usar CacheManager ✅
-        self.cache_manager = CacheManager(cache_dir=f"{cache_dir}/{name}")
-        
-        # Setup logging
+        self.description = description or cfg.description
+
+        resolved_cache = cache_dir or cfg.cache_dir
+        self.cache_manager = CacheManager(cache_dir=f"{resolved_cache}/{name}")
+
+        resolved_level = log_level or cfg.log_level
         self.logger = setup_logger(
             name=f"DataForgePipeline.{name}",
-            level=getattr(logging, log_level.upper())
+            level=getattr(logging, resolved_level.upper()),
         )
-        
+
         self.steps: List[BaseStep] = []
         self._step_outputs: Dict[str, pd.DataFrame] = {}
 
-    def add_step(self, step: BaseStep) -> 'DataForgePipeline':
+    def add_step(self, step: BaseStep) -> "DataForgePipeline":
         """Add a step to the pipeline sequence."""
         self.steps.append(step)
         self.logger.info(f"Added step: {step.name}")
         return self
 
-    def __rshift__(self, step: BaseStep) -> 'DataForgePipeline':
+    def __rshift__(self, step: BaseStep) -> "DataForgePipeline":
         """Permite usar la sintaxis pipeline >> step."""
         return self.add_step(step)
 
     def run(
-        self,
-        input_df: Optional[pd.DataFrame] = None,
-        use_cache: bool = True
+        self, input_df: Optional[pd.DataFrame] = None, use_cache: bool = True
     ) -> pd.DataFrame:
         """Ejecuta el pipeline completo."""
         self.logger.info(f"Starting pipeline: {self.name}")
@@ -71,7 +78,6 @@ class DataForgePipeline:
         for step in steps_to_process:
             self.logger.info(f"Executing step: {step.name}")
 
-            # Usar CacheManager ✅
             if use_cache and step.cache:
                 input_hash = self.cache_manager.get_df_hash(current_df)
                 cache_key = self.cache_manager.get_cache_key(
@@ -79,9 +85,9 @@ class DataForgePipeline:
                     step_class=step.__class__.__name__,
                     inputs=step.inputs,
                     outputs=step.outputs,
-                    input_hash=input_hash
+                    input_hash=input_hash,
                 )
-                
+
                 cached_df = self.cache_manager.load(cache_key)
                 if cached_df is not None:
                     self.logger.info(f"  ✓ Loaded from cache")
@@ -89,12 +95,10 @@ class DataForgePipeline:
                     self._step_outputs[step.name] = current_df
                     continue
 
-            # Ejecutar step
             try:
                 current_df = step(current_df)
                 self._step_outputs[step.name] = current_df
 
-                # Guardar en cache usando CacheManager ✅
                 if use_cache and step.cache:
                     self.cache_manager.save(cache_key, current_df)
 

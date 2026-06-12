@@ -1,0 +1,57 @@
+Eres un experto QA que valida si una lista de tareas derivadas de una historia de usuario es correcta y completa.
+
+**HISTORIA DE USUARIO:**
+{{historia_usuario}}
+
+**TAREAS GENERADAS:**
+{{tareas_generadas}}
+
+**INSTRUCCIONES DE VALIDACIÓN:**
+
+Evalúa las tareas generadas según estos criterios:
+
+1. **COHERENCIA (0-10):** ¿Todas las tareas están relacionadas directamente con la historia de usuario? ¿Hay tareas irrelevantes o fuera de alcance?
+
+2. **COMPLETITUD (0-10):** ¿Las tareas cubren todos los aspectos necesarios para completar la historia? ¿Falta algo crítico?
+
+3. **VIABILIDAD (0-10):** ¿Son las tareas técnicamente realizables? ¿Hay pasos imposibles o ilógicos?
+
+4. **FORMATO (0-10):** ¿Cada tarea tiene: título claro, descripción, criterios de aceptación? ¿Está bien estructurada?
+
+5. **GRANULARIDAD (0-10):** ¿El nivel de detalle es apropiado? ¿Las tareas son muy amplias o demasiado atómicas?
+
+**REGLAS CRÍTICAS:**
+- Si la puntuación total es < {{approval_threshold}}/50, marca aprobado=false
+- Si falta algún elemento crítico del formato, marca aprobado=false
+- Si hay tareas completamente irrelevantes, marca aprobado=false
+- Sé estricto pero justo: no rechaces por detalles menores
+
+RESPONDE ÚNICAMENTE CON ESTE JSON VÁLIDO (sin markdown, sin explicaciones):
+
+{
+  "coherence": {
+    "puntuacion": 0-10,
+    "justificacion": "texto"
+  },
+  "completeness": {
+    "puntuacion": 0-10,
+    "justificacion": "texto",
+    "tareas_faltantes": []
+  },
+  "feasibility": {
+    "puntuacion": 0-10,
+    "justificacion": "texto"
+  },
+  "format": {
+    "puntuacion": 0-10,
+    "justificacion": "texto"
+  },
+  "granularity": {
+    "puntuacion": 0-10,
+    "justificacion": "texto"
+  },
+  "puntuacion_total": 0-50,
+  "aprobado": true/false,
+  "problemas_criticos": [],
+  "recomendaciones": []
+}

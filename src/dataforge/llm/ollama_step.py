@@ -5,13 +5,13 @@ import pandas as pd
 from typing import Callable, List, Dict, Any, Optional
 from tqdm import tqdm
 import time
-import re
-from ..utils.logging import setup_logger
-import logging
 from pydantic import BaseModel
 
 from ..base_step import BaseStep
-from ..utils.batching import batch_dataframe, get_num_batches
+from ..config import get_settings
+from ..utils.batching import batch_dataframe
+from ..utils.logging import setup_logger
+import logging
 
 class ResponseOutput(BaseModel):
     response: Optional[str]
@@ -20,40 +20,50 @@ class ResponseOutput(BaseModel):
 class OllamaLLMStep(BaseStep):
     """
     Step that calls an LLM model in Ollama for inference on DataFrame rows.
+
     - Uses a DataFrame column as input prompt
     - Generates a new column with the model response
     - Allows defining system_prompt and prompt templates
     - Supports batch processing and automatic retries
+
+    Default values (model, host, retries, etc.) come from the centralised
+    :ref:`config <DataForgeSettings>`.  Explicit constructor arguments always
+    take precedence.
     """
 
     def __init__(
         self,
         name: str,
-        model_name: str,
-        prompt_column: str,
+        model_name: Optional[str] = None,
+        prompt_column: Optional[str] = None,
         output_column: str = "generation",
         output_format: Optional[BaseModel] = ResponseOutput,
         system_prompt: Optional[str] = None,
         prompt_template: Callable[[Dict], str] = None,
-        batch_size: int = 8,
+        batch_size: Optional[int] = None,
         generation_kwargs: Optional[Dict[str, Any]] = None,
-        ollama_host: str = "http://localhost:11434",
-        max_retries: int = 3,
+        ollama_host: Optional[str] = None,
+        max_retries: Optional[int] = None,
         track_time: bool = False,
         time_column: Optional[str] = None,
         **kwargs
     ):
         super().__init__(name, **kwargs)
-        self.model_name = model_name
+        cfg = get_settings().llm
+
+        self.model_name = model_name or cfg.default_model
         self.prompt_column = prompt_column
         self.output_column = output_column
         self.output_format = output_format
         self.system_prompt = system_prompt
         self.prompt_template = prompt_template
-        self.batch_size = batch_size
-        self.generation_kwargs = generation_kwargs or {}
-        self.ollama_host = ollama_host
-        self.max_retries = max_retries
+        self.batch_size = batch_size if batch_size is not None else cfg.batch_size
+        self.generation_kwargs = generation_kwargs or {
+            "temperature": cfg.temperature,
+            "num_predict": cfg.num_predict,
+        }
+        self.ollama_host = ollama_host or cfg.ollama_host
+        self.max_retries = max_retries if max_retries is not None else cfg.max_retries
         self.track_time = track_time
         self.time_column = time_column or f"{output_column}_time"
         self.client = None
@@ -87,7 +97,6 @@ class OllamaLLMStep(BaseStep):
     # -------- Utilidades internas --------
     def _format_prompt(self, row: Dict[str, Any]) -> str:
         return self.prompt_template(row)
-
 
     def _generate_with_retry(
         self,
@@ -144,10 +153,10 @@ class OllamaLLMStep(BaseStep):
         """Process a batch of rows with Ollama."""
         results = []
         times = []
-        
+
         for _, row in batch_df.iterrows():
             prompt = self._format_prompt(row.to_dict())
-            
+
             if self.track_time:
                 start_time = time.time()
                 generation = self._generate_with_retry(prompt)
@@ -155,12 +164,12 @@ class OllamaLLMStep(BaseStep):
                 times.append(elapsed_time)
             else:
                 generation = self._generate_with_retry(prompt)
-            
+
             results.append(generation)
 
         result_df = batch_df.copy()
         result_df[self.output_column] = results
-        
+
         if self.track_time:
             result_df[self.time_column] = times
 
@@ -169,12 +178,11 @@ class OllamaLLMStep(BaseStep):
     def process(self, df: pd.DataFrame) -> pd.DataFrame:
         """Processes the DataFrame in batches through Ollama."""
         results = []
-        
-        # Usar utilidades de batching ✅
+
         with tqdm(total=len(df), desc=f"Processing {self.name}") as pbar:
-            for batch in batch_dataframe(df, self.batch_size):  # ✅ Iterator
+            for batch in batch_dataframe(df, self.batch_size):
                 processed_batch = self._process_batch(batch)
                 results.append(processed_batch)
                 pbar.update(len(batch))
-        
+
         return pd.concat(results, ignore_index=False)

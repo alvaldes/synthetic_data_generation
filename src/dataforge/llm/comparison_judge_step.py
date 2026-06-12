@@ -1,11 +1,12 @@
 import json
 import logging
 import pandas as pd
-from typing import Dict, List, Optional, Any
+from typing import Dict, List, Optional, Any, Callable
 import ollama
 import time
 
 from ..base_step import BaseStep
+from ..config import get_settings, PromptLoader
 from ..utils.batching import batch_dataframe, get_num_batches
 from ..transformers.json_repair import clean_json_response, repair_json, parse_json_with_repair
 
@@ -14,45 +15,66 @@ class ComparisonJudgeStep(BaseStep):
     """
     Step that compares outputs from two generators using an LLM judge and selects the best one.
 
-    This judge evaluates two different outputs for the same input and determines which one
-    is superior based on multiple criteria. It returns the scores for both outputs and
-    indicates which one should be selected.
-
-    The step adds the following columns:
-    - judge_score_a: Score for generator A output
-    - judge_score_b: Score for generator B output
-    - judge_winner: 'A' or 'B' indicating which generator won
-    - judge_reason: Explanation of why the winner was selected
-    - selected_output: The actual content from the winning generator
+    The judge prompt is loaded from :file:`config/prompts/comparison_judge.j2`.
+    Default parameters (model, batch size, temperature, column prefix) come
+    from the centralised :ref:`config <DataForgeSettings>`.
     """
+
+    PROMPT_TEMPLATE = "comparison_judge.j2"
 
     def __init__(
         self,
         name: str,
-        model_name: str,
-        input_column: str,
-        output_a_column: str,
-        output_b_column: str,
-        prompt_template_func,
-        system_prompt: str = "You are an expert evaluator who compares different outputs and selects the best one based on quality criteria.",
-        batch_size: int = 1,
+        model_name: Optional[str] = None,
+        input_column: Optional[str] = None,
+        output_a_column: Optional[str] = None,
+        output_b_column: Optional[str] = None,
+        prompt_template_func: Optional[Callable] = None,
+        system_prompt: Optional[str] = None,
+        batch_size: Optional[int] = None,
         generation_kwargs: Optional[Dict[str, Any]] = None,
         **kwargs,
     ):
         super().__init__(name, **kwargs)
-        self.model_name = model_name
+        cfg = get_settings()
+        llm_cfg = cfg.llm
+        comp_cfg = cfg.comparison_judge
+
+        self.model_name = model_name or comp_cfg.model or llm_cfg.default_model
         self.input_column = input_column
         self.output_a_column = output_a_column
         self.output_b_column = output_b_column
-        self.prompt_template_func = prompt_template_func
-        self.system_prompt = system_prompt
-        self.batch_size = batch_size
-        self.generation_kwargs = generation_kwargs or {}
-
-        self.generation_kwargs.setdefault("temperature", 0.2)
-        self.generation_kwargs.setdefault("num_predict", 1000)
+        self.prompt_template_func = prompt_template_func or self._default_prompt_func
+        self.system_prompt = system_prompt or (
+            "You are an expert evaluator who compares different outputs "
+            "and selects the best one based on quality criteria."
+        )
+        self.batch_size = batch_size if batch_size is not None else comp_cfg.batch_size
+        self.generation_kwargs = generation_kwargs or {
+            "temperature": comp_cfg.temperature,
+            "num_predict": comp_cfg.num_predict,
+        }
 
         self.client = None
+
+    # ------------------------------------------------------------------
+    # Default prompt (uses template file)
+    # ------------------------------------------------------------------
+
+    def _default_prompt_func(self, row: Dict[str, Any]) -> str:
+        """Render the comparison judge template with row data."""
+        return PromptLoader.render(
+            self.PROMPT_TEMPLATE,
+            {
+                "user_story": str(row.get(self.input_column, "")),
+                "tasks_a": str(row.get(self.output_a_column, "")),
+                "tasks_b": str(row.get(self.output_b_column, "")),
+            },
+        )
+
+    # ------------------------------------------------------------------
+    # Properties
+    # ------------------------------------------------------------------
 
     @property
     def inputs(self) -> List[str]:
@@ -60,28 +82,33 @@ class ComparisonJudgeStep(BaseStep):
 
     @property
     def outputs(self) -> List[str]:
+        p = get_settings().comparison_judge.column_prefix
         return [
-            "judge_score_a_total",
-            "judge_score_b_total",
-            "judge_score_a_coherence",
-            "judge_score_a_completeness",
-            "judge_score_a_feasibility",
-            "judge_score_a_format",
-            "judge_score_a_granularity",
-            "judge_score_b_coherence",
-            "judge_score_b_completeness",
-            "judge_score_b_feasibility",
-            "judge_score_b_format",
-            "judge_score_b_granularity",
-            "judge_strengths_a",
-            "judge_weaknesses_a",
-            "judge_strengths_b",
-            "judge_weaknesses_b",
-            "judge_winner",
-            "judge_reason",
+            f"{p}score_a_total",
+            f"{p}score_b_total",
+            f"{p}score_a_coherence",
+            f"{p}score_a_completeness",
+            f"{p}score_a_feasibility",
+            f"{p}score_a_format",
+            f"{p}score_a_granularity",
+            f"{p}score_b_coherence",
+            f"{p}score_b_completeness",
+            f"{p}score_b_feasibility",
+            f"{p}score_b_format",
+            f"{p}score_b_granularity",
+            f"{p}strengths_a",
+            f"{p}weaknesses_a",
+            f"{p}strengths_b",
+            f"{p}weaknesses_b",
+            f"{p}winner",
+            f"{p}reason",
             "selected_output",
-            "judge_time",
+            f"{p}time",
         ]
+
+    # ------------------------------------------------------------------
+    # Lifecycle
+    # ------------------------------------------------------------------
 
     def load(self) -> None:
         """Initialize Ollama client."""
@@ -98,6 +125,10 @@ class ComparisonJudgeStep(BaseStep):
         self.client = None
         super().unload()
 
+    # ------------------------------------------------------------------
+    # Parsing
+    # ------------------------------------------------------------------
+
     def _parse_judge_response(self, raw_response: str) -> Dict:
         """Parse the judge response JSON with robust error handling and repair."""
         result = parse_json_with_repair(raw_response, logger=logging.getLogger(__name__))
@@ -108,7 +139,6 @@ class ComparisonJudgeStep(BaseStep):
             except (ValueError, KeyError) as e:
                 logging.warning(f"Judge result validation failed: {e}")
 
-        # Return fallback structure
         return {
             "breakdown_a": {
                 "total_score": 25,
@@ -121,7 +151,7 @@ class ComparisonJudgeStep(BaseStep):
                 "weaknesses": "Parse error",
             },
             "winner": "A",
-            "reason": f"Failed to parse judge response",
+            "reason": "Failed to parse judge response",
         }
 
     def _validate_and_normalize_judge_result(self, result: Dict) -> Dict:
@@ -131,16 +161,11 @@ class ComparisonJudgeStep(BaseStep):
             if field not in result:
                 raise ValueError(f"Missing required field: {field}")
 
+        score_fields = ["coherence", "completeness", "feasibility", "format", "granularity"]
+
         for breakdown_key in ["breakdown_a", "breakdown_b"]:
             breakdown = result[breakdown_key]
             if "total_score" not in breakdown:
-                score_fields = [
-                    "coherence",
-                    "completeness",
-                    "feasibility",
-                    "format",
-                    "granularity",
-                ]
                 total = sum(breakdown.get(field, 0) for field in score_fields)
                 breakdown["total_score"] = total
 
@@ -149,6 +174,10 @@ class ComparisonJudgeStep(BaseStep):
             result["reason"] = "Invalid winner designation, defaulting to A"
 
         return result
+
+    # ------------------------------------------------------------------
+    # Core logic
+    # ------------------------------------------------------------------
 
     def _judge_comparison(self, input_text: str, output_a: str, output_b: str) -> Dict:
         """Use LLM to judge which output is better."""
@@ -195,19 +224,13 @@ class ComparisonJudgeStep(BaseStep):
         """Process a batch of rows for comparison judging."""
         results = []
 
-        score_criteria = [
-            "coherence",
-            "completeness",
-            "feasibility",
-            "format",
-            "granularity",
-        ]
-
         def ensure_scalar(value):
             if not isinstance(value, (int, float)):
                 logging.warning(f"ensure_scalar encountered non-scalar value: {value}")
                 return 0
             return value
+
+        p = get_settings().comparison_judge.column_prefix
 
         for _, row in batch_df.iterrows():
             input_text = str(row[self.input_column])
@@ -225,52 +248,27 @@ class ComparisonJudgeStep(BaseStep):
                 logging.error("Invalid breakdown structure in judgment!")
                 continue
 
-            score_a_total = ensure_scalar(breakdown_a.get("total_score", 0))
-            score_b_total = ensure_scalar(breakdown_b.get("total_score", 0))
-
-            score_a_coherence = breakdown_a.get("coherence", 0)
-            score_a_completeness = breakdown_a.get("completeness", 0)
-            score_a_feasibility = breakdown_a.get("feasibility", 0)
-            score_a_format = breakdown_a.get("format", 0)
-            score_a_granularity = breakdown_a.get("granularity", 0)
-
-            score_b_coherence = breakdown_b.get("coherence", 0)
-            score_b_completeness = breakdown_b.get("completeness", 0)
-            score_b_feasibility = breakdown_b.get("feasibility", 0)
-            score_b_format = breakdown_b.get("format", 0)
-            score_b_granularity = breakdown_b.get("granularity", 0)
-
-            strengths_a = breakdown_a.get("strengths", "N/A")
-            weaknesses_a = breakdown_a.get("weaknesses", "N/A")
-            strengths_b = breakdown_b.get("strengths", "N/A")
-            weaknesses_b = breakdown_b.get("weaknesses", "N/A")
-
-            winner = judgment["winner"]
-            reason = judgment["reason"]
-
-            selected_output = output_b if winner == "B" else output_a
-
             results.append({
-                "judge_score_a_total": score_a_total,
-                "judge_score_b_total": score_b_total,
-                "judge_score_a_coherence": score_a_coherence,
-                "judge_score_a_completeness": score_a_completeness,
-                "judge_score_a_feasibility": score_a_feasibility,
-                "judge_score_a_format": score_a_format,
-                "judge_score_a_granularity": score_a_granularity,
-                "judge_score_b_coherence": score_b_coherence,
-                "judge_score_b_completeness": score_b_completeness,
-                "judge_score_b_feasibility": score_b_feasibility,
-                "judge_score_b_format": score_b_format,
-                "judge_score_b_granularity": score_b_granularity,
-                "judge_strengths_a": strengths_a,
-                "judge_weaknesses_a": weaknesses_a,
-                "judge_strengths_b": strengths_b,
-                "judge_weaknesses_b": weaknesses_b,
-                "judge_winner": winner,
-                "judge_reason": reason,
-                "selected_output": selected_output,
-                "judge_time": judge_time,
+                f"{p}score_a_total": ensure_scalar(breakdown_a.get("total_score", 0)),
+                f"{p}score_b_total": ensure_scalar(breakdown_b.get("total_score", 0)),
+                f"{p}score_a_coherence": breakdown_a.get("coherence", 0),
+                f"{p}score_a_completeness": breakdown_a.get("completeness", 0),
+                f"{p}score_a_feasibility": breakdown_a.get("feasibility", 0),
+                f"{p}score_a_format": breakdown_a.get("format", 0),
+                f"{p}score_a_granularity": breakdown_a.get("granularity", 0),
+                f"{p}score_b_coherence": breakdown_b.get("coherence", 0),
+                f"{p}score_b_completeness": breakdown_b.get("completeness", 0),
+                f"{p}score_b_feasibility": breakdown_b.get("feasibility", 0),
+                f"{p}score_b_format": breakdown_b.get("format", 0),
+                f"{p}score_b_granularity": breakdown_b.get("granularity", 0),
+                f"{p}strengths_a": breakdown_a.get("strengths", "N/A"),
+                f"{p}weaknesses_a": breakdown_a.get("weaknesses", "N/A"),
+                f"{p}strengths_b": breakdown_b.get("strengths", "N/A"),
+                f"{p}weaknesses_b": breakdown_b.get("weaknesses", "N/A"),
+                f"{p}winner": judgment["winner"],
+                f"{p}reason": judgment["reason"],
+                "selected_output": output_b if judgment["winner"] == "B" else output_a,
+                f"{p}time": judge_time,
             })
 
         result_df = batch_df.copy()
@@ -304,37 +302,40 @@ class ComparisonJudgeStep(BaseStep):
             except Exception as e:
                 logging.error(f"Batch {i + 1} failed: {e}")
                 fallback_df = batch_df.copy()
-                batch_size = len(batch_df)
-                fallback_df["judge_score_a_total"] = [25] * batch_size
-                fallback_df["judge_score_b_total"] = [25] * batch_size
-                fallback_df["judge_score_a_coherence"] = [5] * batch_size
-                fallback_df["judge_score_a_completeness"] = [5] * batch_size
-                fallback_df["judge_score_a_feasibility"] = [5] * batch_size
-                fallback_df["judge_score_a_format"] = [5] * batch_size
-                fallback_df["judge_score_a_granularity"] = [5] * batch_size
-                fallback_df["judge_score_b_coherence"] = [5] * batch_size
-                fallback_df["judge_score_b_completeness"] = [5] * batch_size
-                fallback_df["judge_score_b_feasibility"] = [5] * batch_size
-                fallback_df["judge_score_b_format"] = [5] * batch_size
-                fallback_df["judge_score_b_granularity"] = [5] * batch_size
-                fallback_df["judge_strengths_a"] = ["N/A"] * batch_size
-                fallback_df["judge_weaknesses_a"] = ["Error occurred"] * batch_size
-                fallback_df["judge_strengths_b"] = ["N/A"] * batch_size
-                fallback_df["judge_weaknesses_b"] = ["Error occurred"] * batch_size
-                fallback_df["judge_winner"] = ["A"] * batch_size
-                fallback_df["judge_reason"] = [f"Batch processing failed: {e}"] * batch_size
+                p = get_settings().comparison_judge.column_prefix
+                bsz = len(batch_df)
+                fallback_df[f"{p}score_a_total"] = [25] * bsz
+                fallback_df[f"{p}score_b_total"] = [25] * bsz
+                fallback_df[f"{p}score_a_coherence"] = [5] * bsz
+                fallback_df[f"{p}score_a_completeness"] = [5] * bsz
+                fallback_df[f"{p}score_a_feasibility"] = [5] * bsz
+                fallback_df[f"{p}score_a_format"] = [5] * bsz
+                fallback_df[f"{p}score_a_granularity"] = [5] * bsz
+                fallback_df[f"{p}score_b_coherence"] = [5] * bsz
+                fallback_df[f"{p}score_b_completeness"] = [5] * bsz
+                fallback_df[f"{p}score_b_feasibility"] = [5] * bsz
+                fallback_df[f"{p}score_b_format"] = [5] * bsz
+                fallback_df[f"{p}score_b_granularity"] = [5] * bsz
+                fallback_df[f"{p}strengths_a"] = ["N/A"] * bsz
+                fallback_df[f"{p}weaknesses_a"] = ["Error occurred"] * bsz
+                fallback_df[f"{p}strengths_b"] = ["N/A"] * bsz
+                fallback_df[f"{p}weaknesses_b"] = ["Error occurred"] * bsz
+                fallback_df[f"{p}winner"] = ["A"] * bsz
+                fallback_df[f"{p}reason"] = [f"Batch processing failed: {e}"] * bsz
                 fallback_df["selected_output"] = batch_df[self.output_a_column].tolist()
-                fallback_df["judge_time"] = [0.0] * batch_size
+                fallback_df[f"{p}time"] = [0.0] * bsz
                 results.append(fallback_df)
 
         final_df = pd.concat(results, ignore_index=True)
 
         if len(final_df) > 0:
-            winner_counts = final_df["judge_winner"].value_counts()
-            avg_score_a = final_df["judge_score_a_total"].mean()
-            avg_score_b = final_df["judge_score_b_total"].mean()
+            p = get_settings().comparison_judge.column_prefix
+            winner_counts = final_df[f"{p}winner"].value_counts()
+            avg_score_a = final_df[f"{p}score_a_total"].mean()
+            avg_score_b = final_df[f"{p}score_b_total"].mean()
             logging.info(
-                f"Judge results: A wins: {winner_counts.get('A', 0)}, B wins: {winner_counts.get('B', 0)}"
+                f"Judge results: A wins: {winner_counts.get('A', 0)}, "
+                f"B wins: {winner_counts.get('B', 0)}"
             )
             logging.info(f"Average scores: A={avg_score_a:.1f}, B={avg_score_b:.1f}")
 

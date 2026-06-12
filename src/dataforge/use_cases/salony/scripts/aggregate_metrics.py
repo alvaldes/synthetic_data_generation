@@ -1,28 +1,43 @@
+"""
+Compute aggregate metrics from a dual-generator judge results CSV.
+
+Usage:
+    python aggregate_metrics.py path/to/judge_results.csv
+
+Configuration (threshold, column names) is loaded from the centralised
+DataForge settings.
+"""
+
 import pandas as pd
 import sys
+from dataforge.config import get_settings
 
-# =========================
-# VALIDACIÓN DE ARGUMENTOS
-# =========================
-if len(sys.argv) != 2:
-    print("Uso: python script_agregados.py <archivo.csv>")
-    sys.exit(1)
+# =========================================================================
+# Config
+# =========================================================================
 
-FILE = sys.argv[1]
-THRESHOLD = 35
-
+cfg = get_settings(use_case="salony")
+THRESHOLD = cfg.judge.approval_threshold
 COL_G1 = "judge_score_a_total"
 COL_G2 = "judge_score_b_total"
 COL_WINNER = "judge_winner"
 
-# =========================
-# LOAD
-# =========================
+# =========================================================================
+# Args
+# =========================================================================
+
+if len(sys.argv) != 2:
+    print("Uso: python aggregate_metrics.py <archivo.csv>")
+    sys.exit(1)
+
+FILE = sys.argv[1]
+
+# =========================================================================
+# Load & compute
+# =========================================================================
+
 df = pd.read_csv(FILE)
 
-# =========================
-# METRICS
-# =========================
 results = {}
 
 results["G1"] = {
@@ -39,9 +54,10 @@ results["G2"] = {
     "win_rate": (df[COL_WINNER] == "B").mean() * 100,
 }
 
-# =========================
-# OUTPUT
-# =========================
+# =========================================================================
+# Output
+# =========================================================================
+
 print("=== RESULTADOS AGREGADOS ===")
 
 for g in ["G1", "G2"]:
