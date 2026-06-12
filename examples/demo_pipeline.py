@@ -1,6 +1,6 @@
 # examples/demo_pipeline.py
-from framework.dataforge import DataForgePipeline
-from framework.dataforge.steps import LoadDataFrame, AddColumn
+from dataforge import DataForgePipeline
+from dataforge.transformers import LoadDataFrame, AddColumn
 import pandas as pd
 
 print("--- Running Simple Framework Demo ---")

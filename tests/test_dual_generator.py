@@ -42,9 +42,7 @@ def main():
 
     try:
         # Import and run the pipeline
-        import sys
-        sys.path.append(str(Path(__file__).parent.parent))
-        from examples.salony_dual_generator_pipeline import run_dual_generator_pipeline
+        from dataforge.use_cases.salony.scripts.salony_dual_generator_pipeline import run_dual_generator_pipeline
 
         print(f"Input file: {test_input_path}")
         print(f"Output file: {test_output_path}")

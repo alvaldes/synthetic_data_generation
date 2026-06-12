@@ -131,10 +131,11 @@ docs/_static/
 docs/_templates/
 
 # Project specific
-data/*.csv
-data/*.xlsx
-!data/salony_train.csv
-!data/.gitkeep
+data/**/*.csv
+data/**/*.xlsx
+!data/raw/salony_train.csv
+!data/raw/user_stories_sample.csv
+!data/raw/.gitkeep
 
 # Example outputs (keep only source .py files)
 # examples/*.csv

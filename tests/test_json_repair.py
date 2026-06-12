@@ -3,7 +3,7 @@
 import pytest
 import json
 
-from use_cases.salony.steps.comparison_judge_step import ComparisonJudgeStep
+from dataforge.llm import ComparisonJudgeStep
 
 
 class TestComparisonJudgeStep:
@@ -312,31 +312,19 @@ Based on my analysis, Breakdown B is superior because it provides better complet
 
 
 # =============================================================================
-# Direct unit tests for _repair_json method
+# Direct unit tests for repair_json function
 # =============================================================================
 
+from dataforge.transformers.json_repair import repair_json
+
+
 class TestRepairJson:
-    """Test the _repair_json method directly."""
+    """Test the repair_json function directly."""
 
-    @pytest.fixture
-    def judge_step(self):
-        def dummy_template(row_data):
-            return "Compare these outputs"
-
-        step = ComparisonJudgeStep(
-            name="test_judge",
-            model_name="testmodel",
-            input_column="input",
-            output_a_column="output_a",
-            output_b_column="output_b",
-            prompt_template_func=dummy_template,
-        )
-        return step
-
-    def test_escape_newlines_in_strings(self, judge_step):
+    def test_escape_newlines_in_strings(self):
         """Raw newlines inside string values should be escaped."""
         raw = '{"strengths": "Hello\nWorld"}'
-        repaired = judge_step._repair_json(raw)
+        repaired = repair_json(raw)
         # Should now have escaped newline
         assert '\\n' in repaired or '\\n' in repaired
 
@@ -344,33 +332,33 @@ class TestRepairJson:
         parsed = json.loads(repaired)
         assert parsed["strengths"] == "Hello\nWorld"
 
-    def test_missing_commas_after_numbers(self, judge_step):
+    def test_missing_commas_after_numbers(self):
         """Missing commas after number values before next field."""
         raw = '{"score": 42 "next": "value"}'
-        repaired = judge_step._repair_json(raw)
+        repaired = repair_json(raw)
         parsed = json.loads(repaired)
         assert parsed["score"] == 42
         assert parsed["next"] == "value"
 
-    def test_trailing_comma_before_closing_brace(self, judge_step):
+    def test_trailing_comma_before_closing_brace(self):
         """Trailing comma before } should be removed."""
         raw = '{"a": 1, "b": 2,}'
-        repaired = judge_step._repair_json(raw)
+        repaired = repair_json(raw)
         parsed = json.loads(repaired)
         assert parsed == {"a": 1, "b": 2}
 
-    def test_no_escaping_outside_strings(self, judge_step):
+    def test_no_escaping_outside_strings(self):
         """Normal JSON structure should not be affected."""
         raw = '{"coherence": 9, "completeness": 8}'
-        repaired = judge_step._repair_json(raw)
+        repaired = repair_json(raw)
         parsed = json.loads(repaired)
         assert parsed["coherence"] == 9
         assert parsed["completeness"] == 8
 
-    def test_control_characters_removed(self, judge_step):
+    def test_control_characters_removed(self):
         """Null bytes and invalid control chars should be removed."""
         raw = '{"text": "Hello\x00World"}'
-        repaired = judge_step._repair_json(raw)
+        repaired = repair_json(raw)
         # Should be valid JSON without null char
         parsed = json.loads(repaired)
         assert "text" in parsed
