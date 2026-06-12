@@ -4,62 +4,11 @@
 
 This guide provides comprehensive documentation for AI agents working with the LocalLLM-DataForge project. Start here to understand the project structure, development patterns, and best practices.
 
-## Available Skills
+## Architecture Overview
 
-Use these skills for detailed patterns on-demand:
+LocalLLM-DataForge follows a **Data Pipeline Architecture** — the code is organized around the natural flow of data through the pipeline:
 
-### Generic Skills (Any Project)
-
-| Skill | Description | URL |
-|-------|-------------|-----|
-| `typescript` | Const types, flat interfaces, utility types | [SKILL.md](skills/typescript/SKILL.md) |
-| `python` | Type hints, dataclasses, async patterns | [SKILL.md](skills/python/SKILL.md) |
-| `pytest` | Fixtures, mocking, markers, parametrize | [SKILL.md](skills/pytest/SKILL.md) |
-
-### LocalLLM-DataForge-Specific Skills
-
-| Skill | Description | URL |
-|-------|-------------|-----|
-| `dataforge` | Project overview, architecture patterns | [SKILL.md](skills/dataforge/SKILL.md) |
-| `pipeline-design` | Creating and chaining pipeline steps | [SKILL.md](skills/pipeline-design/SKILL.md) |
-| `ollama-steps` | LLM generation with Ollama | [SKILL.md](skills/ollama-steps/SKILL.md) |
-| `judge-validation` | LLM-as-a-judge validation patterns | [SKILL.md](skills/judge-validation/SKILL.md) |
-| `cache-management` | Pipeline caching strategies | [SKILL.md](skills/cache-management/SKILL.md) |
-| `custom-steps` | Creating custom pipeline steps | [SKILL.md](skills/custom-steps/SKILL.md) |
-| `error-handling` | Robust error handling in pipelines | [SKILL.md](skills/error-handling/SKILL.md) |
-
-### Auto-invoke Skills
-
-When performing these actions, ALWAYS invoke the corresponding skill FIRST:
-
-| Action | Skill |
-|--------|-------|
-| Creating new pipeline steps | `custom-steps` |
-| Working with Ollama LLM generation | `ollama-steps` |
-| Implementing LLM-as-a-judge validation | `judge-validation` |
-| Designing multi-step pipelines | `pipeline-design` |
-| Debugging cache issues | `cache-management` |
-| Adding error handling and retries | `error-handling` |
-| Writing tests with pytest | `pytest` |
-| Working with type hints and dataclasses | `python` |
-| General project architecture questions | `dataforge` |
-
----
-
-## Project Overview
-
-LocalLLM-DataForge is a DataFrame-based pipeline processing library inspired by Distilabel, designed for synthetic data generation using local Ollama LLMs. It provides a modular, extensible framework for building data processing pipelines with built-in caching, error handling, and LLM integration.
-
-### Key Features
-
-- 🐼 **Native pandas DataFrame support** - Work with familiar data structures
-- 🦙 **Ollama local model integration** - Run LLMs locally without API costs
-- 🔄 **Step-based processing architecture** - Modular and extensible design
-- 💾 **Automatic caching** - Speed up iterations with intelligent caching
-- 🔁 **Batch processing** - Efficient processing of large datasets
-- 🛠️ **Easy to extend** - Create custom steps with simple API
-- 🔒 **Robust error handling** - Continue processing even when individual rows fail
-- ⚖️ **LLM-as-a-judge validation** - Quality control with judge models
+**Entrada (User Stories)** ➔ **Procesamiento LLM** ➔ **Validación/Reparación** ➔ **Salida (Tareas estructuradas)**
 
 ---
 
@@ -67,38 +16,59 @@ LocalLLM-DataForge is a DataFrame-based pipeline processing library inspired by 
 
 ```
 LocalLLM-DataForge/
-├── dataforge/           # Core library
-│   ├── __init__.py
-│   ├── base_step.py          # Base step class
-│   ├── pipeline.py           # Pipeline orchestrator
-│   ├── steps/                # Built-in steps
-│   │   ├── __init__.py
-│   │   ├── load_dataframe.py      # Data loading
-│   │   ├── ollama_step.py         # Basic LLM generation
-│   │   ├── ollama_judge_step.py   # LLM-as-a-judge validation
-│   │   ├── comparison_judge_step.py # Dual generator comparison
-│   │   ├── keep_columns.py        # Column selection
-│   │   └── add_column.py          # Column transformation
-│   └── utils/                # Utilities
-│       ├── cache.py          # Caching system
-│       ├── logging.py        # Logging configuration
-│       └── batching.py       # Batch processing
-├── examples/                 # Example pipelines
-│   ├── instruction_pipeline.py
-│   ├── salony_pipeline.py
-│   └── salony_dual_generator_pipeline.py
-├── tests/                   # Test suite
+├── data/                          # 📊 Project data
+│   ├── raw/                       #    Input datasets
+│   │   ├── salony_train.csv
+│   │   └── user_stories_sample.csv
+│   └── outputs/                   #    Pipeline results and benchmarks
+├── docs/
+│   ├── USER_STORY_TO_TASKS.md
+│   └── springer/                  # Research documentation and paper
+│       ├── paper/
+│       └── tests/
+├── examples/                      # 🎯 Usage demonstrations
+│   └── demo_pipeline.py
+├── scripts/                       # 🔧 Execution and maintenance utilities
+│   ├── clear_cache.py
+│   └── run_pipeline.py
+├── src/                           # 🌟 CENTRALIZED SOURCE CODE
+│   └── dataforge/                 #    Main processing package
+│       ├── __init__.py            #    Public API exports
+│       ├── pipeline.py            #    Pipeline orchestrator
+│       ├── base_step.py           #    Abstract base class for steps
+│       ├── llm/                   #    🦙 LLM connectors & generation steps
+│       │   ├── __init__.py
+│       │   ├── ollama_step.py           # Basic LLM generation
+│       │   ├── ollama_judge_step.py     # LLM-as-a-judge validation
+│       │   └── comparison_judge_step.py # Dual generator comparison
+│       ├── transformers/          #    🔄 Data transformation steps
+│       │   ├── __init__.py
+│       │   ├── load_dataframe.py        # Data loading
+│       │   ├── add_column.py            # Column computation
+│       │   ├── keep_columns.py          # Column selection
+│       │   ├── explode_tasks.py         # Task splitting
+│       │   └── json_repair.py           # JSON repair utility
+│       ├── validators/            #    ✅ Business validation rules
+│       │   ├── __init__.py
+│       │   └── validate_user_stories.py # User story format validation
+│       ├── use_cases/             #    🏗️ Client/project configurations
+│       │   └── salony/
+│       │       ├── __init__.py
+│       │       ├── scripts/       # Salony-specific pipelines
+│       │       └── config/
+│       └── utils/                 #    🛠️ Shared utilities
+│           ├── __init__.py
+│           ├── cache.py           # Caching system
+│           ├── logging.py         # Logging configuration
+│           └── batching.py        # Batch processing
+├── tests/                         # 🧪 Automated tests
 │   ├── test_pipeline.py
-│   └── test_dual_generator.py
-├── scripts/                 # CLI scripts
-│   ├── run_pipeline.py
-│   └── clear_cache.py
-├── docs/                    # Documentation
-│   └── USER_STORY_TO_TASKS.md
-├── pyproject.toml           # Project metadata
-├── requirements.txt         # Dependencies
-├── CLAUDE.md               # Claude-specific guidance
-└── AGENTS.md               # This file
+│   ├── test_dual_generator.py
+│   ├── test_json_repair.py
+│   └── test_validate_user_stories.py
+├── pyproject.toml
+├── README.md
+└── AGENTS.md                      # This file
 ```
 
 ---
@@ -117,7 +87,7 @@ LocalLLM-DataForge/
 # Clone the repository
 cd LocalLLM-DataForge
 
-# Install the package in development mode
+# Install the package in development mode (uses src/ layout)
 pip install -e .
 
 # Install all dependencies (including dev dependencies)
@@ -138,7 +108,7 @@ ollama pull llama3.1:8b
 pytest tests/ -v
 
 # Run example pipeline
-python examples/instruction_pipeline.py
+python examples/demo_pipeline.py
 
 # Check package installation
 python -c "import dataforge; print(dataforge.__version__)"
@@ -150,7 +120,7 @@ python -c "import dataforge; print(dataforge.__version__)"
 
 ### DataForgePipeline
 
-The main orchestrator (`dataforge/pipeline.py`) that:
+The main orchestrator (`src/dataforge/pipeline.py`) that:
 
 - Executes steps sequentially with data flowing between them
 - Manages caching using `CacheManager` for expensive LLM operations
@@ -159,7 +129,7 @@ The main orchestrator (`dataforge/pipeline.py`) that:
 - Validates column dependencies between steps
 
 ```python
-from framework.dataforge import DataForgePipeline
+from dataforge import DataForgePipeline
 
 pipeline = DataForgePipeline(
     name="my-pipeline",
@@ -169,7 +139,7 @@ pipeline = DataForgePipeline(
 
 ### BaseStep
 
-Abstract base class (`dataforge/base_step.py`) for all processing steps:
+Abstract base class (`src/dataforge/base_step.py`) for all processing steps:
 
 - Defines `inputs` and `outputs` properties for column validation
 - Handles input/output column mappings and renaming
@@ -178,24 +148,25 @@ Abstract base class (`dataforge/base_step.py`) for all processing steps:
 
 ### Step Categories
 
-#### Data Loading Steps
+#### Data Loading
 
 - **LoadDataFrame**: Load data from DataFrame or CSV file
 
-#### Data Transformation Steps
+#### Data Transformation (`src/dataforge/transformers/`)
 
 - **AddColumn**: Add computed column with custom function
 - **KeepColumns**: Select specific columns from DataFrame
+- **ExplodeTasks**: Split concatenated tasks into individual rows
 
-#### LLM Generation Steps
+#### LLM Generation (`src/dataforge/llm/`)
 
 - **OllamaLLMStep**: Basic LLM text generation with Ollama models
-- **RobustOllamaStep**: Production-ready generation with error handling and retry logic
+- **OllamaJudgeStep**: LLM-as-a-judge validation of generated content
+- **ComparisonJudgeStep**: Compares outputs from dual generators and selects the best
 
-#### LLM Validation Steps
+#### Business Validation (`src/dataforge/validators/`)
 
-- **OllamaJudgeStep**: Validates generated content using LLM-as-a-judge pattern
-- **ComparisonJudgeStep**: Compares outputs from dual generators
+- **ValidateUserStories**: Validates user stories against Agile format ("As a... I want... so that...")
 
 ---
 
@@ -210,7 +181,7 @@ class MyCustomStep(BaseStep):
     @property
     def inputs(self):
         return ["input_column"]
-    
+
     @property
     def outputs(self):
         return ["output_column"]
@@ -237,28 +208,6 @@ result = pipeline.run(use_cache=False)
 pipeline.clear_cache()
 ```
 
-### Error Handling
-
-`RobustOllamaStep` provides production-ready LLM processing with:
-
-- Automatic retries for failed generations (configurable max_retries)
-- Saving failed rows to CSV files for debugging
-- Success/failure metrics tracking
-- Continue-on-error mode to process entire dataset
-
-```python
-robust_step = RobustOllamaStep(
-    name="generate",
-    model_name="llama3.2",
-    prompt_column="input",
-    output_column="output",
-    save_failures=True,
-    failure_dir="./failures",
-    continue_on_error=True,
-    max_retries=3
-)
-```
-
 ### Batch Processing
 
 LLM steps process data in configurable batches to optimize Ollama performance and memory usage:
@@ -273,9 +222,25 @@ ollama_step = OllamaLLMStep(
 )
 ```
 
+### Error Handling & Retries
+
+`OllamaLLMStep` includes built-in retry logic with exponential backoff:
+
+```python
+step = OllamaLLMStep(
+    name="generate",
+    model_name="llama3.2",
+    prompt_column="input",
+    output_column="output",
+    batch_size=3,
+    max_retries=3,     # Retry failed generations up to 3 times
+    generation_kwargs={"temperature": 0.3, "num_predict": 1000},
+)
+```
+
 ### LLM-as-a-Judge Pattern
 
-The `OllamaJudgeStep` implements quality validation:
+The `OllamaJudgeStep` implements quality validation for generated content:
 
 ```python
 judge_step = OllamaJudgeStep(
@@ -304,20 +269,36 @@ judge_step = OllamaJudgeStep(
 - `validacion_problemas`: List of identified issues
 - `validacion_recomendaciones`: Suggested improvements
 
+### JSON Repair Utility
+
+The `json_repair.py` module in `transformers/` handles common LLM JSON formatting issues:
+- Raw newlines inside string values
+- Missing commas between fields
+- Trailing commas before closing braces
+- Control characters in strings
+
+```python
+from dataforge.transformers.json_repair import repair_json, parse_json_with_repair
+
+# Repair and parse in one call
+result = parse_json_with_repair(llm_response)
+```
+
 ---
 
 ## Pipeline Flow Example
 
 ```python
-from framework.dataforge import DataForgePipeline
-from framework.dataforge.steps import LoadDataFrame, OllamaLLMStep, KeepColumns
+from dataforge import DataForgePipeline
+from dataforge.transformers import LoadDataFrame, KeepColumns
+from dataforge.llm import OllamaLLMStep
 
 # Create pipeline
 pipeline = DataForgePipeline(name="example")
 
 # Chain steps using >> operator
 (pipeline
-    >> LoadDataFrame(name="load", df=data)           # Generator step
+    >> LoadDataFrame(name="load", df=data)       # Generator step
     >> OllamaLLMStep(
         name="generate",
         model_name="llama3.2",
@@ -338,29 +319,30 @@ result = pipeline.run(use_cache=True)
 ### Basic Custom Step
 
 ```python
-from framework.dataforge.base_step import BaseStep
+from dataforge.base_step import BaseStep
 import pandas as pd
+
 
 class MyCustomStep(BaseStep):
     def __init__(self, name: str, param: str, **kwargs):
         super().__init__(name, **kwargs)
         self.param = param
-    
+
     @property
     def inputs(self):
         return ["input_column"]
-    
+
     @property
     def outputs(self):
         return ["output_column"]
-    
+
     def process(self, df: pd.DataFrame) -> pd.DataFrame:
         df = df.copy()
         df["output_column"] = df["input_column"].apply(
             lambda x: self.transform(x)
         )
         return df
-    
+
     def transform(self, value):
         # Your custom logic here
         return value.upper()
@@ -368,9 +350,10 @@ class MyCustomStep(BaseStep):
 
 ### Registering Custom Steps
 
-Add your custom step to `dataforge/steps/__init__.py`:
+Add your custom step to the appropriate category's `__init__.py`:
 
 ```python
+# In src/dataforge/transformers/__init__.py
 from .my_custom_step import MyCustomStep
 
 __all__ = [
@@ -402,7 +385,8 @@ pytest tests/ --cov=dataforge --cov-report=html
 ### Testing Patterns
 
 - **Pipeline tests** in `tests/test_pipeline.py`: Test end-to-end pipeline execution
-- **Step-specific tests** in `tests/test_steps.py`: Test individual step functionality
+- **JSON repair tests** in `tests/test_json_repair.py`: Test LLM output parsing
+- **Validation tests** in `tests/test_validate_user_stories.py`: Test user story validation
 - **Mock Ollama calls** for deterministic testing using fixtures
 - **Use pytest fixtures** for common test data and configurations
 
@@ -411,8 +395,9 @@ pytest tests/ --cov=dataforge --cov-report=html
 ```python
 import pytest
 import pandas as pd
-from framework.dataforge import DataForgePipeline
-from framework.dataforge.steps import LoadDataFrame
+from dataforge import DataForgePipeline
+from dataforge.transformers import LoadDataFrame
+
 
 @pytest.fixture
 def sample_data():
@@ -423,9 +408,9 @@ def sample_data():
 def test_pipeline_basic(sample_data):
     pipeline = DataForgePipeline(name="test")
     pipeline.add_step(LoadDataFrame(name="load", df=sample_data))
-    
+
     result = pipeline.run(use_cache=False)
-    
+
     assert len(result) == 3
     assert 'input' in result.columns
 ```
@@ -473,7 +458,7 @@ result = pipeline.run(use_cache=False)
 ### Basic LLM Generation
 
 ```python
-from framework.dataforge.steps import OllamaLLMStep
+from dataforge.llm import OllamaLLMStep
 
 step = OllamaLLMStep(
     name="generate",
@@ -484,33 +469,10 @@ step = OllamaLLMStep(
 )
 ```
 
-### Production LLM Generation with Error Handling
-
-```python
-from framework.dataforge.steps import RobustOllamaStep
-
-step = RobustOllamaStep(
-    name="generate",
-    model_name="llama3.2",
-    prompt_column="prompt",
-    output_column="response",
-    batch_size=3,
-    save_failures=True,
-    failure_dir="./failures",
-    continue_on_error=True,
-    max_retries=3
-)
-
-# After running, check metrics
-print(f"Success: {step.success_count}")
-print(f"Failures: {step.failure_count}")
-print(step.get_failure_summary())
-```
-
 ### LLM Judge Validation
 
 ```python
-from framework.dataforge.steps import OllamaJudgeStep
+from dataforge.llm import OllamaJudgeStep
 
 judge = OllamaJudgeStep(
     name="validate",
@@ -525,14 +487,15 @@ judge = OllamaJudgeStep(
 ### Dual Generator Comparison
 
 ```python
-from framework.dataforge.steps import ComparisonJudgeStep
+from dataforge.llm import ComparisonJudgeStep
 
 comparator = ComparisonJudgeStep(
     name="compare",
     model_name="llama3.1:8b",
-    historia_usuario_column="user_story",
-    tareas_a_column="tasks_model_a",
-    tareas_b_column="tasks_model_b",
+    input_column="user_story",
+    output_a_column="tasks_model_a",
+    output_b_column="tasks_model_b",
+    prompt_template_func=create_prompt,
     batch_size=2
 )
 ```
@@ -546,7 +509,7 @@ comparator = ComparisonJudgeStep(
 1. **Start simple**: Begin with basic steps, then add complexity
 2. **Use caching**: Enable caching for expensive LLM operations
 3. **Monitor progress**: Use appropriate log levels (INFO for production, DEBUG for development)
-4. **Handle errors**: Use `RobustOllamaStep` for production pipelines
+4. **Handle errors**: Use `max_retries` and `generation_kwargs` for robust LLM calls
 5. **Validate outputs**: Use judge steps for quality control
 
 ### Step Development
@@ -588,11 +551,11 @@ comparator = ComparisonJudgeStep(
 
 ### Adding a New Step Type
 
-1. Create new file in `dataforge/steps/`
+1. Create new file in the appropriate category (`llm/`, `transformers/`, or `validators/`)
 2. Inherit from `BaseStep`
 3. Implement `inputs`, `outputs`, and `process()`
-4. Add to `dataforge/steps/__init__.py`
-5. Write tests in `tests/test_steps.py`
+4. Add to the category's `__init__.py`
+5. Write tests in `tests/`
 6. Update documentation
 
 ### Debugging Pipeline Issues
@@ -630,10 +593,15 @@ comparator = ComparisonJudgeStep(
 
 - **Solution**: Adjust approval threshold, improve prompts, use better judge model
 
+**Issue**: LLM output JSON parsing fails
+
+- **Solution**: Use `json_repair.py` utilities; check if output is truncated
+
 ---
 
 ## Version History
 
+- **v0.3.0**: Architecture restructured to Data Pipeline pattern (`src/` layout, categorized steps, JSON repair utility)
 - **v0.2.0**: Added dual generator support and comparison judge
 - **v0.1.0**: Initial release with basic pipeline and Ollama integration
 
@@ -654,8 +622,8 @@ Contributions are welcome! To add features:
 ## Support
 
 - **Issues**: [GitHub Issues](https://github.com/alvaldes/LocalLLM-DataForge/issues)
-- **Documentation**: See `CLAUDE.md`, `examples/`, and `docs/`
-- **Examples**: Run pipelines in `examples/` directory
+- **Documentation**: See `examples/`, `docs/`, and `AGENTS.md`
+- **Examples**: Run pipelines in `src/dataforge/use_cases/salony/scripts/`
 
 ---
 
