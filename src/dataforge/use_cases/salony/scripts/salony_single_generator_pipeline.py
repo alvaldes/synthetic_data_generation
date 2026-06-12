@@ -24,6 +24,7 @@ from dataforge.transformers import LoadDataFrame, AddColumn, ExplodeTasks
 from dataforge.llm import OllamaLLMStep, OllamaJudgeStep
 from dataforge.validators import ValidateUserStories
 from dataforge.config import get_settings, PromptLoader
+from dataforge.utils import timestamped_filename
 
 
 # ---------------------------------------------------------------------------
@@ -134,7 +135,9 @@ def run_salony_pipeline(
     Parameters
     ----------
     output_csv : str, optional
-        Path to save the results (defaults to ``<paths.output_dir>/salony_tasks.csv``).
+        Path to save the results.  When ``None`` (default), a
+        timestamped filename is generated under
+        ``<paths.output_dir>/salony_tasks_<timestamp>.csv``.
     input_csv : str, optional
         Path to input CSV (defaults to ``<paths.raw_dir>/salony_train.csv``).
     model_name : str, optional
@@ -174,9 +177,9 @@ def run_salony_pipeline(
         else judge_cfg.approval_threshold
     )
 
-    # Resolve output path
+    # Resolve output path — default incluye timestamp para no pisar corridas
     if output_csv is None:
-        output_csv = str(Path(cfg.paths.output_dir) / "salony_tasks.csv")
+        output_csv = timestamped_filename(cfg.paths.output_dir, "salony_tasks")
     Path(output_csv).parent.mkdir(parents=True, exist_ok=True)
 
     # --- Setup ------------------------------------------------------------
@@ -374,7 +377,7 @@ Examples:
 
     parser.add_argument(
         "--output", dest="output_csv", nargs="?", default=None,
-        help="Path to save the generated tasks (default: data/outputs/salony_tasks.csv)",
+        help="Path to save the generated tasks (default: data/outputs/salony_tasks_<timestamp>.csv)",
     )
     parser.add_argument("--input-csv", help="Path to input CSV file")
     parser.add_argument(
