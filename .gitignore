@@ -137,6 +137,9 @@ data/**/*.xlsx
 !data/raw/user_stories_sample.csv
 !data/raw/.gitkeep
 
+# Pipeline output artifacts (regeneratable)
+data/outputs/
+
 # Example outputs (keep only source .py files)
 # examples/*.csv
 examples/*.xlsx
