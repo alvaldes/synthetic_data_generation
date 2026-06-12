@@ -58,8 +58,8 @@ DataForgePipeline
 
 ```python
 import pandas as pd
-from dataforge import DataForgePipeline
-from dataforge.steps import LoadDataFrame, OllamaLLMStep
+from framework.dataforge import DataForgePipeline
+from framework.dataforge.steps import LoadDataFrame, OllamaLLMStep
 
 # Create data
 df = pd.DataFrame({
@@ -87,7 +87,7 @@ print(result)
 ### Advanced Pipeline with Transformations
 
 ```python
-from dataforge.steps import FilterRows, SortRows, RobustOllamaStep
+from framework.dataforge.steps import FilterRows, SortRows, RobustOllamaStep
 
 pipeline = DataForgePipeline(name="advanced")
 
@@ -149,7 +149,7 @@ result = pipeline.run()
 ## 🎨 Creating Custom Steps
 
 ```python
-from dataforge.base_step import BaseStep
+from framework.dataforge.base_step import BaseStep
 import pandas as pd
 
 class MyCustomStep(BaseStep):

@@ -159,7 +159,7 @@ The main orchestrator (`dataforge/pipeline.py`) that:
 - Validates column dependencies between steps
 
 ```python
-from dataforge import DataForgePipeline
+from framework.dataforge import DataForgePipeline
 
 pipeline = DataForgePipeline(
     name="my-pipeline",
@@ -309,8 +309,8 @@ judge_step = OllamaJudgeStep(
 ## Pipeline Flow Example
 
 ```python
-from dataforge import DataForgePipeline
-from dataforge.steps import LoadDataFrame, OllamaLLMStep, KeepColumns
+from framework.dataforge import DataForgePipeline
+from framework.dataforge.steps import LoadDataFrame, OllamaLLMStep, KeepColumns
 
 # Create pipeline
 pipeline = DataForgePipeline(name="example")
@@ -338,7 +338,7 @@ result = pipeline.run(use_cache=True)
 ### Basic Custom Step
 
 ```python
-from dataforge.base_step import BaseStep
+from framework.dataforge.base_step import BaseStep
 import pandas as pd
 
 class MyCustomStep(BaseStep):
@@ -411,8 +411,8 @@ pytest tests/ --cov=dataforge --cov-report=html
 ```python
 import pytest
 import pandas as pd
-from dataforge import DataForgePipeline
-from dataforge.steps import LoadDataFrame
+from framework.dataforge import DataForgePipeline
+from framework.dataforge.steps import LoadDataFrame
 
 @pytest.fixture
 def sample_data():
@@ -473,7 +473,7 @@ result = pipeline.run(use_cache=False)
 ### Basic LLM Generation
 
 ```python
-from dataforge.steps import OllamaLLMStep
+from framework.dataforge.steps import OllamaLLMStep
 
 step = OllamaLLMStep(
     name="generate",
@@ -487,7 +487,7 @@ step = OllamaLLMStep(
 ### Production LLM Generation with Error Handling
 
 ```python
-from dataforge.steps import RobustOllamaStep
+from framework.dataforge.steps import RobustOllamaStep
 
 step = RobustOllamaStep(
     name="generate",
@@ -510,7 +510,7 @@ print(step.get_failure_summary())
 ### LLM Judge Validation
 
 ```python
-from dataforge.steps import OllamaJudgeStep
+from framework.dataforge.steps import OllamaJudgeStep
 
 judge = OllamaJudgeStep(
     name="validate",
@@ -525,7 +525,7 @@ judge = OllamaJudgeStep(
 ### Dual Generator Comparison
 
 ```python
-from dataforge.steps import ComparisonJudgeStep
+from framework.dataforge.steps import ComparisonJudgeStep
 
 comparator = ComparisonJudgeStep(
     name="compare",

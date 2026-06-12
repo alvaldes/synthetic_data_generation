@@ -3,7 +3,7 @@
 import pytest
 import json
 
-from dataforge.steps.comparison_judge_step import ComparisonJudgeStep
+from use_cases.salony.steps.comparison_judge_step import ComparisonJudgeStep
 
 
 class TestComparisonJudgeStep:

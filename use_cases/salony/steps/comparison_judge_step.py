@@ -7,8 +7,8 @@ import ollama
 import time
 from datetime import datetime
 
-from ..base_step import BaseStep
-from ..utils.batching import batch_dataframe, get_num_batches
+from framework.dataforge.base_step import BaseStep
+from framework.dataforge.utils.batching import batch_dataframe, get_num_batches
 
 
 class ComparisonJudgeStep(BaseStep):

@@ -3,10 +3,10 @@
 import pandas as pd
 import pytest
 
-from dataforge.pipeline import DataForgePipeline
-from dataforge.steps.load_dataframe import LoadDataFrame
-from dataforge.steps.keep_columns import KeepColumns
-from dataforge.steps.add_column import AddColumn
+from framework.dataforge.pipeline import DataForgePipeline
+from framework.dataforge.steps.load_dataframe import LoadDataFrame
+from framework.dataforge.steps.keep_columns import KeepColumns
+from framework.dataforge.steps.add_column import AddColumn
 
 
 def test_pipeline_runs_with_basic_steps():

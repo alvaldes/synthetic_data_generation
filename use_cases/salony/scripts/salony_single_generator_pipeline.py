@@ -18,15 +18,15 @@ from pathlib import Path
 from typing import Dict, Optional
 import ollama
 
-from dataforge import DataForgePipeline
-from dataforge.steps import (
+from framework.dataforge import DataForgePipeline
+from framework.dataforge.steps import (
     LoadDataFrame,
     OllamaLLMStep,
     OllamaJudgeStep,
     AddColumn,
     ExplodeTasks,
-    ValidateUserStories,
 )
+from use_cases.salony.steps import ValidateUserStories
 
 
 def create_task_generation_prompt(row: Dict) -> str:

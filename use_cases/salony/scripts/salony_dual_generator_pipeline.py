@@ -26,16 +26,15 @@ from pathlib import Path
 from typing import Dict, Optional
 import ollama
 
-from dataforge import DataForgePipeline
-from dataforge.steps import (
+from framework.dataforge import DataForgePipeline
+from framework.dataforge.steps import (
     LoadDataFrame,
     OllamaLLMStep,
     AddColumn,
-    ComparisonJudgeStep,
     KeepColumns,
     ExplodeTasks,
-    ValidateUserStories,
 )
+from use_cases.salony.steps import ComparisonJudgeStep, ValidateUserStories
 
 
 def create_task_generation_prompt(row: Dict) -> str:
@@ -469,7 +468,7 @@ def run_dual_generator_pipeline(
         raise RuntimeError(f"Failed to save judge results CSV: {e}")
 
     # Now create tasks DataFrames by exploding both generators
-    from dataforge.steps.explode_tasks import ExplodeTasks
+    from framework.dataforge.steps.explode_tasks import ExplodeTasks
 
     explode_step = ExplodeTasks(
         name="explode",

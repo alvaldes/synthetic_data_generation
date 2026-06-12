@@ -8,7 +8,7 @@ import re
 from pathlib import Path
 from unittest.mock import patch, MagicMock
 
-from dataforge.steps.validate_user_stories import ValidateUserStories
+from use_cases.salony.steps.validate_user_stories import ValidateUserStories
 
 
 class TestValidateUserStories:

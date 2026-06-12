@@ -11,8 +11,8 @@ from pathlib import Path
 from typing import List, Optional
 from datetime import datetime
 
-from dataforge.base_step import BaseStep
-from dataforge.utils.logging import setup_logger
+from framework.dataforge.base_step import BaseStep
+from framework.dataforge.utils.logging import setup_logger
 
 
 class ValidateUserStories(BaseStep):
