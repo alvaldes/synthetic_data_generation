@@ -14,9 +14,10 @@ Architecture:
 5. Select and output only the best result from the winning generator
 
 Usage:
-    python salony_dual_generator_pipeline.py output.csv
-    python salony_dual_generator_pipeline.py output.csv --model-a llama3.1:8b --model-b mistral
-    python salony_dual_generator_pipeline.py output.csv --sample 10
+    python salony_dual_generator_pipeline.py
+    python salony_dual_generator_pipeline.py --output results.csv
+    python salony_dual_generator_pipeline.py --model-a llama3.1:8b --model-b mistral
+    python salony_dual_generator_pipeline.py --sample 10
 """
 
 import pandas as pd
@@ -131,7 +132,7 @@ def load_and_validate_data(
 # ---------------------------------------------------------------------------
 
 def run_dual_generator_pipeline(
-    output_csv: str,
+    output_csv: Optional[str] = None,
     input_csv: Optional[str] = None,
     model_a: Optional[str] = None,
     model_b: Optional[str] = None,
@@ -148,8 +149,8 @@ def run_dual_generator_pipeline(
 
     Parameters
     ----------
-    output_csv : str
-        Path to save the results.
+    output_csv : str, optional
+        Path to save the results (defaults to ``<paths.output_dir>/salony_dual_tasks.csv``).
     input_csv : str, optional
         Path to input CSV (defaults to ``<paths.raw_dir>/salony_train.csv``).
     model_a : str, optional
@@ -188,6 +189,11 @@ def run_dual_generator_pipeline(
     temperature_a = temperature_a if temperature_a is not None else llm_cfg.temperature
     temperature_b = temperature_b if temperature_b is not None else 0.7
     num_predict = num_predict if num_predict is not None else llm_cfg.num_predict
+
+    # Resolve output path
+    if output_csv is None:
+        output_csv = str(Path(cfg.paths.output_dir) / "salony_dual_tasks.csv")
+    Path(output_csv).parent.mkdir(parents=True, exist_ok=True)
 
     # --- Setup ------------------------------------------------------------
     log_file = Path(output_csv).with_suffix(".log")
@@ -486,13 +492,17 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  python salony_dual_generator_pipeline.py output.csv
-  python salony_dual_generator_pipeline.py output.csv --model-a llama3.1:8b --model-b mistral
-  python salony_dual_generator_pipeline.py output.csv --sample 5 --temperature-a 0.3 --temperature-b 0.7
+  python salony_dual_generator_pipeline.py
+  python salony_dual_generator_pipeline.py --output results.csv
+  python salony_dual_generator_pipeline.py --model-a llama3.1:8b --model-b mistral
+  python salony_dual_generator_pipeline.py --sample 5 --temperature-a 0.3 --temperature-b 0.7
         """,
     )
 
-    parser.add_argument("output_csv", help="Path to save the generated tasks")
+    parser.add_argument(
+        "--output", dest="output_csv", nargs="?", default=None,
+        help="Path to save the generated tasks (default: data/outputs/salony_dual_tasks.csv)",
+    )
     parser.add_argument("--input-csv", help="Path to input CSV file")
     parser.add_argument(
         "--model-a", default="llama3.1:8b",

@@ -6,9 +6,10 @@ This pipeline takes user stories from the salony_train.csv dataset and
 breaks them down into smaller, actionable development tasks.
 
 Usage:
-    python salony_pipeline.py output.csv
-    python salony_pipeline.py output.csv --model llama3.1:8b --batch-size 4
-    python salony_pipeline.py output.csv --sample 10
+    python salony_single_generator_pipeline.py
+    python salony_single_generator_pipeline.py --output results.csv
+    python salony_single_generator_pipeline.py --model llama3.1:8b --batch-size 4
+    python salony_single_generator_pipeline.py --sample 10
 """
 
 import pandas as pd
@@ -115,7 +116,7 @@ def load_and_validate_data(
 # ---------------------------------------------------------------------------
 
 def run_salony_pipeline(
-    output_csv: str,
+    output_csv: Optional[str] = None,
     input_csv: Optional[str] = None,
     model_name: Optional[str] = None,
     judge_model_name: Optional[str] = None,
@@ -132,8 +133,8 @@ def run_salony_pipeline(
 
     Parameters
     ----------
-    output_csv : str
-        Path to save the results.
+    output_csv : str, optional
+        Path to save the results (defaults to ``<paths.output_dir>/salony_tasks.csv``).
     input_csv : str, optional
         Path to input CSV (defaults to ``<paths.raw_dir>/salony_train.csv``).
     model_name : str, optional
@@ -172,6 +173,11 @@ def run_salony_pipeline(
         judge_threshold if judge_threshold is not None
         else judge_cfg.approval_threshold
     )
+
+    # Resolve output path
+    if output_csv is None:
+        output_csv = str(Path(cfg.paths.output_dir) / "salony_tasks.csv")
+    Path(output_csv).parent.mkdir(parents=True, exist_ok=True)
 
     # --- Setup ------------------------------------------------------------
     logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
@@ -357,16 +363,19 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  python salony_pipeline.py output.csv
-  python salony_pipeline.py output.csv --model mistral
-  python salony_pipeline.py output.csv --use-judge --judge-threshold 40
-  python salony_pipeline.py output.csv --input-csv custom_data.csv
-  python salony_pipeline.py output.csv --batch-size 4 --temperature 0.6
-  python salony_pipeline.py output.csv --sample 10  # For testing
+  python salony_single_generator_pipeline.py
+  python salony_single_generator_pipeline.py --output results.csv
+  python salony_single_generator_pipeline.py --model mistral
+  python salony_single_generator_pipeline.py --use-judge --judge-threshold 40
+  python salony_single_generator_pipeline.py --batch-size 4 --temperature 0.6
+  python salony_single_generator_pipeline.py --sample 10
         """,
     )
 
-    parser.add_argument("output_csv", help="Path to save the generated tasks")
+    parser.add_argument(
+        "--output", dest="output_csv", nargs="?", default=None,
+        help="Path to save the generated tasks (default: data/outputs/salony_tasks.csv)",
+    )
     parser.add_argument("--input-csv", help="Path to input CSV file")
     parser.add_argument(
         "--model", default="llama3.1:8b",
