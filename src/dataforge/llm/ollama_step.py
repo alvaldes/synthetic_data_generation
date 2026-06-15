@@ -2,9 +2,11 @@
 
 import ollama
 import pandas as pd
-from typing import Callable, List, Dict, Any, Optional
+from typing import Callable, List, Dict, Any, Optional, Union
 from tqdm import tqdm
 import time
+import threading
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from pydantic import BaseModel
 
 from ..base_step import BaseStep
@@ -12,6 +14,8 @@ from ..config import get_settings
 from ..utils.batching import batch_dataframe
 from ..utils.logging import setup_logger
 import logging
+
+_thread_local = threading.local()
 
 class ResponseOutput(BaseModel):
     response: Optional[str]
@@ -46,6 +50,7 @@ class OllamaLLMStep(BaseStep):
         max_retries: Optional[int] = None,
         track_time: bool = False,
         time_column: Optional[str] = None,
+        num_workers: Optional[int] = None,
         **kwargs
     ):
         super().__init__(name, **kwargs)
@@ -66,6 +71,7 @@ class OllamaLLMStep(BaseStep):
         self.max_retries = max_retries if max_retries is not None else cfg.max_retries
         self.track_time = track_time
         self.time_column = time_column or f"{output_column}_time"
+        self.num_workers = num_workers if num_workers is not None else cfg.num_workers
         self.client = None
         self.logger = setup_logger(
             name=f"OllamaLLMStep.{name}",
@@ -98,12 +104,26 @@ class OllamaLLMStep(BaseStep):
     def _format_prompt(self, row: Dict[str, Any]) -> str:
         return self.prompt_template(row)
 
+    def _get_thread_client(self) -> ollama.Client:
+        """Get thread-local Ollama client for parallel execution."""
+        if not hasattr(_thread_local, "client"):
+            _thread_local.client = ollama.Client(host=self.ollama_host)
+        return _thread_local.client
+
     def _generate_with_retry(
         self,
         prompt: str,
-        retry_count: int = 0
+        retry_count: int = 0,
+        client: Optional[ollama.Client] = None,
     ) -> Optional[str]:
-        """Call model with retry logic on error, following ollama best practices."""
+        """Call model with retry logic on error, following ollama best practices.
+
+        Args:
+            prompt: The prompt to send to the model.
+            retry_count: Current retry attempt number.
+            client: Optional Ollama client instance. Falls back to self.client if None.
+        """
+        client = client or self.client
         try:
             messages = []
             if self.system_prompt:
@@ -111,7 +131,7 @@ class OllamaLLMStep(BaseStep):
 
             messages.append({"role": "user", "content": prompt})
 
-            response = self.client.chat(
+            response = client.chat(
                 model=self.model_name,
                 messages=messages,
                 stream=False,
@@ -149,23 +169,59 @@ class OllamaLLMStep(BaseStep):
                 self.logger.error(f"Unexpected error after {self.max_retries} retries: {e}")
                 return None
 
+    def _generate_with_retry_parallel(self, prompt: str) -> Any:
+        """Wrapper for parallel execution: uses thread-local client and tracks time."""
+        client = self._get_thread_client()
+        if self.track_time:
+            start = time.time()
+            generation = self._generate_with_retry(prompt, client=client)
+            elapsed = time.time() - start
+            return generation, elapsed
+        return self._generate_with_retry(prompt, client=client)
+
     def _process_batch(self, batch_df: pd.DataFrame) -> pd.DataFrame:
         """Process a batch of rows with Ollama."""
         results = []
         times = []
 
-        for _, row in batch_df.iterrows():
-            prompt = self._format_prompt(row.to_dict())
+        if self.num_workers <= 1:
+            # Sequential path — uses self.client
+            for _, row in batch_df.iterrows():
+                prompt = self._format_prompt(row.to_dict())
 
-            if self.track_time:
-                start_time = time.time()
-                generation = self._generate_with_retry(prompt)
-                elapsed_time = time.time() - start_time
-                times.append(elapsed_time)
-            else:
-                generation = self._generate_with_retry(prompt)
+                if self.track_time:
+                    start_time = time.time()
+                    generation = self._generate_with_retry(prompt)
+                    elapsed_time = time.time() - start_time
+                    times.append(elapsed_time)
+                else:
+                    generation = self._generate_with_retry(prompt)
 
-            results.append(generation)
+                results.append(generation)
+        else:
+            # Parallel path — thread-local clients via ThreadPoolExecutor
+            with ThreadPoolExecutor(max_workers=self.num_workers) as pool:
+                future_to_idx: Dict[Any, int] = {}
+                for idx, (_, row) in enumerate(batch_df.iterrows()):
+                    prompt = self._format_prompt(row.to_dict())
+                    future = pool.submit(self._generate_with_retry_parallel, prompt)
+                    future_to_idx[future] = idx
+
+                ordered_results: List[Optional[str]] = [None] * len(batch_df)
+                ordered_times: List[Optional[float]] = [None] * len(batch_df)
+
+                for future in as_completed(future_to_idx):
+                    idx = future_to_idx[future]
+                    result = future.result()
+                    if self.track_time:
+                        generation, elapsed = result
+                        ordered_results[idx] = generation
+                        ordered_times[idx] = elapsed
+                    else:
+                        ordered_results[idx] = result
+
+                results = ordered_results
+                times = ordered_times
 
         result_df = batch_df.copy()
         result_df[self.output_column] = results

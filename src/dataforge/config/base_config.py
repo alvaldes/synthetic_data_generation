@@ -18,6 +18,7 @@ class LLMConfig(BaseModel):
     batch_size: int = 8
     temperature: float = 0.3
     num_predict: int = 1000
+    num_workers: int = 1
 
 
 class JudgeCriterion(BaseModel):
@@ -37,6 +38,7 @@ class JudgeConfig(BaseModel):
     batch_size: int = 4
     temperature: float = 0.2
     num_predict: int = 800
+    num_workers: int = 1
     column_prefix: str = "validacion_"
     criteria: List[JudgeCriterion] = [
         JudgeCriterion(key="coherence", label_es="Coherencia", label_en="Coherence"),
@@ -54,6 +56,7 @@ class ComparisonJudgeConfig(BaseModel):
     batch_size: int = 1
     temperature: float = 0.2
     num_predict: int = 1000
+    num_workers: int = 1
     column_prefix: str = "judge_"
 
 

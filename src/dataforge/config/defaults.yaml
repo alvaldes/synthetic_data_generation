@@ -13,6 +13,7 @@ llm:
   batch_size: 8
   temperature: 0.3
   num_predict: 1000
+  num_workers: 1
 
 judge:
   model: null                     # null → falls back to llm.default_model
@@ -21,6 +22,7 @@ judge:
   batch_size: 4
   temperature: 0.2
   num_predict: 800
+  num_workers: 1
   column_prefix: "validacion_"
   criteria:
     - { key: "coherence",    label_es: "Coherencia",    label_en: "Coherence" }
@@ -34,6 +36,7 @@ comparison_judge:
   batch_size: 1
   temperature: 0.2
   num_predict: 1000
+  num_workers: 1
   column_prefix: "judge_"
 
 pipeline:

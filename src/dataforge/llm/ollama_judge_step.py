@@ -8,11 +8,15 @@ import time
 import json
 import re
 import logging
+import threading
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from ..base_step import BaseStep
 from ..config import get_settings, PromptLoader
 from ..utils.batching import batch_dataframe
 from ..utils.logging import setup_logger
+
+_thread_local = threading.local()
 
 
 class OllamaJudgeStep(BaseStep):
@@ -44,6 +48,7 @@ class OllamaJudgeStep(BaseStep):
         generation_kwargs: Optional[Dict[str, Any]] = None,
         ollama_host: Optional[str] = None,
         max_retries: Optional[int] = None,
+        num_workers: Optional[int] = None,
         **kwargs,
     ):
         super().__init__(name, **kwargs)
@@ -65,6 +70,7 @@ class OllamaJudgeStep(BaseStep):
         }
         self.ollama_host = ollama_host or llm_cfg.ollama_host
         self.max_retries = max_retries if max_retries is not None else llm_cfg.max_retries
+        self.num_workers = num_workers if num_workers is not None else judge_cfg.num_workers
         self.client = None
         self.logger = setup_logger(name=f"OllamaJudgeStep.{name}", level=logging.INFO)
 
@@ -180,14 +186,29 @@ class OllamaJudgeStep(BaseStep):
                 "recomendaciones": ["Revisar manualmente"],
             }
 
+    def _get_thread_client(self) -> ollama.Client:
+        """Get thread-local Ollama client for parallel execution."""
+        if not hasattr(_thread_local, "client"):
+            _thread_local.client = ollama.Client(host=self.ollama_host)
+        return _thread_local.client
+
     def _validate_with_retry(
-        self, historia_usuario: str, tareas_generadas: str, retry_count: int = 0
+        self, historia_usuario: str, tareas_generadas: str, retry_count: int = 0,
+        client: Optional[ollama.Client] = None,
     ) -> Optional[Dict[str, Any]]:
-        """Llama al modelo juez con reintentos en caso de error."""
+        """Llama al modelo juez con reintentos en caso de error.
+
+        Args:
+            historia_usuario: User story text.
+            tareas_generadas: Generated tasks text.
+            retry_count: Current retry attempt number.
+            client: Optional Ollama client instance. Falls back to self.client if None.
+        """
+        client = client or self.client
         try:
             prompt = self._create_judge_prompt(historia_usuario, tareas_generadas)
 
-            response = self.client.chat(
+            response = client.chat(
                 model=self.model_name,
                 messages=[{"role": "user", "content": prompt}],
                 stream=False,
@@ -238,38 +259,89 @@ class OllamaJudgeStep(BaseStep):
                 )
                 return None
 
+    def _validate_with_retry_parallel(
+        self, historia_usuario: str, tareas_generadas: str
+    ) -> Optional[Dict[str, Any]]:
+        """Wrapper for parallel execution: uses thread-local client."""
+        client = self._get_thread_client()
+        return self._validate_with_retry(historia_usuario, tareas_generadas, client=client)
+
     def _process_batch(self, batch_df: pd.DataFrame) -> pd.DataFrame:
         """Procesa un batch de validaciones con Ollama."""
         results = []
 
-        for _, row in batch_df.iterrows():
-            historia = str(row[self.historia_usuario_column])
-            tareas = str(row[self.tareas_generadas_column])
+        if self.num_workers <= 1:
+            # Sequential path — uses self.client
+            for _, row in batch_df.iterrows():
+                historia = str(row[self.historia_usuario_column])
+                tareas = str(row[self.tareas_generadas_column])
 
-            validation = self._validate_with_retry(historia, tareas)
+                validation = self._validate_with_retry(historia, tareas)
 
-            if validation is None:
-                validation = {
-                    "coherence": {"puntuacion": 0, "justificacion": "Error de conexión"},
-                    "completeness": {
-                        "puntuacion": 0,
-                        "justificacion": "Error de conexión",
-                        "tareas_faltantes": [],
-                    },
-                    "feasibility": {"puntuacion": 0, "justificacion": "Error de conexión"},
-                    "format": {"puntuacion": 0, "justificacion": "Error de conexión"},
-                    "granularity": {"puntuacion": 0, "justificacion": "Error de conexión"},
-                    "puntuacion_total": 0,
-                    "aprobado": False,
-                    "problemas_criticos": ["Error de conexión con modelo"],
-                    "recomendaciones": ["Reintentar validación"],
-                }
+                if validation is None:
+                    validation = {
+                        "coherence": {"puntuacion": 0, "justificacion": "Error de conexión"},
+                        "completeness": {
+                            "puntuacion": 0,
+                            "justificacion": "Error de conexión",
+                            "tareas_faltantes": [],
+                        },
+                        "feasibility": {"puntuacion": 0, "justificacion": "Error de conexión"},
+                        "format": {"puntuacion": 0, "justificacion": "Error de conexión"},
+                        "granularity": {"puntuacion": 0, "justificacion": "Error de conexión"},
+                        "puntuacion_total": 0,
+                        "aprobado": False,
+                        "problemas_criticos": ["Error de conexión con modelo"],
+                        "recomendaciones": ["Reintentar validación"],
+                    }
 
-            self.logger.info(
-                f"Validación para fila {row.name}: aprobado={validation['aprobado']}, "
-                f"total={validation['puntuacion_total']}"
-            )
-            results.append(validation)
+                self.logger.info(
+                    f"Validación para fila {row.name}: aprobado={validation['aprobado']}, "
+                    f"total={validation['puntuacion_total']}"
+                )
+                results.append(validation)
+        else:
+            # Parallel path — thread-local clients via ThreadPoolExecutor
+            with ThreadPoolExecutor(max_workers=self.num_workers) as pool:
+                future_to_idx: Dict[Any, int] = {}
+                for idx, (_, row) in enumerate(batch_df.iterrows()):
+                    historia = str(row[self.historia_usuario_column])
+                    tareas = str(row[self.tareas_generadas_column])
+                    future = pool.submit(
+                        self._validate_with_retry_parallel, historia, tareas
+                    )
+                    future_to_idx[future] = idx
+
+                ordered: List[Optional[Dict[str, Any]]] = [None] * len(batch_df)
+
+                for future in as_completed(future_to_idx):
+                    idx = future_to_idx[future]
+                    validation = future.result()
+
+                    if validation is None:
+                        validation = {
+                            "coherence": {"puntuacion": 0, "justificacion": "Error de conexión"},
+                            "completeness": {
+                                "puntuacion": 0,
+                                "justificacion": "Error de conexión",
+                                "tareas_faltantes": [],
+                            },
+                            "feasibility": {"puntuacion": 0, "justificacion": "Error de conexión"},
+                            "format": {"puntuacion": 0, "justificacion": "Error de conexión"},
+                            "granularity": {"puntuacion": 0, "justificacion": "Error de conexión"},
+                            "puntuacion_total": 0,
+                            "aprobado": False,
+                            "problemas_criticos": ["Error de conexión con modelo"],
+                            "recomendaciones": ["Reintentar validación"],
+                        }
+
+                    self.logger.info(
+                        f"Validación para fila {idx}: aprobado={validation['aprobado']}, "
+                        f"total={validation['puntuacion_total']}"
+                    )
+                    ordered[idx] = validation
+
+                results = ordered
 
         result_df = batch_df.copy()
 
