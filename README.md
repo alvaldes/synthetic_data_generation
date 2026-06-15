@@ -36,7 +36,7 @@ pytest tests/ -v
 - 🦙 **Ollama local model integration** — Run LLMs locally without API costs
 - 🔄 **Step-based processing architecture** — Modular and extensible design
 - 💾 **Automatic caching** — Speed up iterations with intelligent caching
-- 🔁 **Batch processing** — Efficient processing of large datasets
+- 🔁 **Parallel batch processing** — Concurrent row execution via `ThreadPoolExecutor`
 - 🛠️ **Easy to extend** — Create custom steps with simple API
 - ⚖️ **LLM-as-a-judge validation** — Quality control with judge models
 - 🔄 **Dual generator comparison** — Compare two models and pick the best
@@ -117,7 +117,8 @@ pipeline.add_step(OllamaLLMStep(
     model_name="llama3.2",
     prompt_column="input",
     output_column="tasks",
-    batch_size=3
+    batch_size=8,
+    num_workers=4         # requests concurrentes dentro del batch
 ))
 
 # Run
@@ -307,6 +308,86 @@ result = parse_json_with_repair(llm_response)
 if result is None:
     print("No se pudo parsear ni reparando")
 ```
+
+---
+
+## ⚡ Performance Tuning
+
+### `batch_size` + `num_workers`: Cómo Afinar el Throughput
+
+Cada LLM step acepta dos parámetros que controlan el rendimiento:
+
+| Parámetro | Default (LLM / Judge) | Qué Controla |
+|-----------|----------------------|--------------|
+| `batch_size` | 8 / 4 | Filas cargadas por lote en memoria. También limita la concurrencia máxima. |
+| `num_workers` | 1 | Requests concurrentes a Ollama **dentro** de cada batch. |
+
+**Regla de oro:** `batch_size >= num_workers`. Si `num_workers > batch_size`, sobran workers que nunca se usan.
+
+**¿`batch_size` es placebo?** No, pero su rol cambió con `num_workers`:
+- **Sin paralelismo** (`num_workers=1`): controla memoria y granularidad de caché
+- **Con paralelismo** (`num_workers > 1`): actúa como tope de concurrencia
+
+### Guía por Hardware
+
+Valores de partida recomendados para **modelos 7B-8B** (llama3.1:8b, qwen3:8b, deepseek-r1:8b):
+
+| Hardware | `num_workers` | `batch_size` | Notas |
+|----------|:------------:|:------------:|-------|
+| **Solo CPU** (8GB RAM) | 1 | 4-8 | CPU encola requests secuencialmente. Paralelismo no da ganancia real. |
+| **Solo CPU** (16GB+ RAM) | 1-2 | 4-8 | Con 2 workers puede ayudar si hay múltiples cores físicos. |
+| **GPU 4GB VRAM** | 1 | 2-4 | Sin espacio para más de 1 modelo en VRAM. Batches chicos. |
+| **GPU 6GB VRAM** | 2 | 4 | Point inicial para modelos 7B con cuantización Q4. |
+| **GPU 8GB VRAM** | 2-3 | 4-6 | Ollama puede mantener 1-2 requests simultáneos en GPU. |
+| **GPU 12GB VRAM** | 4 | 8 | **Balance ideal** para 7B-8B. GPU aprovechada sin saturar. |
+| **GPU 16GB VRAM** | 4-6 | 8 | Podés usar modelos 13B y mantener paralelismo. |
+| **GPU 24GB+ VRAM** | 6-8 | 8-12 | Múltiples requests caben en VRAM. Probá de a poco. |
+
+### Recomendaciones por Tamaño de Modelo
+
+| Modelo | Ejemplos | `num_workers` | Notas |
+|--------|----------|:------------:|-------|
+| **1B-3B** | `llama3.2:3b`, `qwen3:4b`, `phi4-mini` | 4-8 | Modelos chicos, mucha concurrencia posible. No saturan VRAM. |
+| **7B-8B** | `llama3.1:8b`, `qwen3:8b`, `deepseek-r1:8b` | 2-4 | El punto dulce. Buena calidad sin consumir mucha VRAM. |
+| **13B-14B** | `llama3.1:14b`, `qwen3:14b` | 1-3 | Cada request ocupa más VRAM. Reducí workers respecto a 7B. |
+| **30B+** | `qwen3:30b`, `llama3.1:70b` | 1-2 | Modelos grandes. Necesitás 24GB+ VRAM. Paralelismo mínimo. |
+
+### Cómo Ajustar
+
+```python
+# GPU 12GB VRAM + modelo 7B-8B → punto dulce
+generator = OllamaLLMStep(
+    name="generate",
+    model_name="qwen3:8b",
+    prompt_column="prompt",
+    output_column="tasks",
+    batch_size=8,
+    num_workers=4,
+)
+
+# GPU 8GB VRAM + modelo 13B → conservador
+judge = OllamaJudgeStep(
+    name="validate",
+    model_name="llama3.1:14b",
+    historia_usuario_column="input",
+    tareas_generadas_column="tasks",
+    batch_size=4,
+    num_workers=2,
+)
+```
+
+### Ajuste Fino con `ollama ps`
+
+```bash
+# Mientras corre el pipeline, monitoreá:
+ollama ps
+
+# Si ves cola de requests sin procesar → subí num_workers
+# Si ves errores CUDA OOM → bajá num_workers o batch_size
+# Si el output es lento pero GPU al 100% → num_workers suficiente
+```
+
+**Estrategia:** Empezá con `num_workers=2` y subí de a 1 mientras monitoreás con `ollama ps`. Cuando veas errores de memoria o latencia que no mejora, ese es tu límite.
 
 ---
 
