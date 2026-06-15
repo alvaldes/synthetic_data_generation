@@ -208,9 +208,18 @@ result = pipeline.run(use_cache=False)
 pipeline.clear_cache()
 ```
 
-### Batch Processing
+### Batch Processing & Parallel Execution
 
-LLM steps process data in configurable batches to optimize Ollama performance and memory usage:
+LLM steps process data in configurable batches with **parallel row execution** via `ThreadPoolExecutor`. Available in `OllamaLLMStep`, `OllamaJudgeStep`, and `ComparisonJudgeStep`.
+
+Two knobs control throughput:
+
+| Parameter | Default | Rol |
+|-----------|---------|-----|
+| `batch_size` | 8 (LLM) / 4 (judge) | Memory cap — rows loaded at once. Also caps concurrency. |
+| `num_workers` | 1 | Concurrent requests to Ollama **within** each batch. |
+
+**Regla de oro**: `batch_size >= num_workers`. Si `num_workers > batch_size`, sobran workers.
 
 ```python
 ollama_step = OllamaLLMStep(
@@ -218,9 +227,12 @@ ollama_step = OllamaLLMStep(
     model_name="llama3.2",
     prompt_column="prompt",
     output_column="response",
-    batch_size=5  # Process 5 rows at a time
+    batch_size=8,
+    num_workers=4,          # 4 requests concurrentes dentro del batch
 )
 ```
+
+Con `num_workers=1` (default) el comportamiento es idéntico al secuencial original.
 
 ### Error Handling & Retries
 
@@ -522,11 +534,38 @@ comparator = ComparisonJudgeStep(
 
 ### Performance Optimization
 
-1. **Tune batch size**: Balance memory usage and throughput
-2. **Use caching**: Avoid re-running expensive operations
-3. **Filter early**: Remove unnecessary rows before LLM steps
-4. **Monitor resources**: Watch Ollama memory usage
-5. **Profile pipelines**: Use logging to identify bottlenecks
+#### Tuning `batch_size` + `num_workers`
+
+La combinación de ambos parámetros define el throughput real. `batch_size` controla cuántas filas se cargan por lote en memoria, y `num_workers` cuántas requests concurrentes se disparan a Ollama dentro de ese lote.
+
+**Reglas:**
+- `batch_size >= num_workers` — si sobra capacidad de workers, no se usa
+- `num_workers=1` = comportamiento secuencial exacto
+- Caché y reintentos operan por fila, no por worker — no se afectan
+
+#### Guía por hardware (Ollama local, modelos 7B-8B)
+
+| Hardware | `num_workers` | `batch_size` | Notas |
+|----------|--------------|--------------|-------|
+| **Solo CPU** (8GB RAM) | 1 | 4-8 | CPU encola secuencial. Paralelismo no da ganancia real. |
+| **Solo CPU** (16GB+ RAM) | 1-2 | 4-8 | Con 2 workers puede ayudar si hay múltiples cores. |
+| **GPU 4GB VRAM** | 1 | 2-4 | Sin espacio para más de 1 modelo en memoria. Mantené batches chicos. |
+| **GPU 8GB VRAM** | 2-3 | 4-6 | Buen punto de partida. Ollama puede mantener 1-2 requests en GPU. |
+| **GPU 12GB VRAM** | 4 | 8 | Balance ideal para modelos 7B-8B. GPU aprovechada sin saturar. |
+| **GPU 16GB VRAM** | 4-6 | 8 | Podés usar modelos más grandes (13B) y mantener paralelismo. |
+| **GPU 24GB+ VRAM** | 6-8 | 8-12 | Varios requests caben en VRAM. Probá de a poco y monitoreá. |
+
+**Modelos más grandes (13B+):** Reducí `num_workers` a la mitad de la tabla. Cada request ocupa más VRAM.
+
+**Ajuste fino:** Empezá con `num_workers=2` y monitoreá con `ollama ps`. Si la cola de Ollama crece sin proceso, subí `num_workers`. Si ves errores de CUDA OOM, bajalo.
+
+#### Otras optimizaciones
+
+1. **Use caching**: Avoid re-running expensive operations
+2. **Filter early**: Remove unnecessary rows before LLM steps
+3. **Monitor resources**: Watch Ollama memory usage (`ollama ps`)
+4. **Profile pipelines**: Use logging to identify bottlenecks
+5. **Parallel judge steps**: Si usás `ComparisonJudgeStep`, los dos generadores previos (`generator_a` + `generator_b`) pueden correr en pipelines separados (son completamente independientes)
 
 ### Testing
 
