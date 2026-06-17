@@ -159,3 +159,9 @@ compass_artifact_*.md
 *.backup
 *_backup.*
 *_old.*
+
+# Agent tooling
+.atl/
+
+# SDD workflow artifacts (regeneratable)
+openspec/
