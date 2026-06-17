@@ -39,6 +39,7 @@ class JudgeConfig(BaseModel):
     temperature: float = 0.2
     num_predict: int = 800
     num_workers: int = 1
+    max_zero_retries: int = 2
     column_prefix: str = "validacion_"
     criteria: List[JudgeCriterion] = [
         JudgeCriterion(key="coherence", label_es="Coherencia", label_en="Coherence"),
@@ -57,6 +58,7 @@ class ComparisonJudgeConfig(BaseModel):
     temperature: float = 0.2
     num_predict: int = 1000
     num_workers: int = 1
+    max_zero_retries: int = 2
     column_prefix: str = "judge_"
 
 

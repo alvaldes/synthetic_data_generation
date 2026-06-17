@@ -85,6 +85,7 @@ def mock_settings():
         cfg_judge.judge.num_predict = 100
         cfg_judge.judge.num_workers = 1
         cfg_judge.judge.column_prefix = "validacion_"
+        cfg_judge.judge.max_zero_retries = 2
         cfg_judge.judge.criteria = []
         mock_judge.return_value = cfg_judge
 
@@ -98,6 +99,7 @@ def mock_settings():
         cfg_comp.comparison_judge.temperature = 0.2
         cfg_comp.comparison_judge.num_predict = 100
         cfg_comp.comparison_judge.num_workers = 1
+        cfg_comp.comparison_judge.max_zero_retries = 2
         cfg_comp.comparison_judge.column_prefix = "judge_"
         mock_comp.return_value = cfg_comp
 

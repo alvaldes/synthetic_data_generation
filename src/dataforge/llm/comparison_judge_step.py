@@ -38,6 +38,7 @@ class ComparisonJudgeStep(BaseStep):
         batch_size: Optional[int] = None,
         generation_kwargs: Optional[Dict[str, Any]] = None,
         num_workers: Optional[int] = None,
+        max_zero_retries: Optional[int] = None,
         **kwargs,
     ):
         super().__init__(name, **kwargs)
@@ -60,6 +61,7 @@ class ComparisonJudgeStep(BaseStep):
             "num_predict": comp_cfg.num_predict,
         }
         self.num_workers = num_workers if num_workers is not None else comp_cfg.num_workers
+        self.max_zero_retries = max_zero_retries if max_zero_retries is not None else comp_cfg.max_zero_retries
 
         self.client = None
 
@@ -135,6 +137,17 @@ class ComparisonJudgeStep(BaseStep):
     # Parsing
     # ------------------------------------------------------------------
 
+    def _has_zero_score(self, result: Dict) -> bool:
+        """Check if any individual criterion has a score of 0 in either breakdown."""
+        score_fields = ["coherence", "completeness", "feasibility", "format", "granularity"]
+        for breakdown_key in ["breakdown_a", "breakdown_b"]:
+            breakdown = result.get(breakdown_key, {})
+            if isinstance(breakdown, dict):
+                for field in score_fields:
+                    if field in breakdown and breakdown[field] == 0:
+                        return True
+        return False
+
     def _parse_judge_response(self, raw_response: str) -> Dict:
         """Parse the judge response JSON with robust error handling and repair."""
         result = parse_json_with_repair(raw_response, logger=logging.getLogger(__name__))
@@ -147,17 +160,28 @@ class ComparisonJudgeStep(BaseStep):
 
         return {
             "breakdown_a": {
-                "total_score": 25,
+                "total_score": -5,
+                "coherence": -1,
+                "completeness": -1,
+                "feasibility": -1,
+                "format": -1,
+                "granularity": -1,
                 "strengths": "Unable to parse",
                 "weaknesses": "Parse error",
             },
             "breakdown_b": {
-                "total_score": 25,
+                "total_score": -5,
+                "coherence": -1,
+                "completeness": -1,
+                "feasibility": -1,
+                "format": -1,
+                "granularity": -1,
                 "strengths": "Unable to parse",
                 "weaknesses": "Parse error",
             },
             "winner": "A",
             "reason": "Failed to parse judge response",
+            "parse_error": True,
         }
 
     def _validate_and_normalize_judge_result(self, result: Dict) -> Dict:
@@ -171,9 +195,23 @@ class ComparisonJudgeStep(BaseStep):
 
         for breakdown_key in ["breakdown_a", "breakdown_b"]:
             breakdown = result[breakdown_key]
-            if "total_score" not in breakdown:
-                total = sum(breakdown.get(field, 0) for field in score_fields)
-                breakdown["total_score"] = total
+
+            # Validate individual score fields exist
+            for field in score_fields:
+                if field not in breakdown:
+                    raise ValueError(f"Missing score field '{field}' in {breakdown_key}")
+
+            # Always calculate total in code — override LLM's value
+            code_total = sum(breakdown[field] for field in score_fields)
+
+            if "total_score" in breakdown and breakdown["total_score"] != code_total:
+                logging.warning(
+                    f"Discrepancia en total_score para {breakdown_key}: "
+                    f"LLM={breakdown['total_score']}, código={code_total}. "
+                    f"Usando valor del código."
+                )
+
+            breakdown["total_score"] = code_total
 
         if result["winner"] not in ["A", "B"]:
             result["winner"] = "A"
@@ -194,6 +232,7 @@ class ComparisonJudgeStep(BaseStep):
     def _judge_comparison(
         self, input_text: str, output_a: str, output_b: str,
         client: Optional[ollama.Client] = None,
+        zero_retry_count: int = 0,
     ) -> Dict:
         """Use LLM to judge which output is better.
 
@@ -202,6 +241,7 @@ class ComparisonJudgeStep(BaseStep):
             output_a: Output from generator A.
             output_b: Output from generator B.
             client: Optional Ollama client instance. Falls back to self.client if None.
+            zero_retry_count: Current retry count for zero-score retries.
         """
         client = client or self.client
         row_data = {
@@ -211,6 +251,15 @@ class ComparisonJudgeStep(BaseStep):
         }
 
         prompt = self.prompt_template_func(row_data)
+
+        if zero_retry_count > 0:
+            prompt += (
+                f"\n\n**⚠️ RETRY {zero_retry_count} — CRITICAL:**\n"
+                "In your previous attempt you gave a score of 0 in at least one criterion.\n"
+                "EACH criterion MUST have a value between 1 and 10. 0 is NOT allowed.\n"
+                "Please re-evaluate carefully, ensuring every score is between 1 and 10.\n"
+                "If a criterion truly does not apply, use 1 as the minimum.\n"
+            )
 
         try:
             response = client.chat(
@@ -224,23 +273,52 @@ class ComparisonJudgeStep(BaseStep):
             )
 
             raw_response = response["message"]["content"]
-            return self._parse_judge_response(raw_response)
+            judgment = self._parse_judge_response(raw_response)
+
+            # Zero-score retry
+            if (
+                "parse_error" not in judgment
+                and zero_retry_count < self.max_zero_retries
+                and self._has_zero_score(judgment)
+            ):
+                logging.warning(
+                    f"Detected zero score in judge comparison "
+                    f"(retry {zero_retry_count + 1}/{self.max_zero_retries}). "
+                    f"Retrying with corrected prompt."
+                )
+                return self._judge_comparison(
+                    input_text, output_a, output_b,
+                    client=client, zero_retry_count=zero_retry_count + 1,
+                )
+
+            return judgment
 
         except Exception as e:
             logging.error(f"Judge evaluation failed: {e}")
             return {
                 "breakdown_a": {
-                    "total_score": 25,
+                    "total_score": -5,
+                    "coherence": -1,
+                    "completeness": -1,
+                    "feasibility": -1,
+                    "format": -1,
+                    "granularity": -1,
                     "strengths": "Error occurred",
                     "weaknesses": str(e),
                 },
                 "breakdown_b": {
-                    "total_score": 25,
+                    "total_score": -5,
+                    "coherence": -1,
+                    "completeness": -1,
+                    "feasibility": -1,
+                    "format": -1,
+                    "granularity": -1,
                     "strengths": "Error occurred",
                     "weaknesses": str(e),
                 },
                 "winner": "A",
                 "reason": f"Judge evaluation failed: {e}",
+                "parse_error": True,
             }
 
     def _judge_comparison_parallel(
@@ -393,18 +471,18 @@ class ComparisonJudgeStep(BaseStep):
                 fallback_df = batch_df.copy()
                 p = get_settings().comparison_judge.column_prefix
                 bsz = len(batch_df)
-                fallback_df[f"{p}score_a_total"] = [25] * bsz
-                fallback_df[f"{p}score_b_total"] = [25] * bsz
-                fallback_df[f"{p}score_a_coherence"] = [5] * bsz
-                fallback_df[f"{p}score_a_completeness"] = [5] * bsz
-                fallback_df[f"{p}score_a_feasibility"] = [5] * bsz
-                fallback_df[f"{p}score_a_format"] = [5] * bsz
-                fallback_df[f"{p}score_a_granularity"] = [5] * bsz
-                fallback_df[f"{p}score_b_coherence"] = [5] * bsz
-                fallback_df[f"{p}score_b_completeness"] = [5] * bsz
-                fallback_df[f"{p}score_b_feasibility"] = [5] * bsz
-                fallback_df[f"{p}score_b_format"] = [5] * bsz
-                fallback_df[f"{p}score_b_granularity"] = [5] * bsz
+                fallback_df[f"{p}score_a_total"] = [-5] * bsz
+                fallback_df[f"{p}score_b_total"] = [-5] * bsz
+                fallback_df[f"{p}score_a_coherence"] = [-1] * bsz
+                fallback_df[f"{p}score_a_completeness"] = [-1] * bsz
+                fallback_df[f"{p}score_a_feasibility"] = [-1] * bsz
+                fallback_df[f"{p}score_a_format"] = [-1] * bsz
+                fallback_df[f"{p}score_a_granularity"] = [-1] * bsz
+                fallback_df[f"{p}score_b_coherence"] = [-1] * bsz
+                fallback_df[f"{p}score_b_completeness"] = [-1] * bsz
+                fallback_df[f"{p}score_b_feasibility"] = [-1] * bsz
+                fallback_df[f"{p}score_b_format"] = [-1] * bsz
+                fallback_df[f"{p}score_b_granularity"] = [-1] * bsz
                 fallback_df[f"{p}strengths_a"] = ["N/A"] * bsz
                 fallback_df[f"{p}weaknesses_a"] = ["Error occurred"] * bsz
                 fallback_df[f"{p}strengths_b"] = ["N/A"] * bsz

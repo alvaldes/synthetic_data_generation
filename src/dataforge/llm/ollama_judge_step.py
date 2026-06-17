@@ -49,6 +49,7 @@ class OllamaJudgeStep(BaseStep):
         ollama_host: Optional[str] = None,
         max_retries: Optional[int] = None,
         num_workers: Optional[int] = None,
+        max_zero_retries: Optional[int] = None,
         **kwargs,
     ):
         super().__init__(name, **kwargs)
@@ -71,6 +72,7 @@ class OllamaJudgeStep(BaseStep):
         self.ollama_host = ollama_host or llm_cfg.ollama_host
         self.max_retries = max_retries if max_retries is not None else llm_cfg.max_retries
         self.num_workers = num_workers if num_workers is not None else judge_cfg.num_workers
+        self.max_zero_retries = max_zero_retries if max_zero_retries is not None else judge_cfg.max_zero_retries
         self.client = None
         self.logger = setup_logger(name=f"OllamaJudgeStep.{name}", level=logging.INFO)
 
@@ -107,9 +109,9 @@ class OllamaJudgeStep(BaseStep):
         super().unload()
 
     # -------- Utilidades internas --------
-    def _create_judge_prompt(self, historia_usuario: str, tareas_generadas: str) -> str:
+    def _create_judge_prompt(self, historia_usuario: str, tareas_generadas: str, zero_retry_count: int = 0) -> str:
         """Render the judge prompt template with row data."""
-        return PromptLoader.render(
+        prompt = PromptLoader.render(
             self.PROMPT_TEMPLATE,
             {
                 "historia_usuario": historia_usuario,
@@ -117,6 +119,17 @@ class OllamaJudgeStep(BaseStep):
                 "approval_threshold": str(self.approval_threshold),
             },
         )
+
+        if zero_retry_count > 0:
+            prompt += (
+                f"\n\n**⚠️ REINTENTO {zero_retry_count} — CRÍTICO:**\n"
+                "En tu intento anterior diste puntuación 0 en al menos un criterio.\n"
+                "CADA criterio debe tener un valor entre 1 y 10. 0 NO está permitido.\n"
+                "Vuelve a evaluar con cuidado, asegurándote de dar valores entre 1 y 10.\n"
+                "Si un criterio realmente no aplica, usa 1 como mínimo.\n"
+            )
+
+        return prompt
 
     def _clean_json_response(self, response: str) -> str:
         """Cleans the response to extract valid JSON."""
@@ -129,13 +142,20 @@ class OllamaJudgeStep(BaseStep):
 
         return response
 
+    def _has_zero_score(self, result: Dict[str, Any]) -> bool:
+        """Check if any individual criterion has a score of 0."""
+        required_fields = ["coherence", "completeness", "feasibility", "format", "granularity"]
+        for field in required_fields:
+            if field in result and result[field].get("puntuacion", 0) == 0:
+                return True
+        return False
+
     def _parse_validation_result(self, raw_response: str) -> Dict[str, Any]:
         """Parsea la respuesta JSON del juez con manejo robusto de errores."""
         try:
             cleaned_response = self._clean_json_response(raw_response)
             result = json.loads(cleaned_response)
 
-            # Validate minimum required structure
             required_fields = [
                 "coherence",
                 "completeness",
@@ -147,19 +167,22 @@ class OllamaJudgeStep(BaseStep):
                 if field not in result or "puntuacion" not in result[field]:
                     raise ValueError(f"Campo requerido faltante: {field}")
 
-            # Calculate total score if not present
-            if "puntuacion_total" not in result:
-                result["puntuacion_total"] = sum(
-                    result[field]["puntuacion"] for field in required_fields
+            # Calculate total in code — always override LLM's value
+            code_total = sum(result[field]["puntuacion"] for field in required_fields)
+
+            if "puntuacion_total" in result and result["puntuacion_total"] != code_total:
+                self.logger.warning(
+                    f"Discrepancia en puntuacion_total: LLM={result['puntuacion_total']}, "
+                    f"código={code_total}. Usando valor del código."
                 )
 
-            # Determine approval if not present
+            result["puntuacion_total"] = code_total
+
             if "aprobado" not in result:
                 result["aprobado"] = (
                     result["puntuacion_total"] >= self.approval_threshold
                 )
 
-            # Asegurar campos opcionales
             result.setdefault("problemas_criticos", [])
             result.setdefault("recomendaciones", [])
 
@@ -169,21 +192,21 @@ class OllamaJudgeStep(BaseStep):
             self.logger.error(f"Error parseando validación: {e}")
             self.logger.error(f"Respuesta cruda: {raw_response}")
 
-            # Retornar resultado de fallo
             return {
-                "coherence": {"puntuacion": 0, "justificacion": "Error de parsing"},
+                "coherence": {"puntuacion": -1, "justificacion": "Error de parsing"},
                 "completeness": {
-                    "puntuacion": 0,
+                    "puntuacion": -1,
                     "justificacion": "Error de parsing",
                     "tareas_faltantes": [],
                 },
-                "feasibility": {"puntuacion": 0, "justificacion": "Error de parsing"},
-                "format": {"puntuacion": 0, "justificacion": "Error de parsing"},
-                "granularity": {"puntuacion": 0, "justificacion": "Error de parsing"},
-                "puntuacion_total": 0,
+                "feasibility": {"puntuacion": -1, "justificacion": "Error de parsing"},
+                "format": {"puntuacion": -1, "justificacion": "Error de parsing"},
+                "granularity": {"puntuacion": -1, "justificacion": "Error de parsing"},
+                "puntuacion_total": -5,
                 "aprobado": False,
                 "problemas_criticos": ["Error en parsing de respuesta del juez"],
                 "recomendaciones": ["Revisar manualmente"],
+                "parse_error": True,
             }
 
     def _get_thread_client(self) -> ollama.Client:
@@ -194,19 +217,22 @@ class OllamaJudgeStep(BaseStep):
 
     def _validate_with_retry(
         self, historia_usuario: str, tareas_generadas: str, retry_count: int = 0,
-        client: Optional[ollama.Client] = None,
+        zero_retry_count: int = 0, client: Optional[ollama.Client] = None,
     ) -> Optional[Dict[str, Any]]:
-        """Llama al modelo juez con reintentos en caso de error.
+        """Llama al modelo juez con reintentos en caso de error o scores cero.
 
         Args:
             historia_usuario: User story text.
             tareas_generadas: Generated tasks text.
-            retry_count: Current retry attempt number.
+            retry_count: Current retry attempt number for connection/API errors.
+            zero_retry_count: Current retry attempt number for zero-score retries.
             client: Optional Ollama client instance. Falls back to self.client if None.
         """
         client = client or self.client
         try:
-            prompt = self._create_judge_prompt(historia_usuario, tareas_generadas)
+            prompt = self._create_judge_prompt(
+                historia_usuario, tareas_generadas, zero_retry_count=zero_retry_count,
+            )
 
             response = client.chat(
                 model=self.model_name,
@@ -218,6 +244,24 @@ class OllamaJudgeStep(BaseStep):
 
             raw_content = response["message"]["content"]
             validation_result = self._parse_validation_result(raw_content)
+
+            # Zero-score retry: if any criterion is 0, retry with stricter prompt
+            if (
+                "parse_error" not in validation_result
+                and zero_retry_count < self.max_zero_retries
+                and self._has_zero_score(validation_result)
+            ):
+                self.logger.warning(
+                    f"Detectado score 0 en validación (reintento {zero_retry_count + 1}/"
+                    f"{self.max_zero_retries}). Reintentando con prompt corregido."
+                )
+                return self._validate_with_retry(
+                    historia_usuario, tareas_generadas,
+                    retry_count=0,
+                    zero_retry_count=zero_retry_count + 1,
+                    client=client,
+                )
+
             return validation_result
 
         except ollama.ResponseError as e:
@@ -230,7 +274,7 @@ class OllamaJudgeStep(BaseStep):
                 wait_time = 2**retry_count
                 time.sleep(wait_time)
                 return self._validate_with_retry(
-                    historia_usuario, tareas_generadas, retry_count + 1
+                    historia_usuario, tareas_generadas, retry_count + 1, zero_retry_count, client
                 )
             else:
                 self.logger.error(f"Judge validation failed after {self.max_retries} retries")
@@ -241,7 +285,7 @@ class OllamaJudgeStep(BaseStep):
                 wait_time = 2**retry_count
                 time.sleep(wait_time)
                 return self._validate_with_retry(
-                    historia_usuario, tareas_generadas, retry_count + 1
+                    historia_usuario, tareas_generadas, retry_count + 1, zero_retry_count, client
                 )
             else:
                 self.logger.error("Ollama server appears to be down. Check with: ollama serve")
@@ -251,7 +295,7 @@ class OllamaJudgeStep(BaseStep):
                 wait_time = 2**retry_count
                 time.sleep(wait_time)
                 return self._validate_with_retry(
-                    historia_usuario, tareas_generadas, retry_count + 1
+                    historia_usuario, tareas_generadas, retry_count + 1, zero_retry_count, client
                 )
             else:
                 self.logger.error(
@@ -280,19 +324,20 @@ class OllamaJudgeStep(BaseStep):
 
                 if validation is None:
                     validation = {
-                        "coherence": {"puntuacion": 0, "justificacion": "Error de conexión"},
+                        "coherence": {"puntuacion": -1, "justificacion": "Error de conexión"},
                         "completeness": {
-                            "puntuacion": 0,
+                            "puntuacion": -1,
                             "justificacion": "Error de conexión",
                             "tareas_faltantes": [],
                         },
-                        "feasibility": {"puntuacion": 0, "justificacion": "Error de conexión"},
-                        "format": {"puntuacion": 0, "justificacion": "Error de conexión"},
-                        "granularity": {"puntuacion": 0, "justificacion": "Error de conexión"},
-                        "puntuacion_total": 0,
+                        "feasibility": {"puntuacion": -1, "justificacion": "Error de conexión"},
+                        "format": {"puntuacion": -1, "justificacion": "Error de conexión"},
+                        "granularity": {"puntuacion": -1, "justificacion": "Error de conexión"},
+                        "puntuacion_total": -5,
                         "aprobado": False,
                         "problemas_criticos": ["Error de conexión con modelo"],
                         "recomendaciones": ["Reintentar validación"],
+                        "parse_error": True,
                     }
 
                 self.logger.info(
@@ -320,19 +365,20 @@ class OllamaJudgeStep(BaseStep):
 
                     if validation is None:
                         validation = {
-                            "coherence": {"puntuacion": 0, "justificacion": "Error de conexión"},
+                            "coherence": {"puntuacion": -1, "justificacion": "Error de conexión"},
                             "completeness": {
-                                "puntuacion": 0,
+                                "puntuacion": -1,
                                 "justificacion": "Error de conexión",
                                 "tareas_faltantes": [],
                             },
-                            "feasibility": {"puntuacion": 0, "justificacion": "Error de conexión"},
-                            "format": {"puntuacion": 0, "justificacion": "Error de conexión"},
-                            "granularity": {"puntuacion": 0, "justificacion": "Error de conexión"},
-                            "puntuacion_total": 0,
+                            "feasibility": {"puntuacion": -1, "justificacion": "Error de conexión"},
+                            "format": {"puntuacion": -1, "justificacion": "Error de conexión"},
+                            "granularity": {"puntuacion": -1, "justificacion": "Error de conexión"},
+                            "puntuacion_total": -5,
                             "aprobado": False,
                             "problemas_criticos": ["Error de conexión con modelo"],
                             "recomendaciones": ["Reintentar validación"],
+                            "parse_error": True,
                         }
 
                     self.logger.info(

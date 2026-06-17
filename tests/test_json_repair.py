@@ -60,7 +60,8 @@ class TestComparisonJudgeStep:
         result = judge_step._parse_judge_response(raw_response)
         assert result["winner"] == "A"
         assert result["breakdown_a"]["total_score"] == 47
-        assert result["breakdown_b"]["total_score"] == 45
+        # Code recalculates total from individual scores: 9+8+9+10+8 = 44
+        assert result["breakdown_b"]["total_score"] == 44
 
     def test_missing_commas_between_fields(self, judge_step):
         """Missing commas between string fields - common LLM error."""
@@ -280,8 +281,11 @@ Based on my analysis, Breakdown B is superior because it provides better complet
 
         result = judge_step._parse_judge_response(raw_response)
         assert result["winner"] == "A"  # Default fallback
-        assert result["breakdown_a"]["total_score"] == 25
-        assert result["breakdown_b"]["total_score"] == 25
+        assert result["parse_error"] is True
+        assert result["breakdown_a"]["total_score"] == -5
+        assert result["breakdown_b"]["total_score"] == -5
+        assert result["breakdown_a"]["coherence"] == -1
+        assert result["breakdown_b"]["granularity"] == -1
 
     def test_invalid_winner_fallback(self, judge_step):
         """Winner field with invalid value should default to A."""
