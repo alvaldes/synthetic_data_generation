@@ -71,6 +71,7 @@ def validate_inputs(
     batch_size: int,
     temperature_a: float,
     temperature_b: float,
+    num_workers: Optional[int] = None,
 ) -> None:
     """Validate input parameters."""
     if batch_size <= 0:
@@ -83,6 +84,8 @@ def validate_inputs(
         raise ValueError(
             f"temperature_b must be between 0.0 and 2.0, got: {temperature_b}"
         )
+    if num_workers is not None and num_workers < 1:
+        raise ValueError(f"num_workers must be >= 1, got: {num_workers}")
 
 
 def load_and_validate_data(
@@ -139,6 +142,7 @@ def run_dual_generator_pipeline(
     model_b: Optional[str] = None,
     judge_model: Optional[str] = None,
     batch_size: Optional[int] = None,
+    num_workers: Optional[int] = None,
     temperature_a: Optional[float] = None,
     temperature_b: Optional[float] = None,
     num_predict: Optional[int] = None,
@@ -164,6 +168,8 @@ def run_dual_generator_pipeline(
         Ollama model for judging (defaults to *model_a*).
     batch_size : int, optional
         Stories to process simultaneously (default from config).
+    num_workers : int, optional
+        Concurrent requests per batch (default: 1, sequential).
     temperature_a : float, optional
         Generation temperature for model A (default from config).
     temperature_b : float, optional
@@ -189,6 +195,7 @@ def run_dual_generator_pipeline(
     model_b = model_b or "qwen3:8b"
     judge_model = judge_model or model_a
     batch_size = batch_size if batch_size is not None else llm_cfg.batch_size
+    num_workers = num_workers if num_workers is not None else llm_cfg.num_workers
     temperature_a = temperature_a if temperature_a is not None else llm_cfg.temperature
     temperature_b = temperature_b if temperature_b is not None else 0.7
     num_predict = num_predict if num_predict is not None else llm_cfg.num_predict
@@ -212,7 +219,7 @@ def run_dual_generator_pipeline(
     logging.info(f"Logging to: {log_file}")
 
     validate_inputs(
-        model_a, model_b, judge_model, batch_size, temperature_a, temperature_b
+        model_a, model_b, judge_model, batch_size, temperature_a, temperature_b, num_workers
     )
 
     if input_csv is None:
@@ -269,6 +276,7 @@ def run_dual_generator_pipeline(
             prompt_template=create_task_generation_prompt,
             system_prompt="You are an expert software development lead who excels at breaking down user stories into clear, actionable development tasks.",
             batch_size=batch_size,
+            num_workers=num_workers,
             generation_kwargs={
                 "temperature": temperature_a,
                 "num_predict": num_predict,
@@ -287,6 +295,7 @@ def run_dual_generator_pipeline(
             prompt_template=create_task_generation_prompt,
             system_prompt="You are an expert software development lead who excels at breaking down user stories into clear, actionable development tasks.",
             batch_size=batch_size,
+            num_workers=num_workers,
             generation_kwargs={
                 "temperature": temperature_b,
                 "num_predict": num_predict,
@@ -306,6 +315,7 @@ def run_dual_generator_pipeline(
             prompt_template_func=create_comparison_judge_prompt,
             system_prompt="You are an expert software development manager who evaluates and compares different task breakdowns to determine which is superior.",
             batch_size=max(1, batch_size // 2),
+            num_workers=max(1, num_workers // 2),
             generation_kwargs={
                 "temperature": 0.2,
                 "num_predict": 1000,
@@ -524,6 +534,10 @@ Examples:
         help="Stories to process simultaneously (default: 2)",
     )
     parser.add_argument(
+        "--num-workers", type=int, default=1,
+        help="Concurrent requests per batch (default: 1, sequential)",
+    )
+    parser.add_argument(
         "--temperature-a", type=float, default=0.3,
         help="Generation temperature for model A (default: 0.3)",
     )
@@ -551,6 +565,7 @@ Examples:
             model_b=args.model_b,
             judge_model=args.judge_model,
             batch_size=args.batch_size,
+            num_workers=args.num_workers,
             temperature_a=args.temperature_a,
             temperature_b=args.temperature_b,
             num_predict=args.num_predict,
