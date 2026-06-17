@@ -151,21 +151,28 @@ class ExplodeTasks(BaseStep):
     def _split_tasks(self, tasks_text: str) -> List[str]:
         """
         Separa el texto de tareas en una lista de tareas individuales.
-        
+
         Busca patrones como:
         "1. summary: ..."
         "2. summary: ..."
-        etc.
+
+        Descarta cualquier texto introductorio (preamble) que aparezca
+        antes de la primera tarea numerada.
         """
         # Patrón para detectar el inicio de cada tarea (número seguido de punto)
         pattern = r'\n(?=\d+\.\s+summary:)'
-        
+
         # Separar por el patrón
         tasks = re.split(pattern, tasks_text.strip())
-        
+
         # Filtrar tareas vacías
         tasks = [task.strip() for task in tasks if task.strip()]
-        
+
+        # Si la primera "tarea" no empieza con un número, es preamble — descartarla
+        numbered_pattern = re.compile(r'^\d+\.\s+summary:', re.IGNORECASE)
+        if tasks and not numbered_pattern.match(tasks[0]):
+            tasks = tasks[1:]
+
         return tasks
 
     def _clean_task_number(self, task_text: str) -> str:

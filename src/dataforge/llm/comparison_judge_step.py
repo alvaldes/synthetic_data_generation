@@ -12,7 +12,12 @@ from ..config import get_settings, PromptLoader
 
 _thread_local = threading.local()
 from ..utils.batching import batch_dataframe, get_num_batches
-from ..transformers.json_repair import clean_json_response, repair_json, parse_json_with_repair
+from ..transformers.json_repair import (
+    clean_json_response,
+    repair_json,
+    parse_json_with_repair,
+    fuzzy_normalize_dict,
+)
 
 
 class ComparisonJudgeStep(BaseStep):
@@ -196,7 +201,10 @@ class ComparisonJudgeStep(BaseStep):
         for breakdown_key in ["breakdown_a", "breakdown_b"]:
             breakdown = result[breakdown_key]
 
-            # Validate individual score fields exist
+            # Fuzzy-normalize score field keys (handles typos like "granuylarity")
+            breakdown = fuzzy_normalize_dict(breakdown, score_fields)
+
+            # Validate individual score fields exist after normalization
             for field in score_fields:
                 if field not in breakdown:
                     raise ValueError(f"Missing score field '{field}' in {breakdown_key}")
@@ -212,8 +220,12 @@ class ComparisonJudgeStep(BaseStep):
                 )
 
             breakdown["total_score"] = code_total
+            result[breakdown_key] = breakdown
 
         if result["winner"] not in ["A", "B"]:
+            logging.warning(
+                f"Invalid winner '{result['winner']}', defaulting to 'A'"
+            )
             result["winner"] = "A"
             result["reason"] = "Invalid winner designation, defaulting to A"
 
@@ -269,6 +281,7 @@ class ComparisonJudgeStep(BaseStep):
                     {"role": "user", "content": prompt},
                 ],
                 stream=False,
+                format="json",
                 options=self.generation_kwargs,
             )
 

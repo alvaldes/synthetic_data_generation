@@ -5,8 +5,6 @@ import pandas as pd
 from typing import List, Dict, Any, Optional
 from tqdm import tqdm
 import time
-import json
-import re
 import logging
 import threading
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -15,6 +13,10 @@ from ..base_step import BaseStep
 from ..config import get_settings, PromptLoader
 from ..utils.batching import batch_dataframe
 from ..utils.logging import setup_logger
+from ..transformers.json_repair import (
+    parse_json_with_repair,
+    fuzzy_normalize_dict,
+)
 
 _thread_local = threading.local()
 
@@ -131,17 +133,6 @@ class OllamaJudgeStep(BaseStep):
 
         return prompt
 
-    def _clean_json_response(self, response: str) -> str:
-        """Cleans the response to extract valid JSON."""
-        response = response.replace("```json", "").replace("```", "").strip()
-
-        json_pattern = r"\{.*\}"
-        match = re.search(json_pattern, response, re.DOTALL)
-        if match:
-            return match.group(0)
-
-        return response
-
     def _has_zero_score(self, result: Dict[str, Any]) -> bool:
         """Check if any individual criterion has a score of 0."""
         required_fields = ["coherence", "completeness", "feasibility", "format", "granularity"]
@@ -152,62 +143,69 @@ class OllamaJudgeStep(BaseStep):
 
     def _parse_validation_result(self, raw_response: str) -> Dict[str, Any]:
         """Parsea la respuesta JSON del juez con manejo robusto de errores."""
-        try:
-            cleaned_response = self._clean_json_response(raw_response)
-            result = json.loads(cleaned_response)
+        required_fields = [
+            "coherence",
+            "completeness",
+            "feasibility",
+            "format",
+            "granularity",
+        ]
 
-            required_fields = [
-                "coherence",
-                "completeness",
-                "feasibility",
-                "format",
-                "granularity",
-            ]
-            for field in required_fields:
-                if field not in result or "puntuacion" not in result[field]:
-                    raise ValueError(f"Campo requerido faltante: {field}")
+        result = parse_json_with_repair(raw_response, logger=self.logger)
 
-            # Calculate total in code — always override LLM's value
-            code_total = sum(result[field]["puntuacion"] for field in required_fields)
+        if result is not None:
+            try:
+                # Fuzzy-normalize criterion keys for typo tolerance
+                result = fuzzy_normalize_dict(result, required_fields)
 
-            if "puntuacion_total" in result and result["puntuacion_total"] != code_total:
-                self.logger.warning(
-                    f"Discrepancia en puntuacion_total: LLM={result['puntuacion_total']}, "
-                    f"código={code_total}. Usando valor del código."
+                for field in required_fields:
+                    if field not in result or "puntuacion" not in result[field]:
+                        raise ValueError(f"Campo requerido faltante: {field}")
+
+                # Calculate total in code — always override LLM's value
+                code_total = sum(
+                    result[field]["puntuacion"] for field in required_fields
                 )
 
-            result["puntuacion_total"] = code_total
+                if "puntuacion_total" in result and result["puntuacion_total"] != code_total:
+                    self.logger.warning(
+                        f"Discrepancia en puntuacion_total: LLM={result['puntuacion_total']}, "
+                        f"código={code_total}. Usando valor del código."
+                    )
 
-            if "aprobado" not in result:
-                result["aprobado"] = (
-                    result["puntuacion_total"] >= self.approval_threshold
-                )
+                result["puntuacion_total"] = code_total
 
-            result.setdefault("problemas_criticos", [])
-            result.setdefault("recomendaciones", [])
+                if "aprobado" not in result:
+                    result["aprobado"] = (
+                        result["puntuacion_total"] >= self.approval_threshold
+                    )
 
-            return result
+                result.setdefault("problemas_criticos", [])
+                result.setdefault("recomendaciones", [])
 
-        except (json.JSONDecodeError, ValueError, KeyError) as e:
-            self.logger.error(f"Error parseando validación: {e}")
-            self.logger.error(f"Respuesta cruda: {raw_response}")
+                return result
 
-            return {
-                "coherence": {"puntuacion": -1, "justificacion": "Error de parsing"},
-                "completeness": {
-                    "puntuacion": -1,
-                    "justificacion": "Error de parsing",
-                    "tareas_faltantes": [],
-                },
-                "feasibility": {"puntuacion": -1, "justificacion": "Error de parsing"},
-                "format": {"puntuacion": -1, "justificacion": "Error de parsing"},
-                "granularity": {"puntuacion": -1, "justificacion": "Error de parsing"},
-                "puntuacion_total": -5,
-                "aprobado": False,
-                "problemas_criticos": ["Error en parsing de respuesta del juez"],
-                "recomendaciones": ["Revisar manualmente"],
-                "parse_error": True,
-            }
+            except (ValueError, KeyError) as e:
+                self.logger.warning(f"Validación del resultado del juez falló: {e}")
+
+        self.logger.error(f"Error parseando validación. Respuesta cruda: {raw_response}")
+
+        return {
+            "coherence": {"puntuacion": -1, "justificacion": "Error de parsing"},
+            "completeness": {
+                "puntuacion": -1,
+                "justificacion": "Error de parsing",
+                "tareas_faltantes": [],
+            },
+            "feasibility": {"puntuacion": -1, "justificacion": "Error de parsing"},
+            "format": {"puntuacion": -1, "justificacion": "Error de parsing"},
+            "granularity": {"puntuacion": -1, "justificacion": "Error de parsing"},
+            "puntuacion_total": -5,
+            "aprobado": False,
+            "problemas_criticos": ["Error en parsing de respuesta del juez"],
+            "recomendaciones": ["Revisar manualmente"],
+            "parse_error": True,
+        }
 
     def _get_thread_client(self) -> ollama.Client:
         """Get thread-local Ollama client for parallel execution."""
