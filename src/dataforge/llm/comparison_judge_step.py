@@ -1,5 +1,5 @@
-import json
 import logging
+import re
 import pandas as pd
 from typing import Dict, List, Optional, Any, Callable, Tuple
 import ollama
@@ -12,12 +12,23 @@ from ..config import get_settings, PromptLoader
 
 _thread_local = threading.local()
 from ..utils.batching import batch_dataframe, get_num_batches
-from ..transformers.json_repair import (
-    clean_json_response,
-    repair_json,
-    parse_json_with_repair,
-    fuzzy_normalize_dict,
-)
+
+# Flat key → (breakdown, field) mapping for score lines
+SCORE_KEYS: Dict[str, Tuple[str, str]] = {
+    "coherence_a": ("breakdown_a", "coherence"),
+    "completeness_a": ("breakdown_a", "completeness"),
+    "feasibility_a": ("breakdown_a", "feasibility"),
+    "format_a": ("breakdown_a", "format"),
+    "granularity_a": ("breakdown_a", "granularity"),
+    "coherence_b": ("breakdown_b", "coherence"),
+    "completeness_b": ("breakdown_b", "completeness"),
+    "feasibility_b": ("breakdown_b", "feasibility"),
+    "format_b": ("breakdown_b", "format"),
+    "granularity_b": ("breakdown_b", "granularity"),
+}
+
+SCORE_FIELDS = ["coherence", "completeness", "feasibility", "format", "granularity"]
+BREAKDOWN_KEYS = ["breakdown_a", "breakdown_b"]
 
 
 class ComparisonJudgeStep(BaseStep):
@@ -150,80 +161,44 @@ class ComparisonJudgeStep(BaseStep):
         return False
 
     def _parse_judge_response(self, raw_response: str) -> Dict:
-        """Parse the judge response JSON with robust error handling and repair."""
-        result = parse_json_with_repair(raw_response, logger=logging.getLogger(__name__))
-
-        if result is not None:
-            try:
-                return self._validate_and_normalize_judge_result(result)
-            except (ValueError, KeyError) as e:
-                logging.warning(f"Judge result validation failed: {e}")
-
-        return {
-            "breakdown_a": {
-                "total_score": -5,
-                "coherence": -1,
-                "completeness": -1,
-                "feasibility": -1,
-                "format": -1,
-                "granularity": -1,
-                "strengths": "Unable to parse",
-                "weaknesses": "Parse error",
-            },
-            "breakdown_b": {
-                "total_score": -5,
-                "coherence": -1,
-                "completeness": -1,
-                "feasibility": -1,
-                "format": -1,
-                "granularity": -1,
-                "strengths": "Unable to parse",
-                "weaknesses": "Parse error",
-            },
+        """Parse key:value line response. Handles extra text before/after."""
+        result: Dict[str, Any] = {
+            "breakdown_a": {},
+            "breakdown_b": {},
             "winner": "A",
-            "reason": "Failed to parse judge response",
-            "parse_error": True,
+            "reason": "",
         }
 
-    def _validate_and_normalize_judge_result(self, result: Dict) -> Dict:
-        """Validate and normalize the parsed judge result."""
-        required_top_level = ["breakdown_a", "breakdown_b", "winner", "reason"]
-        for field in required_top_level:
-            if field not in result:
-                raise ValueError(f"Missing required field: {field}")
+        for line in raw_response.split("\n"):
+            line = line.strip()
+            if not line:
+                continue
 
-        score_fields = ["coherence", "completeness", "feasibility", "format", "granularity"]
+            match = re.match(r"(\w+)\s*:\s*(.*)", line)
+            if not match:
+                continue
 
-        for breakdown_key in ["breakdown_a", "breakdown_b"]:
-            breakdown = result[breakdown_key]
+            key, value = match.group(1).strip(), match.group(2).strip()
 
-            # Fuzzy-normalize score field keys (handles typos like "granuylarity")
-            breakdown = fuzzy_normalize_dict(breakdown, score_fields)
+            if key in SCORE_KEYS:
+                bk, field = SCORE_KEYS[key]
+                try:
+                    score = max(0, min(10, int(float(value))))
+                    result[bk][field] = score
+                except (ValueError, TypeError):
+                    continue
+            elif key == "winner":
+                normalized = value.upper().strip("\"'.")
+                if normalized in ("A", "B"):
+                    result["winner"] = normalized
+            elif key == "reason":
+                result["reason"] = value
 
-            # Validate individual score fields exist after normalization
-            for field in score_fields:
-                if field not in breakdown:
-                    raise ValueError(f"Missing score field '{field}' in {breakdown_key}")
-
-            # Always calculate total in code — override LLM's value
-            code_total = sum(breakdown[field] for field in score_fields)
-
-            if "total_score" in breakdown and breakdown["total_score"] != code_total:
-                logging.warning(
-                    f"Discrepancia en total_score para {breakdown_key}: "
-                    f"LLM={breakdown['total_score']}, código={code_total}. "
-                    f"Usando valor del código."
-                )
-
-            breakdown["total_score"] = code_total
-            result[breakdown_key] = breakdown
-
-        if result["winner"] not in ["A", "B"]:
-            logging.warning(
-                f"Invalid winner '{result['winner']}', defaulting to 'A'"
-            )
-            result["winner"] = "A"
-            result["reason"] = "Invalid winner designation, defaulting to A"
+        # Default missing scores to 0, always calculate total in code
+        for bk in BREAKDOWN_KEYS:
+            for f in SCORE_FIELDS:
+                result[bk].setdefault(f, 0)
+            result[bk]["total_score"] = sum(result[bk][f] for f in SCORE_FIELDS)
 
         return result
 
@@ -285,8 +260,7 @@ class ComparisonJudgeStep(BaseStep):
 
             # Zero-score retry
             if (
-                "parse_error" not in judgment
-                and zero_retry_count < self.max_zero_retries
+                zero_retry_count < self.max_zero_retries
                 and self._has_zero_score(judgment)
             ):
                 logging.warning(
