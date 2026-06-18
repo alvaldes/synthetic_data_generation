@@ -277,7 +277,6 @@ class ComparisonJudgeStep(BaseStep):
                     {"role": "user", "content": prompt},
                 ],
                 stream=False,
-                format="json",
                 options=self.generation_kwargs,
             )
 
