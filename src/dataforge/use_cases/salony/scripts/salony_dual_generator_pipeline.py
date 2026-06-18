@@ -24,6 +24,7 @@ import pandas as pd
 import argparse
 import logging
 import time
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from typing import Dict, Optional
 import ollama
@@ -146,6 +147,7 @@ def run_dual_generator_pipeline(
     temperature_a: Optional[float] = None,
     temperature_b: Optional[float] = None,
     num_predict: Optional[int] = None,
+    judge_num_predict: Optional[int] = None,
     sample_size: Optional[int] = None,
     use_cache: bool = True,
 ):
@@ -176,6 +178,8 @@ def run_dual_generator_pipeline(
         Generation temperature for model B (default: 0.7).
     num_predict : int, optional
         Maximum tokens to generate (default from config).
+    judge_num_predict : int, optional
+        Maximum tokens for judge generation (default: 500).
     sample_size : int, optional
         If specified, process only N stories.
     use_cache : bool
@@ -199,6 +203,7 @@ def run_dual_generator_pipeline(
     temperature_a = temperature_a if temperature_a is not None else llm_cfg.temperature
     temperature_b = temperature_b if temperature_b is not None else 0.7
     num_predict = num_predict if num_predict is not None else llm_cfg.num_predict
+    judge_num_predict = judge_num_predict if judge_num_predict is not None else 500
 
     # Resolve output path — default incluye timestamp para no pisar corridas
     if output_csv is None:
@@ -254,73 +259,61 @@ def run_dual_generator_pipeline(
     logging.info(f"Loaded {len(df)} user stories")
 
     # --- Build pipeline ---------------------------------------------------
-    pipeline = DataForgePipeline(
-        name="salony-dual-generator-pipeline",
-        description="Dual generator pipeline with judge selection for Salony dataset",
+    # Create all step instances
+    load_step = LoadDataFrame(name="load", df=df)
+
+    validate_step = ValidateUserStories(
+        name="validate_format", story_column="input", case_sensitive=False
     )
 
-    pipeline.add_step(LoadDataFrame(name="load", df=df))
-
-    pipeline.add_step(
-        ValidateUserStories(
-            name="validate_format", story_column="input", case_sensitive=False
-        )
+    gen_a_step = OllamaLLMStep(
+        name="generator_a",
+        model_name=model_a,
+        prompt_column="input",
+        output_column="tasks_generator_a",
+        prompt_template=create_task_generation_prompt,
+        system_prompt="You are an expert software development lead who excels at breaking down user stories into clear, actionable development tasks.",
+        batch_size=batch_size,
+        num_workers=num_workers,
+        generation_kwargs={
+            "temperature": temperature_a,
+            "num_predict": num_predict,
+        },
+        track_time=True,
+        time_column="generation_time_a",
     )
 
-    pipeline.add_step(
-        OllamaLLMStep(
-            name="generator_a",
-            model_name=model_a,
-            prompt_column="input",
-            output_column="tasks_generator_a",
-            prompt_template=create_task_generation_prompt,
-            system_prompt="You are an expert software development lead who excels at breaking down user stories into clear, actionable development tasks.",
-            batch_size=batch_size,
-            num_workers=num_workers,
-            generation_kwargs={
-                "temperature": temperature_a,
-                "num_predict": num_predict,
-            },
-            track_time=True,
-            time_column="generation_time_a",
-        )
+    gen_b_step = OllamaLLMStep(
+        name="generator_b",
+        model_name=model_b,
+        prompt_column="input",
+        output_column="tasks_generator_b",
+        prompt_template=create_task_generation_prompt,
+        system_prompt="You are an expert software development lead who excels at breaking down user stories into clear, actionable development tasks.",
+        batch_size=batch_size,
+        num_workers=num_workers,
+        generation_kwargs={
+            "temperature": temperature_b,
+            "num_predict": num_predict,
+        },
+        track_time=True,
+        time_column="generation_time_b",
     )
 
-    pipeline.add_step(
-        OllamaLLMStep(
-            name="generator_b",
-            model_name=model_b,
-            prompt_column="input",
-            output_column="tasks_generator_b",
-            prompt_template=create_task_generation_prompt,
-            system_prompt="You are an expert software development lead who excels at breaking down user stories into clear, actionable development tasks.",
-            batch_size=batch_size,
-            num_workers=num_workers,
-            generation_kwargs={
-                "temperature": temperature_b,
-                "num_predict": num_predict,
-            },
-            track_time=True,
-            time_column="generation_time_b",
-        )
-    )
-
-    pipeline.add_step(
-        ComparisonJudgeStep(
-            name="comparison_judge",
-            model_name=judge_model,
-            input_column="input",
-            output_a_column="tasks_generator_a",
-            output_b_column="tasks_generator_b",
-            prompt_template_func=create_comparison_judge_prompt,
-            system_prompt="You are an expert software development manager who evaluates and compares different task breakdowns to determine which is superior.",
-            batch_size=max(1, batch_size // 2),
-            num_workers=max(1, num_workers // 2),
-            generation_kwargs={
-                "temperature": 0.2,
-                "num_predict": 1000,
-            },
-        )
+    judge_step = ComparisonJudgeStep(
+        name="comparison_judge",
+        model_name=judge_model,
+        input_column="input",
+        output_a_column="tasks_generator_a",
+        output_b_column="tasks_generator_b",
+        prompt_template_func=create_comparison_judge_prompt,
+        system_prompt="You are an expert software development manager who evaluates and compares different task breakdowns to determine which is superior.",
+        batch_size=max(1, batch_size // 2),
+        num_workers=max(1, num_workers // 2),
+        generation_kwargs={
+            "temperature": 0.2,
+            "num_predict": judge_num_predict,
+        },
     )
 
     # US ID tracking
@@ -330,10 +323,8 @@ def run_dual_generator_pipeline(
         us_counter["count"] += 1
         return us_counter["count"]
 
-    pipeline.add_step(
-        AddColumn(
-            name="add_us_id", input_columns=[], output_column="us_id", func=get_us_id
-        )
+    add_id_step = AddColumn(
+        name="add_us_id", input_columns=[], output_column="us_id", func=get_us_id
     )
 
     # --- Execute ----------------------------------------------------------
@@ -342,7 +333,51 @@ def run_dual_generator_pipeline(
     start_timestamp = pd.Timestamp.now().isoformat()
 
     try:
-        result_df = pipeline.run(use_cache=use_cache)
+        # Phase 1: Load + Validate (sequential — fast, pandas-only)
+        phase1 = DataForgePipeline(
+            name="salony-dual-generator-pipeline",
+            description="Dual generator pipeline with judge selection for Salony dataset",
+        )
+        phase1.add_step(load_step)
+        phase1.add_step(validate_step)
+        validated_df = phase1.run(use_cache=use_cache)
+
+        # Phase 2: Generators A and B in parallel
+        logging.info("Running generators A and B in parallel...")
+        gen_a_step.load()
+        gen_b_step.load()
+        try:
+            with ThreadPoolExecutor(max_workers=2) as pool:
+                fut_a = pool.submit(gen_a_step.process, validated_df.copy())
+                fut_b = pool.submit(gen_b_step.process, validated_df.copy())
+                df_a = fut_a.result()
+                df_b = fut_b.result()
+        finally:
+            gen_a_step.unload()
+            gen_b_step.unload()
+
+        # Merge generator outputs column-wise
+        merged_df = validated_df.copy()
+        merged_df["tasks_generator_a"] = df_a["tasks_generator_a"].values
+        merged_df["tasks_generator_b"] = df_b["tasks_generator_b"].values
+        if "generation_time_a" in df_a.columns:
+            merged_df["generation_time_a"] = df_a["generation_time_a"].values
+        if "generation_time_b" in df_b.columns:
+            merged_df["generation_time_b"] = df_b["generation_time_b"].values
+
+        logging.info(
+            f"Generators complete. Merged DataFrame: {len(merged_df)} rows"
+        )
+
+        # Phase 3: Judge + Add ID (sequential)
+        phase2 = DataForgePipeline(
+            name="salony-dual-generator-pipeline",
+            description="Dual generator pipeline with judge selection for Salony dataset",
+        )
+        phase2.add_step(judge_step)
+        phase2.add_step(add_id_step)
+        result_df = phase2.run(input_df=merged_df, use_cache=use_cache)
+
     except ollama.ResponseError as e:
         raise RuntimeError(f"Ollama API error: {e.error}")
     except Exception as e:
@@ -547,7 +582,11 @@ Examples:
     )
     parser.add_argument(
         "--num-predict", type=int, default=1000,
-        help="Maximum tokens to generate (default: 1000)",
+        help="Maximum tokens to generate for generators (default: 1000)",
+    )
+    parser.add_argument(
+        "--judge-num-predict", type=int, default=500,
+        help="Maximum tokens for judge generation (default: 500)",
     )
     parser.add_argument(
         "--sample", type=int,
@@ -569,6 +608,7 @@ Examples:
             temperature_a=args.temperature_a,
             temperature_b=args.temperature_b,
             num_predict=args.num_predict,
+            judge_num_predict=args.judge_num_predict,
             sample_size=args.sample,
             use_cache=not args.no_cache,
         )
