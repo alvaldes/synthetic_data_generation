@@ -1,26 +1,17 @@
-Below is an instruction that describes a task, paired with an input that provides a user story.
-
-Write a response that appropriately completes the request.
-
-
-Instruction:
-
 Break this user story into smaller development tasks to help the developers implement it efficiently. You can divide this user story into as many tasks as needed, depending on its complexity. Each task must be unique, actionable, and non-overlapping.
 
-Use the following format for the response:
+Use EXACTLY this format — each numbered task starts on its own line with `N. summary:` followed by the summary text, then a new line with `description:` and the description text:
 
-1. summary: ‹task summary 1›
-description: ‹task description 1›
-2. summary: ‹task summary 2›
-description: ‹task description 2›
+1. summary: Set up database schema for transactions
+description: Create the necessary database tables and indexes to store transaction history records with fields for date, amount, type, and notes.
 
-N. summary: ‹task summary N›
-description: ‹task description N›
+2. summary: Implement transaction listing API endpoint
+description: Build a REST API endpoint that returns paginated transaction history for a given user, with support for date filtering and sorting.
 
+3. summary: Build transaction history UI component
+description: Develop a user interface component that displays transaction history in a table format with sorting, pagination, and search functionality.
 
-Input:
+Each numbered task MUST have `summary:` and `description:` on SEPARATE lines. Do NOT put summary and description on the same line. Do NOT use commas or other punctuation to separate summary from description.
 
+User story:
 {{user_story}}
-
-
-Response:

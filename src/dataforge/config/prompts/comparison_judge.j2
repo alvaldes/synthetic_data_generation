@@ -19,17 +19,21 @@ Evaluate both breakdowns based on these criteria (0-10 points each), aligned wit
 4. FORMAT: Structure and clarity of the output. Is the response well-formatted, unambiguous, and easy to understand? (0-10)
 5. GRANULARITY: Appropriateness of the decomposition level. Are tasks properly sized (not too big, not too small) and atomic? (0-10)
 
-Respond with one score per line in this exact format:
+Return a JSON object with EXACTLY these keys:
 
-coherence_a: [score_0_to_10]
-completeness_a: [score_0_to_10]
-feasibility_a: [score_0_to_10]
-format_a: [score_0_to_10]
-granularity_a: [score_0_to_10]
-coherence_b: [score_0_to_10]
-completeness_b: [score_0_to_10]
-feasibility_b: [score_0_to_10]
-format_b: [score_0_to_10]
-granularity_b: [score_0_to_10]
-winner: [A_or_B]
-reason: [brief explanation of why the winner is better]
+{
+  "coherence_a": 7,
+  "completeness_a": 7,
+  "feasibility_a": 7,
+  "format_a": 7,
+  "granularity_a": 7,
+  "coherence_b": 7,
+  "completeness_b": 7,
+  "feasibility_b": 7,
+  "format_b": 7,
+  "granularity_b": 7,
+  "winner": "A",
+  "reason": "Brief explanation of why the selected breakdown is better."
+}
+
+Every score MUST be an integer between 1 and 10. Do not use 0.

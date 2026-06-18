@@ -158,20 +158,37 @@ class ExplodeTasks(BaseStep):
 
         Descarta cualquier texto introductorio (preamble) que aparezca
         antes de la primera tarea numerada.
+
+        Fallback: si no encuentra tareas numeradas, divide por líneas que
+        comienzan con ``summary:`` (case-insensitive). Esto cubre modelos
+        que no siguen el formato exacto de numeración.
         """
-        # Patrón para detectar el inicio de cada tarea (número seguido de punto)
-        pattern = r'\n(?=\d+\.\s+summary:)'
+        # --- Primary method: numbered split (case-insensitive) ----------
+        numbered_split_pattern = r'\n(?=\d+\.\s+[Ss]ummary\s*:)'
+        numbered_start_pattern = re.compile(r'^\d+\.\s+[Ss]ummary\s*:', re.IGNORECASE)
 
-        # Separar por el patrón
-        tasks = re.split(pattern, tasks_text.strip())
+        tasks = re.split(numbered_split_pattern, tasks_text.strip())
+        tasks = [t.strip() for t in tasks if t.strip()]
 
-        # Filtrar tareas vacías
-        tasks = [task.strip() for task in tasks if task.strip()]
-
-        # Si la primera "tarea" no empieza con un número, es preamble — descartarla
-        numbered_pattern = re.compile(r'^\d+\.\s+summary:', re.IGNORECASE)
-        if tasks and not numbered_pattern.match(tasks[0]):
+        # Si la primera "tarea" no empieza con un número, es preamble
+        if tasks and not numbered_start_pattern.match(tasks[0]):
             tasks = tasks[1:]
+
+        # Si el split numerado encontró 2+ tareas, usarlo
+        if len(tasks) >= 2:
+            return tasks
+
+        # --- Fallback: split por any line starting with summary: --------
+        fallback_pattern = r'\n(?=[Ss]ummary\s*:)'
+        fallback_tasks = re.split(fallback_pattern, tasks_text.strip())
+        fallback_tasks = [t.strip() for t in fallback_tasks if t.strip()]
+
+        # Remover preamble (líneas antes del primer summary:)
+        if fallback_tasks and not re.match(r'^[Ss]ummary\s*:', fallback_tasks[0]):
+            fallback_tasks = fallback_tasks[1:]
+
+        if len(fallback_tasks) > len(tasks):
+            return fallback_tasks
 
         return tasks
 

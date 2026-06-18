@@ -1,3 +1,4 @@
+import json
 import logging
 import re
 import pandas as pd
@@ -160,8 +161,22 @@ class ComparisonJudgeStep(BaseStep):
                         return True
         return False
 
+    @staticmethod
+    def _clean_json_response(response: str) -> str:
+        """Extract JSON object from a response that may have text before/after."""
+        start = response.find("{")
+        end = response.rfind("}")
+        if start == -1 or end == -1:
+            return "{}"
+        return response[start:end + 1]
+
     def _parse_judge_response(self, raw_response: str) -> Dict:
-        """Parse key:value line response. Handles extra text before/after."""
+        """Parse JSON response from the judge model.
+
+        Uses ``format="json"`` in the API call, so the model is constrained to
+        output valid JSON.  As a safety net, we try to extract JSON from the
+        raw text if ``json.loads()`` fails initially.
+        """
         result: Dict[str, Any] = {
             "breakdown_a": {},
             "breakdown_b": {},
@@ -169,30 +184,38 @@ class ComparisonJudgeStep(BaseStep):
             "reason": "",
         }
 
-        for line in raw_response.split("\n"):
-            line = line.strip()
-            if not line:
-                continue
+        try:
+            data = json.loads(raw_response)
+        except json.JSONDecodeError:
+            cleaned = self._clean_json_response(raw_response)
+            try:
+                data = json.loads(cleaned)
+            except json.JSONDecodeError:
+                logging.warning(
+                    f"Failed to parse judge response as JSON: "
+                    f"{raw_response[:300]}..."
+                )
+                return result
 
-            match = re.match(r"(\w+)\s*:\s*(.*)", line)
-            if not match:
-                continue
+        if not isinstance(data, dict):
+            return result
 
-            key, value = match.group(1).strip(), match.group(2).strip()
-
-            if key in SCORE_KEYS:
-                bk, field = SCORE_KEYS[key]
+        # Map flat keys (coherence_a, …) to breakdown structure
+        for key, (bk, field) in SCORE_KEYS.items():
+            if key in data:
                 try:
-                    score = max(0, min(10, int(float(value))))
+                    score = max(0, min(10, int(float(data[key]))))
                     result[bk][field] = score
                 except (ValueError, TypeError):
                     continue
-            elif key == "winner":
-                normalized = value.upper().strip("\"'.")
-                if normalized in ("A", "B"):
-                    result["winner"] = normalized
-            elif key == "reason":
-                result["reason"] = value
+
+        if "winner" in data:
+            normalized = str(data["winner"]).upper().strip("\"'.")
+            if normalized in ("A", "B"):
+                result["winner"] = normalized
+
+        if "reason" in data:
+            result["reason"] = str(data["reason"])
 
         # Default missing scores to 0, always calculate total in code
         for bk in BREAKDOWN_KEYS:
@@ -252,6 +275,7 @@ class ComparisonJudgeStep(BaseStep):
                     {"role": "user", "content": prompt},
                 ],
                 stream=False,
+                format="json",
                 options=self.generation_kwargs,
             )
 
@@ -457,10 +481,6 @@ class ComparisonJudgeStep(BaseStep):
                 fallback_df[f"{p}score_b_feasibility"] = [-1] * bsz
                 fallback_df[f"{p}score_b_format"] = [-1] * bsz
                 fallback_df[f"{p}score_b_granularity"] = [-1] * bsz
-                fallback_df[f"{p}strengths_a"] = ["N/A"] * bsz
-                fallback_df[f"{p}weaknesses_a"] = ["Error occurred"] * bsz
-                fallback_df[f"{p}strengths_b"] = ["N/A"] * bsz
-                fallback_df[f"{p}weaknesses_b"] = ["Error occurred"] * bsz
                 fallback_df[f"{p}winner"] = ["A"] * bsz
                 fallback_df[f"{p}reason"] = [f"Batch processing failed: {e}"] * bsz
                 fallback_df["selected_output"] = batch_df[self.output_a_column].tolist()

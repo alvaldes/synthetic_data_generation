@@ -179,7 +179,7 @@ def run_dual_generator_pipeline(
     num_predict : int, optional
         Maximum tokens to generate (default from config).
     judge_num_predict : int, optional
-        Maximum tokens for judge generation (default: 500).
+        Maximum tokens for judge generation (default: 800).
     sample_size : int, optional
         If specified, process only N stories.
     use_cache : bool
@@ -203,7 +203,7 @@ def run_dual_generator_pipeline(
     temperature_a = temperature_a if temperature_a is not None else llm_cfg.temperature
     temperature_b = temperature_b if temperature_b is not None else 0.7
     num_predict = num_predict if num_predict is not None else llm_cfg.num_predict
-    judge_num_predict = judge_num_predict if judge_num_predict is not None else 500
+    judge_num_predict = judge_num_predict if judge_num_predict is not None else 800
 
     # Resolve output path — default incluye timestamp para no pisar corridas
     if output_csv is None:
@@ -583,8 +583,8 @@ Examples:
         help="Maximum tokens to generate for generators (default: 1000)",
     )
     parser.add_argument(
-        "--judge-num-predict", type=int, default=500,
-        help="Maximum tokens for judge generation (default: 500)",
+        "--judge-num-predict", type=int, default=800,
+        help="Maximum tokens for judge generation (default: 800)",
     )
     parser.add_argument(
         "--sample", type=int,
