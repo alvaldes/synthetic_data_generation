@@ -412,8 +412,6 @@ def run_dual_generator_pipeline(
             "judge_score_b_coherence", "judge_score_b_completeness",
             "judge_score_b_feasibility", "judge_score_b_format",
             "judge_score_b_granularity",
-            "judge_strengths_a", "judge_weaknesses_a",
-            "judge_strengths_b", "judge_weaknesses_b",
             "judge_winner", "judge_reason",
             "generation_time_a", "generation_time_b",
             "judge_time", "total_time",
