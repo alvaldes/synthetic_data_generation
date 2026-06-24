@@ -138,7 +138,9 @@ data/**/*.xlsx
 !data/raw/.gitkeep
 
 # Pipeline output artifacts (regeneratable)
-data/outputs/
+data/outputs/*
+!data/outputs/Dell-A2/
+!data/outputs/Dell-A2/**/*.csv
 
 # Example outputs (keep only source .py files)
 # examples/*.csv
