@@ -164,8 +164,34 @@ class ExplodeTasks(BaseStep):
         que no siguen el formato exacto de numeración.
         """
         # --- Primary method: numbered split (case-insensitive) ----------
-        numbered_split_pattern = r'\n(?=\d+\.\s+[Ss]ummary\s*:)'
-        numbered_start_pattern = re.compile(r'^\d+\.\s+[Ss]ummary\s*:', re.IGNORECASE)
+        # Supports four marker styles before ``summary:``:
+        #   1) ``N.``  — standard numbered        (e.g. "2. summary:")
+        #   2) ``N)``  — paren-numbered            (e.g. "2) summary:")
+        #   3) ``x)``  — lettered paren            (e.g. "a) summary:")
+        #   4) ``x.``  — lettered period           (e.g. "a. summary:")
+        #
+        # Also allows optional:
+        #   - ``**`` markdown bold markers around summary:  (e.g. **summary:**)
+        #   - parenthetical labels between number and summary:  (e.g. (Optional))
+        #   - missing space after period  (e.g. "8.summary:")
+        #   - leading whitespace before the marker (indented subtasks)
+        #   - numbered tasks without summary: are NOT matched and stay attached
+        #     (the subtasks inside them, if lettered+summary: DO match)
+        numbered_split_pattern = (
+            r'\n(?=\s*'
+            r'(?:\d+\.|\d+\)|[a-z]\)|[a-z]\.)'  # markers: "5.", "2)", "a)", "a."
+            r'\s*(?:\([^)]*\)\s*)?'              # optional (Optional) etc
+            r'\*{0,2}[Ss]ummary'                 # optional ** bold
+            r'\s*\*{0,2}\s*:)'                   # optional ** before colon
+        )
+        numbered_start_pattern = re.compile(
+            r'^\s*'
+            r'(?:\d+\.|\d+\)|[a-z]\)|[a-z]\.)'
+            r'\s*(?:\([^)]*\)\s*)?'
+            r'\*{0,2}[Ss]ummary'
+            r'\s*\*{0,2}\s*:',
+            re.IGNORECASE,
+        )
 
         tasks = re.split(numbered_split_pattern, tasks_text.strip())
         tasks = [t.strip() for t in tasks if t.strip()]
@@ -179,16 +205,43 @@ class ExplodeTasks(BaseStep):
             return tasks
 
         # --- Fallback: split por any line starting with summary: --------
-        fallback_pattern = r'\n(?=[Ss]ummary\s*:)'
+        # Allow optional ** markdown bold markers
+        fallback_pattern = r'\n(?=\*{0,2}[Ss]ummary\s*\*{0,2}\s*:)'
         fallback_tasks = re.split(fallback_pattern, tasks_text.strip())
         fallback_tasks = [t.strip() for t in fallback_tasks if t.strip()]
 
         # Remover preamble (líneas antes del primer summary:)
-        if fallback_tasks and not re.match(r'^[Ss]ummary\s*:', fallback_tasks[0]):
+        # Allow optional ** markdown bold markers
+        if fallback_tasks and not re.match(r'^\*{0,2}[Ss]ummary\s*\*{0,2}\s*:', fallback_tasks[0]):
             fallback_tasks = fallback_tasks[1:]
 
-        if len(fallback_tasks) > len(tasks):
+        # El fallback debe encontrar AL MENOS 2 tareas para ser útil.
+        # Si solo encuentra 1 (ej. el texto completo pegado), dejamos
+        # que el 2do fallback intente un split más agresivo.
+        if len(fallback_tasks) > len(tasks) and len(fallback_tasks) >= 2:
             return fallback_tasks
+
+        # --- 2nd fallback: lettered subtasks with sub-numbering -----------
+        # Some models output things like:
+        #   a) 4.1. Create user authentication...
+        #   b) 4.2. Develop data models...
+        # (no ``summary:`` keyword at all in the subtasks)
+        lettered_subnumber_pattern = r'\n(?=\s*[a-z]\)\s+\d+\.\d+\.\s+)'
+        lettered_tasks = re.split(lettered_subnumber_pattern, tasks_text.strip())
+        lettered_tasks = [t.strip() for t in lettered_tasks if t.strip()]
+
+        # Remover preamble — texto que NO arranca con letra ni con summary:
+        # (preserva parents como "summary: Implement core..." que tienen
+        # subtareas con sub-números tipo "a) 4.1. Create...")
+        if lettered_tasks:
+            first = lettered_tasks[0].strip()
+            is_preamble = not re.match(r'^[a-z]\)', first) \
+                          and not re.match(r'^(summary|Summary)\s*:', first)
+            if is_preamble:
+                lettered_tasks = lettered_tasks[1:]
+
+        if len(lettered_tasks) > len(tasks) and len(lettered_tasks) >= 2:
+            return lettered_tasks
 
         return tasks
 
@@ -201,12 +254,58 @@ class ExplodeTasks(BaseStep):
         
         En:
         "summary: Crear base de datos\ndescription: ..."
+
+        También remueve:
+        - Marcadores ``\d+)`` (ej: "2) summary:")
+        - Marcadores con letras ``x)`` (ej: "a) summary:")
+        - Marcadores con letras ``x.`` (ej: "a. summary:")
+        - Sub-números ``X.Y.`` (ej: "4.1. Create...")
+        - Marcadores markdown ** alrededor de ``summary:`` y ``description:``
         """
-        # Patrón para detectar y remover el número inicial (ej: "1. ", "2. ", etc.)
-        # Busca: inicio de línea, dígitos, punto, espacios
-        pattern = r'^\d+\.\s+'
+        # Remover el número inicial (ej: "1. ", "12. ", etc.)
+        cleaned_text = re.sub(r'^\d+\.\s+', '', task_text.strip())
         
-        # Remover el número inicial
-        cleaned_text = re.sub(pattern, '', task_text.strip())
+        # Remover marcador con paréntesis (ej: "2) summary:")
+        cleaned_text = re.sub(r'^\d+\)\s+', '', cleaned_text)
+        
+        # Remover marcador con letra (ej: "a) summary:")
+        cleaned_text = re.sub(r'^[a-z]\)\s+', '', cleaned_text)
+        
+        # Remover marcador con letra y punto (ej: "a. summary:")
+        cleaned_text = re.sub(r'^[a-z]\.\s+', '', cleaned_text)
+        
+        # Remover sub-número jerárquico (ej: "4.1. Create...", "12.3.4. Title")
+        # Esto se ejecuta DESPUÉS de remover los marcadores con letras, ya que
+        # el patrón típico es "a) 4.1. Create..." → tras limpiar "a) " queda "4.1. Create..."
+        cleaned_text = re.sub(r'^\d+\.\d+(?:\.\d+)*\s+', '', cleaned_text)
+        
+        # Remover marcadores markdown ** alrededor de summary: y description:
+        # Esto cubre **summary:**, **summary:, **summary:**text**, **description:... etc.
+        # 1) **summary**: → summary: (bold cierra justo antes del colon)
+        cleaned_text = re.sub(
+            r'\*\*(summary|Summary)\*\*\s*:', r'\1:', cleaned_text
+        )
+        # 2) **summary:** → summary: (bold wrapping todo el label con colon adentro)
+        cleaned_text = re.sub(
+            r'\*\*(summary|Summary)\s*:\s*\*\*', r'\1:', cleaned_text
+        )
+        # 3) **summary:  → summary:  (bold solo antes del label)
+        cleaned_text = re.sub(
+            r'\*\*(summary|Summary)\s*:', r'\1:', cleaned_text
+        )
+        # 4) **description**: → description:
+        cleaned_text = re.sub(
+            r'\*\*(description|Description)\*\*\s*:', r'\1:', cleaned_text
+        )
+        # 5) **description:** → description:
+        cleaned_text = re.sub(
+            r'\*\*(description|Description)\s*:\s*\*\*', r'\1:', cleaned_text
+        )
+        # 6) **description: → description:
+        cleaned_text = re.sub(
+            r'\*\*(description|Description)\s*:', r'\1:', cleaned_text
+        )
+        # 5) Strip trailing ** al final de cualquier línea (bold closing)
+        cleaned_text = re.sub(r'\*\*\s*$', '', cleaned_text, flags=re.MULTILINE)
         
         return cleaned_text
