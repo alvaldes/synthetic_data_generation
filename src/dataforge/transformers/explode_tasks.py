@@ -186,7 +186,7 @@ class ExplodeTasks(BaseStep):
         )
         numbered_start_pattern = re.compile(
             r'^\s*'
-            r'(?:\d+\.|\d+\)|[a-z]\)|[a-z]\.)'
+            r'(?:\d+\.|\d+\)|[a-z]\)|[a-z]\.)?'  # marker is OPTIONAL — allows plain "summary:" as first task
             r'\s*(?:\([^)]*\)\s*)?'
             r'\*{0,2}[Ss]ummary'
             r'\s*\*{0,2}\s*:',
@@ -196,7 +196,8 @@ class ExplodeTasks(BaseStep):
         tasks = re.split(numbered_split_pattern, tasks_text.strip())
         tasks = [t.strip() for t in tasks if t.strip()]
 
-        # Si la primera "tarea" no empieza con un número, es preamble
+        # Si la primera "tarea" no empieza con un marcador válido seguido de summary:,
+        # ni con summary: directamente (primera tarea sin numerar), es preamble y se descarta.
         if tasks and not numbered_start_pattern.match(tasks[0]):
             tasks = tasks[1:]
 
