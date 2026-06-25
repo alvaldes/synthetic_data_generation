@@ -9,7 +9,7 @@ llm:
   default_model: "llama3.1:8b"
   batch_size: 2
   temperature: 0.3
-  num_predict: 1000
+  num_predict: 2000
 
 judge:
   batch_size: 2
