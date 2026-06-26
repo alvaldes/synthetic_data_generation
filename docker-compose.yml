@@ -1,0 +1,76 @@
+# =============================================================================
+# Docker Compose — LocalLLM-DataForge
+# =============================================================================
+# Arquitectura multi-contenedor:
+#   ollama  → Servicio LLM (inferencia local)
+#   app     → Pipelines Python que consumen Ollama
+#
+# Los contenedores se comunican por la red interna "dataforge-net".
+# La app usa OLLAMA_HOST=http://ollama:11434 para apuntar al servicio.
+# =============================================================================
+
+services:
+  ollama:
+    image: ollama/ollama:latest
+    container_name: dataforge-ollama
+    # ──────────────────────────────────────────────────────────────────────
+    # GPU: Descomentá las líneas de abajo si tenés NVIDIA GPU con CUDA.
+    # Requiere: nvidia-container-toolkit instalado en el host.
+    # ──────────────────────────────────────────────────────────────────────
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: all
+    #           capabilities: [gpu]
+    # ──────────────────────────────────────────────────────────────────────
+    # Puerto opcional: solo si necesitás acceder a Ollama desde el host.
+    # La app se comunica por red interna, no necesita este port mapping.
+    # ──────────────────────────────────────────────────────────────────────
+    # ports:
+    #   - "11434:11434"
+    volumes:
+      - ollama_models:/root/.ollama
+    networks:
+      - dataforge-net
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "ollama list 2>/dev/null || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: dataforge-app
+    environment:
+      # Apunta al servicio Ollama por el nombre del contenedor en la red interna
+      - OLLAMA_HOST=http://ollama:11434
+    volumes:
+      # Datos de entrada/salida — bind mount para que puedas poner CSVs desde el host
+      - ./data:/app/data
+      # Caché de pipeline — volumen nombrado para persistencia sin ensuciar el host
+      - dataforge_cache:/app/.cache
+    depends_on:
+      ollama:
+        condition: service_healthy
+    networks:
+      - dataforge-net
+    # Modo interactivo: permite docker compose exec / run con TTY
+    stdin_open: true
+    tty: true
+
+volumes:
+  ollama_models:
+    name: dataforge_ollama_models
+  dataforge_cache:
+    name: dataforge_pipeline_cache
+
+networks:
+  dataforge-net:
+    name: dataforge_network
+    driver: bridge

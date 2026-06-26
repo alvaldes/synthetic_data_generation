@@ -54,6 +54,7 @@ class ComparisonJudgeStep(BaseStep):
         system_prompt: Optional[str] = None,
         batch_size: Optional[int] = None,
         generation_kwargs: Optional[Dict[str, Any]] = None,
+        ollama_host: Optional[str] = None,
         num_workers: Optional[int] = None,
         max_zero_retries: Optional[int] = None,
         **kwargs,
@@ -77,6 +78,7 @@ class ComparisonJudgeStep(BaseStep):
             "temperature": comp_cfg.temperature,
             "num_predict": comp_cfg.num_predict,
         }
+        self.ollama_host = ollama_host or llm_cfg.ollama_host
         self.num_workers = num_workers if num_workers is not None else comp_cfg.num_workers
         self.max_zero_retries = max_zero_retries if max_zero_retries is not None else comp_cfg.max_zero_retries
 
@@ -135,7 +137,7 @@ class ComparisonJudgeStep(BaseStep):
         """Initialize Ollama client."""
         super().load()
         try:
-            self.client = ollama.Client()
+            self.client = ollama.Client(host=self.ollama_host)
             self.client.list()
             logging.info(f"Connected to Ollama for judge model: {self.model_name}")
         except Exception as e:
@@ -232,7 +234,7 @@ class ComparisonJudgeStep(BaseStep):
     def _get_thread_client(self) -> ollama.Client:
         """Get thread-local Ollama client for parallel execution."""
         if not hasattr(_thread_local, "client"):
-            _thread_local.client = ollama.Client()
+            _thread_local.client = ollama.Client(host=self.ollama_host)
         return _thread_local.client
 
     def _judge_comparison(

@@ -10,6 +10,7 @@ Merge order (later overrides earlier):
 Result is cached in memory per use-case key.
 """
 
+import os
 from pathlib import Path
 from typing import Optional, Dict, Any
 import yaml
@@ -109,7 +110,16 @@ def load_settings(
         explicit_yaml = _load_yaml(config_path)
         raw = _merge_yaml_into_settings(raw, explicit_yaml)
 
-    return DataForgeSettings(**raw)
+    settings = DataForgeSettings(**raw)
+
+    # 5. Environment variable override (12-factor app support)
+    #    OLLAMA_HOST es el estándar del ecosistema Ollama; si está definido,
+    #    sobreescribe cualquier valor de YAML o defaults.
+    ollama_host_env = os.environ.get("OLLAMA_HOST")
+    if ollama_host_env:
+        settings.llm.ollama_host = ollama_host_env
+
+    return settings
 
 
 def get_settings(

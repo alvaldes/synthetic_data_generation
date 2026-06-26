@@ -1,0 +1,59 @@
+# Git
+.git/
+.gitignore
+AGENTS.md
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.eggs/
+build/
+dist/
+
+# Cache local
+.cache/
+
+# Virtual environments
+venv/
+env/
+.venv/
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Documentation
+docs/_build/
+
+# Agent tooling
+.atl/
+
+# SDD artifacts (regenerables)
+openspec/
+
+# Reports generados
+*_Report.md
+Code_Quality_*.md
+compass_artifact_*.md
+
+# Outputs de ejemplo (regenerables)
+examples/*.csv
+examples/*.xlsx
+examples/*.json
+
+# Outputs de pipeline (regenerables)
+data/outputs/
