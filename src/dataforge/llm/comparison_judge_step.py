@@ -10,6 +10,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from ..base_step import BaseStep
 from ..config import get_settings, PromptLoader
+from ..transformers.json_repair import repair_json
 
 _thread_local = threading.local()
 from ..utils.batching import batch_dataframe, get_num_batches
@@ -172,12 +173,87 @@ class ComparisonJudgeStep(BaseStep):
             return "{}"
         return response[start:end + 1]
 
+    @staticmethod
+    def _build_fallback_result() -> Dict[str, Any]:
+        """Return a safe fallback result with sentinel values and parse_error."""
+        fallback_breakdown = {
+            field: -1 for field in SCORE_FIELDS
+        }
+        fallback_breakdown["total_score"] = -5
+        return {
+            "breakdown_a": dict(fallback_breakdown),
+            "breakdown_b": dict(fallback_breakdown),
+            "winner": "A",
+            "reason": "",
+            "parse_error": True,
+        }
+
+    def _validate_and_normalize_judge_result(
+        self, result: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """Validate and normalise a parsed judge result.
+
+        - Checks that both breakdowns exist and contain all required score fields.
+        - Recalculates ``total_score`` from individual scores (overrides LLM value).
+        - Fixes invalid winners to ``"A"`` and appends a warning to ``reason``.
+
+        Parameters
+        ----------
+        result :
+            Raw parsed dict with per-criterion scores already extracted.
+
+        Returns
+        -------
+        Dict[str, Any]
+            Normalised result.
+
+        Raises
+        ------
+        ValueError
+            If a required breakdown or score field is missing.
+        """
+        REQUIRED_FIELDS = ["coherence", "completeness", "feasibility", "format", "granularity"]
+
+        # --- Check breakdown existence FIRST (before field checks) ---
+        for bk in BREAKDOWN_KEYS:
+            if bk not in result or not isinstance(result[bk], dict):
+                raise ValueError(f"Missing or invalid breakdown: {bk}")
+
+        # --- Then check individual score fields ---
+        for bk in BREAKDOWN_KEYS:
+            for field in REQUIRED_FIELDS:
+                if field not in result[bk]:
+                    raise ValueError(
+                        f"Missing required field '{field}' in {bk}"
+                    )
+
+        # --- Recalculate total_score (code always wins) ---
+        for bk in BREAKDOWN_KEYS:
+            result[bk]["total_score"] = sum(
+                result[bk][f] for f in REQUIRED_FIELDS
+            )
+
+        # --- Fix invalid winner ---
+        if result.get("winner") not in ("A", "B"):
+            result["winner"] = "A"
+            existing_reason = result.get("reason", "")
+            prefix = "Invalid winner detected, defaulting to A."
+            result["reason"] = f"{prefix} {existing_reason}".strip()
+
+        return result
+
     def _parse_judge_response(self, raw_response: str) -> Dict:
         """Parse JSON response from the judge model.
 
         Uses ``format="json"`` in the API call, so the model is constrained to
-        output valid JSON.  As a safety net, we try to extract JSON from the
-        raw text if ``json.loads()`` fails initially.
+        output valid JSON.  As a safety net:
+        - ``repair_json`` fixes common LLM formatting errors (missing commas,
+          unescaped newlines, trailing commas, etc.).
+        - ``_clean_json_response`` extracts a ``{…}`` block from surrounding text.
+        - We support **both** the flat-key format defined in the prompt
+          (``coherence_a``, ``completeness_b``, …) and the nested format
+          (``breakdown_a: {coherence: …, }``) for resilience when the LLM
+          deviates from the instructed schema.
         """
         result: Dict[str, Any] = {
             "breakdown_a": {},
@@ -186,31 +262,53 @@ class ComparisonJudgeStep(BaseStep):
             "reason": "",
         }
 
-        try:
-            data = json.loads(raw_response)
-        except json.JSONDecodeError:
-            cleaned = self._clean_json_response(raw_response)
+        # Attempt parsing through progressively more aggressive recovery
+        data = None
+        for attempt in [
+            lambda: json.loads(raw_response),
+            lambda: json.loads(repair_json(raw_response)),
+            lambda: json.loads(repair_json(self._clean_json_response(raw_response))),
+        ]:
             try:
-                data = json.loads(cleaned)
-            except json.JSONDecodeError:
-                logging.warning(
-                    f"Failed to parse judge response as JSON: "
-                    f"{raw_response[:300]}..."
-                )
-                return result
+                data = attempt()
+                break
+            except (json.JSONDecodeError, ValueError):
+                continue
 
         if not isinstance(data, dict):
-            return result
+            return self._build_fallback_result()
 
-        # Map flat keys (coherence_a, …) to breakdown structure
-        for key, (bk, field) in SCORE_KEYS.items():
-            if key in data:
-                try:
-                    score = max(0, min(10, int(float(data[key]))))
-                    result[bk][field] = score
-                except (ValueError, TypeError):
-                    continue
+        # ------------------------------------------------------------------
+        # 1) Try flat-key format (coherence_a, coherence_b, …) — matches prompt
+        # ------------------------------------------------------------------
+        has_flat_keys = any(k in data for k in SCORE_KEYS)
+        if has_flat_keys:
+            for key, (bk, field) in SCORE_KEYS.items():
+                if key in data:
+                    try:
+                        score = max(0, min(10, int(float(data[key]))))
+                        result[bk][field] = score
+                    except (ValueError, TypeError):
+                        continue
 
+        # ------------------------------------------------------------------
+        # 2) Fallback: nested format (breakdown_a: {coherence: …})
+        #    Useful when the LLM does not follow the instructed schema.
+        # ------------------------------------------------------------------
+        has_nested = any(
+            bk in data and isinstance(data[bk], dict)
+            for bk in BREAKDOWN_KEYS
+        )
+        if not has_flat_keys and has_nested:
+            for bk in BREAKDOWN_KEYS:
+                if bk in data and isinstance(data[bk], dict):
+                    for field in SCORE_FIELDS:
+                        if field in data[bk]:
+                            result[bk][field] = data[bk][field]
+
+        # ------------------------------------------------------------------
+        # 3) Common top-level fields
+        # ------------------------------------------------------------------
         if "winner" in data:
             normalized = str(data["winner"]).upper().strip("\"'.")
             if normalized in ("A", "B"):
@@ -219,13 +317,11 @@ class ComparisonJudgeStep(BaseStep):
         if "reason" in data:
             result["reason"] = str(data["reason"])
 
-        # Default missing scores to 0, always calculate total in code
-        for bk in BREAKDOWN_KEYS:
-            for f in SCORE_FIELDS:
-                result[bk].setdefault(f, 0)
-            result[bk]["total_score"] = sum(result[bk][f] for f in SCORE_FIELDS)
-
-        return result
+        # Validate & normalise — fallback to sentinels on failure
+        try:
+            return self._validate_and_normalize_judge_result(result)
+        except ValueError:
+            return self._build_fallback_result()
 
     # ------------------------------------------------------------------
     # Core logic
