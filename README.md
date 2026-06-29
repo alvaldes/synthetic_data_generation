@@ -66,9 +66,9 @@ docker compose logs -f
 Ollama arranca sin modelos. Hay que descargarlos desde el contenedor:
 
 ```bash
-docker compose exec ollama ollama pull llama3.2
-docker compose exec ollama ollama pull llama3.1:8b
-docker compose exec ollama ollama pull qwen3:8b
+docker compose exec localllm-dataforge-ollama ollama pull llama3.2
+docker compose exec localllm-dataforge-ollama ollama pull llama3.1:8b
+docker compose exec localllm-dataforge-ollama ollama pull qwen3:8b
 ```
 
 ### Ejecutar Pipelines
@@ -77,16 +77,16 @@ Una vez que los servicios están corriendo, usá `exec` (modo interactivo):
 
 ```bash
 # Pipeline de ejemplo
-docker compose exec app python examples/demo_pipeline.py
+docker compose exec localllm-dataforge-app python examples/demo_pipeline.py
 
 # Pipeline real con dataset Salony (single generator)
-docker compose exec app python src/dataforge/use_cases/salony/scripts/salony_single_generator_pipeline.py \
+docker compose exec localllm-dataforge-app python src/dataforge/use_cases/salony/scripts/salony_single_generator_pipeline.py \
   /app/data/outputs/result.csv \
   --model llama3.1:8b \
   --batch-size 4
 
 # Pipeline dual generator
-docker compose exec app python src/dataforge/use_cases/salony/scripts/salony_dual_generator_pipeline.py \
+docker compose exec localllm-dataforge-app python src/dataforge/use_cases/salony/scripts/salony_dual_generator_pipeline.py \
   /app/data/outputs/result.csv \
   --model-a llama3.1:8b \
   --model-b qwen3:8b \
@@ -96,7 +96,7 @@ docker compose exec app python src/dataforge/use_cases/salony/scripts/salony_dua
 Para comandos únicos sin mantener el contenedor corriendo:
 
 ```bash
-docker compose run --rm app python examples/demo_pipeline.py
+docker compose run --rm localllm-dataforge-app python examples/demo_pipeline.py
 ```
 
 ### Aceleración por GPU
@@ -120,7 +120,7 @@ deploy:
 Verificá que Docker tenga acceso:
 
 ```bash
-docker compose exec ollama nvidia-smi
+docker compose exec localllm-dataforge-ollama nvidia-smi
 ```
 
 #### Otras GPUs

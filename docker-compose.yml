@@ -2,17 +2,17 @@
 # Docker Compose — LocalLLM-DataForge
 # =============================================================================
 # Arquitectura multi-contenedor:
-#   ollama  → Servicio LLM (inferencia local)
-#   app     → Pipelines Python que consumen Ollama
+#   localllm-dataforge-ollama  → Servicio LLM (inferencia local)
+#   localllm-dataforge-app     → Pipelines Python que consumen Ollama
 #
 # Los contenedores se comunican por la red interna "dataforge-net".
-# La app usa OLLAMA_HOST=http://ollama:11434 para apuntar al servicio.
+# La app usa OLLAMA_HOST=http://localllm-dataforge-ollama:11434 para apuntar al servicio.
 # =============================================================================
 
 services:
-  ollama:
+  localllm-dataforge-ollama:
     image: ollama/ollama:latest
-    container_name: dataforge-ollama
+    container_name: localllm-dataforge-ollama
     # ──────────────────────────────────────────────────────────────────────
     # GPU: Descomentá las líneas de abajo si tenés NVIDIA GPU con CUDA.
     # Requiere: nvidia-container-toolkit instalado en el host.
@@ -42,21 +42,21 @@ services:
       retries: 3
       start_period: 60s
 
-  app:
+  localllm-dataforge-app:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: dataforge-app
+    container_name: localllm-dataforge-app
     environment:
       # Apunta al servicio Ollama por el nombre del contenedor en la red interna
-      - OLLAMA_HOST=http://ollama:11434
+      - OLLAMA_HOST=http://localllm-dataforge-ollama:11434
     volumes:
       # Datos de entrada/salida — bind mount para que puedas poner CSVs desde el host
       - ./data:/app/data
       # Caché de pipeline — volumen nombrado para persistencia sin ensuciar el host
       - dataforge_cache:/app/.cache
     depends_on:
-      ollama:
+      localllm-dataforge-ollama:
         condition: service_healthy
     networks:
       - dataforge-net
