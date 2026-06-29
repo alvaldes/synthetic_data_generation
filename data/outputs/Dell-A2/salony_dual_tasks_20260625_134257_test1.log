@@ -1,5 +1,25 @@
 2026-06-25 13:42:57 - INFO: Logging to: data/outputs/salony_dual_tasks_20260625_134257.log
+2026-06-25 13:42:57 - INFO:
+2026-06-25 13:42:57 - INFO: ============================================================
+2026-06-25 13:42:57 - INFO:   PIPELINE CONFIGURATION
+2026-06-25 13:42:57 - INFO: ============================================================
+2026-06-25 13:42:57 - INFO:   Command:              src/dataforge/use_cases/salony/scripts/salony_dual_generator_pipeline.py --model-a llama3.1:8b --model-b mistral:7b --judge-model qwen3:14b --batch-size 1 --num-workers 1 --judge-num-predict 2000 --no-cache
+2026-06-25 13:42:57 - INFO:   Model A (generator):  llama3.1:8b
+2026-06-25 13:42:57 - INFO:   Model B (generator):  mistral:7b
+2026-06-25 13:42:57 - INFO:   Model (judge):        qwen3:14b
+2026-06-25 13:42:57 - INFO:   Batch size:           1
+2026-06-25 13:42:57 - INFO:   Num workers:          1
+2026-06-25 13:42:57 - INFO:   Temperature A:        0.3
+2026-06-25 13:42:57 - INFO:   Temperature B:        0.7
+2026-06-25 13:42:57 - INFO:   Num predict (gen):    1000
+2026-06-25 13:42:57 - INFO:   Num predict (judge):  2000
+2026-06-25 13:42:57 - INFO:   Cache enabled:        False
+2026-06-25 13:42:57 - INFO:   Input file:           data/raw/salony_train.csv
+2026-06-25 13:42:57 - INFO:   Output file:          data/outputs/salony_dual_tasks_20260625_134257.csv
+2026-06-25 13:42:57 - INFO: ============================================================
+2026-06-25 13:42:57 - INFO:
 2026-06-25 13:42:57 - INFO: Loading data from: data/raw/salony_train.csv
+2026-06-25 13:42:57 - INFO: Logging to: data/outputs/salony_dual_tasks_20260625_134257.log
 2026-06-25 13:42:57 - INFO: HTTP Request: GET http://127.0.0.1:11434/api/tags "HTTP/1.1 200 OK"
 2026-06-25 13:42:57 - WARNING: Removed 1 rows with missing/empty input data
 2026-06-25 13:42:57 - INFO: Loaded 1998 user stories

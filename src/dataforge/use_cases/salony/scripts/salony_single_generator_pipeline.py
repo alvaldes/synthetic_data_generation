@@ -15,6 +15,7 @@ Usage:
 import pandas as pd
 import argparse
 import logging
+import sys
 from pathlib import Path
 from typing import Dict, Optional
 import ollama
@@ -116,6 +117,45 @@ def load_and_validate_data(
 
 
 # ---------------------------------------------------------------------------
+# Config logging helper
+# ---------------------------------------------------------------------------
+
+def _log_config_header(
+    command_line: str,
+    model_name: str,
+    judge_model_name: Optional[str],
+    batch_size: int,
+    num_workers: int,
+    temperature: float,
+    num_predict: int,
+    use_cache: bool,
+    use_judge: bool,
+    judge_threshold: float,
+    input_path: Path,
+    output_csv: str,
+) -> None:
+    """Log a structured configuration block at the start of a pipeline run."""
+    logging.info("")
+    logging.info("=" * 60)
+    logging.info("  PIPELINE CONFIGURATION")
+    logging.info("=" * 60)
+    logging.info(f"  Command:              {command_line}")
+    logging.info(f"  Model (generator):    {model_name}")
+    logging.info(f"  Judge model:          {judge_model_name or '(disabled / same as gen)'}")
+    logging.info(f"  Batch size:           {batch_size}")
+    logging.info(f"  Num workers:          {num_workers}")
+    logging.info(f"  Temperature:          {temperature}")
+    logging.info(f"  Num predict:          {num_predict}")
+    logging.info(f"  Cache enabled:        {use_cache}")
+    logging.info(f"  Judge enabled:        {use_judge}")
+    logging.info(f"  Judge threshold:      {judge_threshold}")
+    logging.info(f"  Input file:           {input_path}")
+    logging.info(f"  Output file:          {output_csv}")
+    logging.info("=" * 60)
+    logging.info("")
+
+
+# ---------------------------------------------------------------------------
 # Pipeline runner
 # ---------------------------------------------------------------------------
 
@@ -132,6 +172,7 @@ def run_salony_pipeline(
     use_judge: bool = False,
     judge_threshold: Optional[float] = None,
     use_cache: bool = True,
+    command_line: str = "",
 ):
     """
     Execute Salony pipeline to generate development tasks from user stories.
@@ -189,8 +230,43 @@ def run_salony_pipeline(
         output_csv = timestamped_filename(cfg.paths.output_dir, "salony_tasks")
     Path(output_csv).parent.mkdir(parents=True, exist_ok=True)
 
+    # Resolve input path
+    if input_csv is None:
+        input_path = Path(cfg.paths.raw_dir) / "salony_train.csv"
+    else:
+        input_path = Path(input_csv)
+
+    # Resolve judge model name
+    if use_judge and judge_model_name is None:
+        judge_model_name = model_name
+
     # --- Setup ------------------------------------------------------------
-    logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
+    log_file = Path(output_csv).with_suffix(".log")
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s - %(levelname)s: %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S",
+        handlers=[
+            logging.StreamHandler(),
+            logging.FileHandler(log_file, mode="w", encoding="utf-8"),
+        ],
+    )
+    logging.info(f"Logging to: {log_file}")
+
+    _log_config_header(
+        command_line=command_line,
+        model_name=model_name,
+        judge_model_name=judge_model_name,
+        batch_size=batch_size,
+        num_workers=num_workers,
+        temperature=temperature,
+        num_predict=num_predict,
+        use_cache=use_cache,
+        use_judge=use_judge,
+        judge_threshold=judge_threshold,
+        input_path=input_path,
+        output_csv=output_csv,
+    )
 
     validate_inputs(
         model_name,
@@ -200,15 +276,6 @@ def run_salony_pipeline(
         judge_threshold if use_judge else None,
         num_workers,
     )
-
-    if use_judge and judge_model_name is None:
-        judge_model_name = model_name
-
-    # Determine input file path
-    if input_csv is None:
-        input_path = Path(cfg.paths.raw_dir) / "salony_train.csv"
-    else:
-        input_path = Path(input_csv)
 
     logging.info(f"Loading data from: {input_path}")
 
@@ -371,6 +438,7 @@ def run_salony_pipeline(
 # ---------------------------------------------------------------------------
 
 def main():
+    command_line = " ".join(sys.argv)
     parser = argparse.ArgumentParser(
         description="Generate development tasks from user stories in the Salony dataset",
         formatter_class=argparse.RawDescriptionHelpFormatter,
@@ -441,6 +509,7 @@ Examples:
             use_judge=args.use_judge,
             judge_threshold=args.judge_threshold,
             use_cache=not args.no_cache,
+            command_line=command_line,
         )
         return 0
     except (ValueError, FileNotFoundError, ConnectionError, RuntimeError) as e:
