@@ -23,6 +23,7 @@ Usage:
 import pandas as pd
 import argparse
 import logging
+import sys
 import time
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
@@ -59,6 +60,47 @@ def create_comparison_judge_prompt(row: Dict) -> str:
             "tasks_b": row.get("tasks_generator_b", "").strip(),
         },
     )
+
+
+# ---------------------------------------------------------------------------
+# Config logging helper
+# ---------------------------------------------------------------------------
+
+def _log_config_header(
+    command_line: str,
+    model_a: str,
+    model_b: str,
+    judge_model: str,
+    batch_size: int,
+    num_workers: int,
+    temperature_a: float,
+    temperature_b: float,
+    num_predict: int,
+    judge_num_predict: int,
+    use_cache: bool,
+    input_path: Path,
+    output_csv: str,
+) -> None:
+    """Log a structured configuration block at the start of a pipeline run."""
+    logging.info("")
+    logging.info("=" * 60)
+    logging.info("  PIPELINE CONFIGURATION")
+    logging.info("=" * 60)
+    logging.info(f"  Command:              {command_line}")
+    logging.info(f"  Model A (generator):  {model_a}")
+    logging.info(f"  Model B (generator):  {model_b}")
+    logging.info(f"  Model (judge):        {judge_model}")
+    logging.info(f"  Batch size:           {batch_size}")
+    logging.info(f"  Num workers:          {num_workers}")
+    logging.info(f"  Temperature A:        {temperature_a}")
+    logging.info(f"  Temperature B:        {temperature_b}")
+    logging.info(f"  Num predict (gen):    {num_predict}")
+    logging.info(f"  Num predict (judge):  {judge_num_predict}")
+    logging.info(f"  Cache enabled:        {use_cache}")
+    logging.info(f"  Input file:           {input_path}")
+    logging.info(f"  Output file:          {output_csv}")
+    logging.info("=" * 60)
+    logging.info("")
 
 
 # ---------------------------------------------------------------------------
@@ -150,6 +192,7 @@ def run_dual_generator_pipeline(
     judge_num_predict: Optional[int] = None,
     sample_size: Optional[int] = None,
     use_cache: bool = True,
+    command_line: str = "",
 ):
     """
     Execute dual generator pipeline with judge selection.
@@ -210,6 +253,12 @@ def run_dual_generator_pipeline(
         output_csv = timestamped_filename(cfg.paths.output_dir, "salony_dual_tasks")
     Path(output_csv).parent.mkdir(parents=True, exist_ok=True)
 
+    # Resolve input path
+    if input_csv is None:
+        input_path = Path(cfg.paths.raw_dir) / "salony_train.csv"
+    else:
+        input_path = Path(input_csv)
+
     # --- Setup ------------------------------------------------------------
     log_file = Path(output_csv).with_suffix(".log")
     logging.basicConfig(
@@ -223,14 +272,25 @@ def run_dual_generator_pipeline(
     )
     logging.info(f"Logging to: {log_file}")
 
+    _log_config_header(
+        command_line=command_line,
+        model_a=model_a,
+        model_b=model_b,
+        judge_model=judge_model,
+        batch_size=batch_size,
+        num_workers=num_workers,
+        temperature_a=temperature_a,
+        temperature_b=temperature_b,
+        num_predict=num_predict,
+        judge_num_predict=judge_num_predict,
+        use_cache=use_cache,
+        input_path=input_path,
+        output_csv=output_csv,
+    )
+
     validate_inputs(
         model_a, model_b, judge_model, batch_size, temperature_a, temperature_b, num_workers
     )
-
-    if input_csv is None:
-        input_path = Path(cfg.paths.raw_dir) / "salony_train.csv"
-    else:
-        input_path = Path(input_csv)
 
     logging.info(f"Loading data from: {input_path}")
 
@@ -533,6 +593,7 @@ def run_dual_generator_pipeline(
 # ---------------------------------------------------------------------------
 
 def main():
+    command_line = " ".join(sys.argv)
     parser = argparse.ArgumentParser(
         description="Generate development tasks using dual generators with judge selection",
         formatter_class=argparse.RawDescriptionHelpFormatter,
@@ -609,6 +670,7 @@ Examples:
             judge_num_predict=args.judge_num_predict,
             sample_size=args.sample,
             use_cache=not args.no_cache,
+            command_line=command_line,
         )
         return 0
     except (ValueError, FileNotFoundError, ConnectionError, RuntimeError) as e:
