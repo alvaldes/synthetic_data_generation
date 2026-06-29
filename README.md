@@ -30,6 +30,127 @@ pytest tests/ -v
 
 ---
 
+## 🐳 Docker
+
+El proyecto incluye **Docker Compose** para correr el pipeline junto con Ollama en contenedores, sin necesidad de instalar Python ni Ollama en el host.
+
+### Servicios
+
+| Servicio | Imagen | Rol |
+|----------|--------|-----|
+| **ollama** | `ollama/ollama:latest` | Servicio LLM local (inferencia) |
+| **app** | Build local desde `Dockerfile` | Ejecución de pipelines Python |
+
+Comunicación por red interna `dataforge_network`. La app usa `OLLAMA_HOST=http://ollama:11434` para apuntar al servicio.
+
+### Prerrequisitos
+
+- Docker Engine 24+ con Docker Compose v2
+- (Opcional) GPU para aceleración — depende de tu hardware:
+  - **NVIDIA**: `nvidia-container-toolkit` instalado en el host
+  - **AMD**: `rocm` y configuración de dispositivos en el compose
+  - **Apple Silicon (macOS)**: Ollama usa Metal por defecto, la GPU se comparte con el host sin configuración extra
+
+### Uso Básico
+
+```bash
+# Iniciar servicios (ollama + app)
+docker compose up -d
+
+# Ver logs de ambos servicios
+docker compose logs -f
+```
+
+### Pull de Modelos
+
+Ollama arranca sin modelos. Hay que descargarlos desde el contenedor:
+
+```bash
+docker compose exec ollama ollama pull llama3.2
+docker compose exec ollama ollama pull llama3.1:8b
+docker compose exec ollama ollama pull qwen3:8b
+```
+
+### Ejecutar Pipelines
+
+Una vez que los servicios están corriendo, usá `exec` (modo interactivo):
+
+```bash
+# Pipeline de ejemplo
+docker compose exec app python examples/demo_pipeline.py
+
+# Pipeline real con dataset Salony (single generator)
+docker compose exec app python src/dataforge/use_cases/salony/scripts/salony_single_generator_pipeline.py \
+  /app/data/outputs/result.csv \
+  --model llama3.1:8b \
+  --batch-size 4
+
+# Pipeline dual generator
+docker compose exec app python src/dataforge/use_cases/salony/scripts/salony_dual_generator_pipeline.py \
+  /app/data/outputs/result.csv \
+  --model-a llama3.1:8b \
+  --model-b qwen3:8b \
+  --judge-model llama3.1:8b
+```
+
+Para comandos únicos sin mantener el contenedor corriendo:
+
+```bash
+docker compose run --rm app python examples/demo_pipeline.py
+```
+
+### Aceleración por GPU
+
+Ollama dentro del contenedor puede usar la GPU del host. La configuración depende de tu hardware.
+
+#### NVIDIA (ejemplo)
+
+Si tenés GPU NVIDIA con CUDA y `nvidia-container-toolkit` instalado, descomentá las líneas de GPU en el servicio `ollama` del `docker-compose.yml`:
+
+```yaml
+deploy:
+  resources:
+    reservations:
+      devices:
+        - driver: nvidia
+          count: all
+          capabilities: [gpu]
+```
+
+Verificá que Docker tenga acceso:
+
+```bash
+docker compose exec ollama nvidia-smi
+```
+
+#### Otras GPUs
+
+El mismo principio aplica para **AMD** (configurando dispositivos ROCm en el compose) o **Apple Silicon** (Ollama usa Metal automáticamente — en macOS la GPU se comparte con el host sin necesidad de configuración extra en Docker).
+
+> **⚠️ Importante**: La aceleración por GPU es totalmente opcional. El pipeline funciona perfectamente en CPU, solo que es más lento con modelos grandes. Si no tenés GPU o preferís no configurarla, simplemente ignorá esta sección.
+
+### Volúmenes
+
+| Volumen | Mount en Contenedor | Propósito |
+|---------|--------------------|-----------|
+| `dataforge_ollama_models` | `/root/.ollama` | Modelos descargados (persistente entre reinicios) |
+| `dataforge_pipeline_cache` | `/app/.cache` | Caché de pipelines (persistente) |
+| `./data` (bind mount) | `/app/data` | Datos de entrada/salida — compartido con el host |
+
+Los CSVs de entrada van en `data/raw/` y los resultados se escriben en `data/outputs/`, accesibles desde el host inmediatamente.
+
+### Detener
+
+```bash
+# Bajar servicios (los volúmenes persisten)
+docker compose down
+
+# Bajar servicios y eliminar volúmenes (borra modelos descargados y caché)
+docker compose down -v
+```
+
+---
+
 ## 📖 Features
 
 - 🐼 **Native pandas DataFrame support** — Work with familiar data structures
