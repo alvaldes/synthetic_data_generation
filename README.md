@@ -1,8 +1,8 @@
 # LocalLLM-DataForge
 
-**Data Pipeline Architecture** para descomposición de historias de usuario en tareas de desarrollo usando LLMs locales con Ollama.
+**Data Pipeline Architecture** for decomposing user stories into development tasks using local LLMs with Ollama.
 
-Inspirado en [Distilabel](https://github.com/argilla-io/distilabel), organiza el procesamiento siguiendo el flujo natural de los datos: **Entrada ➔ Procesamiento LLM ➔ Validación/Reparación ➔ Salida**.
+Inspired by [Distilabel](https://github.com/argilla-io/distilabel), it organizes processing around the natural data flow: **Input ➔ LLM Processing ➔ Validation/Repair ➔ Output**.
 
 ---
 
@@ -32,38 +32,38 @@ pytest tests/ -v
 
 ## 🐳 Docker
 
-El proyecto incluye **Docker Compose** para correr el pipeline junto con Ollama en contenedores, sin necesidad de instalar Python ni Ollama en el host.
+The project includes **Docker Compose** to run the pipeline alongside Ollama in containers, without needing to install Python or Ollama on the host.
 
-### Servicios
+### Services
 
-| Servicio | Imagen | Rol |
-|----------|--------|-----|
-| **ollama** | `ollama/ollama:latest` | Servicio LLM local (inferencia) |
-| **app** | Build local desde `Dockerfile` | Ejecución de pipelines Python |
+| Service | Image | Role |
+|---------|-------|------|
+| **ollama** | `ollama/ollama:latest` | Local LLM inference service |
+| **app** | Local build from `Dockerfile` | Python pipeline execution |
 
-Comunicación por red interna `dataforge_network`. La app usa `OLLAMA_HOST=http://ollama:11434` para apuntar al servicio.
+Communication via the internal `dataforge_network` bridge. The app uses `OLLAMA_HOST=http://ollama:11434` to point to the service.
 
-### Prerrequisitos
+### Prerequisites
 
-- Docker Engine 24+ con Docker Compose v2
-- (Opcional) GPU para aceleración — depende de tu hardware:
-  - **NVIDIA**: `nvidia-container-toolkit` instalado en el host
-  - **AMD**: `rocm` y configuración de dispositivos en el compose
-  - **Apple Silicon (macOS)**: Ollama usa Metal por defecto, la GPU se comparte con el host sin configuración extra
+- Docker Engine 24+ with Docker Compose v2
+- (Optional) GPU acceleration — depends on your hardware:
+  - **NVIDIA**: `nvidia-container-toolkit` installed on the host
+  - **AMD**: `rocm` and device configuration in compose
+  - **Apple Silicon (macOS)**: Ollama uses Metal by default, the GPU is shared with the host with no extra configuration
 
-### Uso Básico
+### Basic Usage
 
 ```bash
-# Iniciar servicios (ollama + app)
+# Start services (ollama + app)
 docker compose up -d
 
-# Ver logs de ambos servicios
+# Tail logs from both services
 docker compose logs -f
 ```
 
-### Pull de Modelos
+### Pulling Models
 
-Ollama arranca sin modelos. Hay que descargarlos desde el contenedor:
+Ollama starts without models. You need to download them from the container:
 
 ```bash
 docker compose exec localllm-dataforge-ollama ollama pull llama3.2
@@ -71,21 +71,21 @@ docker compose exec localllm-dataforge-ollama ollama pull llama3.1:8b
 docker compose exec localllm-dataforge-ollama ollama pull qwen3:8b
 ```
 
-### Ejecutar Pipelines
+### Running Pipelines
 
-Una vez que los servicios están corriendo, usá `exec` (modo interactivo):
+Once services are running, use `exec` (interactive mode):
 
 ```bash
-# Pipeline de ejemplo
+# Example pipeline
 docker compose exec localllm-dataforge-app python examples/demo_pipeline.py
 
-# Pipeline real con dataset Salony (single generator)
+# Real pipeline with Salony dataset (single generator)
 docker compose exec localllm-dataforge-app python src/dataforge/use_cases/salony/scripts/salony_single_generator_pipeline.py \
   /app/data/outputs/result.csv \
   --model llama3.1:8b \
   --batch-size 4
 
-# Pipeline dual generator
+# Dual generator pipeline
 docker compose exec localllm-dataforge-app python src/dataforge/use_cases/salony/scripts/salony_dual_generator_pipeline.py \
   /app/data/outputs/result.csv \
   --model-a llama3.1:8b \
@@ -93,19 +93,19 @@ docker compose exec localllm-dataforge-app python src/dataforge/use_cases/salony
   --judge-model llama3.1:8b
 ```
 
-Para comandos únicos sin mantener el contenedor corriendo:
+For one-off commands without keeping the container running:
 
 ```bash
 docker compose run --rm localllm-dataforge-app python examples/demo_pipeline.py
 ```
 
-### Aceleración por GPU
+### GPU Acceleration
 
-Ollama dentro del contenedor puede usar la GPU del host. La configuración depende de tu hardware.
+Ollama inside the container can use the host GPU. Configuration depends on your hardware.
 
-#### NVIDIA (ejemplo)
+#### NVIDIA (example)
 
-Si tenés GPU NVIDIA con CUDA y `nvidia-container-toolkit` instalado, descomentá las líneas de GPU en el servicio `ollama` del `docker-compose.yml`:
+If you have an NVIDIA GPU with CUDA and `nvidia-container-toolkit` installed, uncomment the GPU lines under the `ollama` service in `docker-compose.yml`:
 
 ```yaml
 deploy:
@@ -117,35 +117,35 @@ deploy:
           capabilities: [gpu]
 ```
 
-Verificá que Docker tenga acceso:
+Verify Docker has access:
 
 ```bash
 docker compose exec localllm-dataforge-ollama nvidia-smi
 ```
 
-#### Otras GPUs
+#### Other GPUs
 
-El mismo principio aplica para **AMD** (configurando dispositivos ROCm en el compose) o **Apple Silicon** (Ollama usa Metal automáticamente — en macOS la GPU se comparte con el host sin necesidad de configuración extra en Docker).
+The same principle applies for **AMD** (configuring ROCm devices in compose) or **Apple Silicon** (Ollama uses Metal automatically — on macOS the GPU is shared with the host, no extra Docker configuration needed).
 
-> **⚠️ Importante**: La aceleración por GPU es totalmente opcional. El pipeline funciona perfectamente en CPU, solo que es más lento con modelos grandes. Si no tenés GPU o preferís no configurarla, simplemente ignorá esta sección.
+> **⚠️ Important**: GPU acceleration is entirely optional. The pipeline works perfectly on CPU — it's just slower with large models. If you don't have a GPU or prefer not to configure it, simply ignore this section.
 
-### Volúmenes
+### Volumes
 
-| Volumen | Mount en Contenedor | Propósito |
-|---------|--------------------|-----------|
-| `dataforge_ollama_models` | `/root/.ollama` | Modelos descargados (persistente entre reinicios) |
-| `dataforge_pipeline_cache` | `/app/.cache` | Caché de pipelines (persistente) |
-| `./data` (bind mount) | `/app/data` | Datos de entrada/salida — compartido con el host |
+| Volume | Container Mount | Purpose |
+|--------|-----------------|---------|
+| `dataforge_ollama_models` | `/root/.ollama` | Downloaded models (persistent across restarts) |
+| `dataforge_pipeline_cache` | `/app/.cache` | Pipeline cache (persistent) |
+| `./data` (bind mount) | `/app/data` | Input/output data — shared with the host |
 
-Los CSVs de entrada van en `data/raw/` y los resultados se escriben en `data/outputs/`, accesibles desde el host inmediatamente.
+Input CSVs go in `data/raw/` and results are written to `data/outputs/`, accessible from the host immediately.
 
-### Detener
+### Stopping
 
 ```bash
-# Bajar servicios (los volúmenes persisten)
+# Bring services down (volumes persist)
 docker compose down
 
-# Bajar servicios y eliminar volúmenes (borra modelos descargados y caché)
+# Bring services down and remove volumes (deletes downloaded models and cache)
 docker compose down -v
 ```
 
@@ -170,15 +170,15 @@ docker compose down -v
 ```
                   ┌─────────────────────────────────────┐
                   │         DataForgePipeline            │
-                  │  (Orquestador de pasos secuenciales) │
+                  │  (Sequential step orchestrator)      │
                   └─────────────────────────────────────┘
                                 │
         ┌───────────────────────┼───────────────────────┐
         ▼                       ▼                       ▼
 ┌───────────────┐     ┌──────────────────┐     ┌──────────────┐
 │  transformers/ │     │     llm/         │     │  validators/ │
-│  (carga y      │     │  (generación y   │     │  (reglas de  │
-│   transforma)  │     │   evaluación)    │     │   negocio)   │
+│  (load &       │     │  (generation &   │     │  (business   │
+│   transform)   │     │   evaluation)    │     │   rules)     │
 ├───────────────┤     ├──────────────────┤     ├──────────────┤
 │ LoadDataFrame │     │ OllamaLLMStep    │     │ValidateUser  │
 │ AddColumn     │     │ OllamaJudgeStep  │     │Stories       │
@@ -194,7 +194,7 @@ docker compose down -v
 
 ### Chaining Steps with `>>`
 
-Puedes encadenar pasos de dos formas equivalentes. La API explícita:
+You can chain steps in two equivalent ways. The explicit API:
 
 ```python
 pipeline = DataForgePipeline(name="example")
@@ -202,7 +202,7 @@ pipeline.add_step(LoadDataFrame(name="load", df=df))
 pipeline.add_step(OllamaLLMStep(name="generate", ...))
 ```
 
-O con el operador `>>` (syntactic sugar para `add_step()`):
+Or with the `>>` operator (syntactic sugar for `add_step()`):
 
 ```python
 pipeline = DataForgePipeline(name="example")
@@ -213,7 +213,7 @@ pipeline = DataForgePipeline(name="example")
 )
 ```
 
-Ambos son equivalentes. El operador `>>` devuelve el pipeline, permitiendo encadenamiento fluido.
+Both are equivalent. The `>>` operator returns the pipeline, enabling fluent chaining.
 
 ### Basic Pipeline
 
@@ -239,7 +239,7 @@ pipeline.add_step(OllamaLLMStep(
     prompt_column="input",
     output_column="tasks",
     batch_size=8,
-    num_workers=4         # requests concurrentes dentro del batch
+    num_workers=4         # concurrent requests within the batch
 ))
 
 # Run
@@ -271,18 +271,18 @@ result = pipeline.run(use_cache=True)
 
 ---
 
-## 🏗️ Use Cases Reales
+## 🏗️ Real-World Use Cases
 
-El directorio `src/dataforge/use_cases/` contiene pipelines completos y listos para correr sobre datasets reales.
+The `src/dataforge/use_cases/` directory contains complete, runnable pipelines for real datasets.
 
 ### Salony Dataset
 
-Pipelines para descomponer historias de usuario del dataset [Salony](data/raw/salony_train.csv) en tareas de desarrollo.
+Pipelines for decomposing user stories from the [Salony](data/raw/salony_train.csv) dataset into development tasks.
 
-| Script | Descripción |
+| Script | Description |
 |--------|-------------|
-| **`salony_single_generator_pipeline.py`** | Pipeline completo con un solo generador + judge opcional |
-| **`salony_dual_generator_pipeline.py`** | Pipeline con dos generadores + ComparisonJudge para seleccionar el mejor |
+| **`salony_single_generator_pipeline.py`** | Full pipeline with a single generator + optional judge |
+| **`salony_dual_generator_pipeline.py`** | Pipeline with two generators + ComparisonJudge to pick the best |
 
 #### Single Generator
 
@@ -302,15 +302,15 @@ python src/dataforge/use_cases/salony/scripts/salony_dual_generator_pipeline.py 
   --judge-model llama3.1:8b
 ```
 
-#### Análisis de Resultados
+#### Results Analysis
 
-| Script | Descripción |
+| Script | Description |
 |--------|-------------|
-| **`aggregate_metrics.py`** | Métricas agregadas: media, std, pass rate, win rate (con output LaTeX) |
-| **`criterion_breakdown.py`** | Desglose de puntuaciones por criterio (coherencia, completitud, etc.) |
-| **`plots.py`** | Visualizaciones: boxplots, comparación de scores entre generadores |
-| **`consolidate_results.py`** | Consolidación de múltiples tests en reporte unificado con gráficas |
-| **`fix_total_score_no_stage.py`** | Utilidad para recalcular totales si el judge no los devolvió |
+| **`aggregate_metrics.py`** | Aggregated metrics: mean, std, pass rate, win rate (with LaTeX output) |
+| **`criterion_breakdown.py`** | Score breakdown by criterion (coherence, completeness, etc.) |
+| **`plots.py`** | Visualizations: boxplots, score comparison between generators |
+| **`consolidate_results.py`** | Consolidate multiple test runs into a unified report with charts |
+| **`fix_total_score_no_stage.py`** | Utility to recalculate totals when the judge skipped them |
 
 ---
 
@@ -361,29 +361,29 @@ python src/dataforge/use_cases/salony/scripts/salony_dual_generator_pipeline.py 
 
 ## ⚖️ LLM-as-a-Judge: Validation Criteria
 
-`OllamaJudgeStep` evalúa cada tarea generada contra 5 criterios. Cada criterio se puntúa de 0 a 10, para un total de 0 a 50 puntos.
+`OllamaJudgeStep` evaluates each generated task against 5 criteria. Each criterion scores 0 to 10, for a total of 0 to 50 points.
 
-| Criterio | Rango | ¿Qué mide? |
-|----------|-------|------------|
-| **Coherencia** | 0-10 | ¿Las tareas están directamente relacionadas con la historia? ¿Hay tareas irrelevantes? |
-| **Completitud** | 0-10 | ¿Cubren todos los aspectos necesarios? ¿Falta algo crítico? |
-| **Viabilidad** | 0-10 | ¿Son técnicamente realizables? ¿Hay pasos imposibles o ilógicos? |
-| **Formato** | 0-10 | ¿Cada tarea tiene título claro, descripción y está bien estructurada? |
-| **Granularidad** | 0-10 | ¿El nivel de detalle es apropiado? ¿Muy amplias o demasiado atómicas? |
+| Criterion | Range | What it measures |
+|-----------|-------|------------------|
+| **Coherence** | 0-10 | Are tasks directly related to the story? Any irrelevant tasks? |
+| **Completeness** | 0-10 | Do they cover all necessary aspects? Is anything critical missing? |
+| **Feasibility** | 0-10 | Are they technically achievable? Any impossible or illogical steps? |
+| **Format** | 0-10 | Does each task have a clear title, description, and proper structure? |
+| **Granularity** | 0-10 | Is the level of detail appropriate? Too broad or too atomic? |
 
-**Output columns** generadas por el judge:
+**Output columns** generated by the judge:
 
-| Columna | Descripción |
-|---------|-------------|
+| Column | Description |
+|--------|-------------|
 | `validacion_coherencia` | Score 0-10 |
 | `validacion_completitud` | Score 0-10 |
 | `validacion_viabilidad` | Score 0-10 |
 | `validacion_formato` | Score 0-10 |
 | `validacion_granularidad` | Score 0-10 |
-| `validacion_total` | Suma total (0-50) |
-| `validacion_aprobado` | Boolean (`True` si total >= threshold) |
-| `validacion_problemas` | Lista de problemas críticos detectados |
-| `validacion_recomendaciones` | Sugerencias de mejora |
+| `validacion_total` | Total score (0-50) |
+| `validacion_aprobado` | Boolean (`True` if total >= threshold) |
+| `validacion_problemas` | List of critical issues detected |
+| `validacion_recomendaciones` | Improvement suggestions |
 
 ```python
 judge = OllamaJudgeStep(
@@ -391,92 +391,92 @@ judge = OllamaJudgeStep(
     model_name="llama3.1:8b",
     historia_usuario_column="input",
     tareas_generadas_column="tasks",
-    approval_threshold=35.0,  # Mínimo 35/50 para aprobar
+    approval_threshold=35.0,   # Minimum 35/50 to pass
     batch_size=2,
-    generation_kwargs={"temperature": 0.2},  # Baja temperatura = juicio consistente
+    generation_kwargs={"temperature": 0.2},  # Low temperature = consistent judgment
 )
 ```
 
 ---
 
-## 🔧 JSON Repair: Manejo Robusto de LLM Outputs
+## 🔧 JSON Repair: Robust LLM Output Handling
 
-Los LLMs frecuentemente devuelven JSON malformado. El módulo `json_repair` resuelve los problemas más comunes automáticamente.
+LLMs frequently return malformed JSON. The `json_repair` module automatically solves the most common issues.
 
-### Problemas que Repara
+### Issues It Fixes
 
-| Problema | Ejemplo | Solución |
-|----------|---------|----------|
-| Raw newlines en strings | `"desc": "line 1\nline 2"` | Escapa a `\n` |
-| Faltan comas entre campos | `} "key"` | Agrega `,` |
-| Trailing commas | `},]` | Remueve la coma extra |
-| Markdown fences | `` ```json `` | Limpieza automática |
-| Caracteres de control | tabs, null bytes | Escape o remoción |
+| Issue | Example | Fix |
+|-------|---------|-----|
+| Raw newlines in strings | `"desc": "line 1\nline 2"` | Escapes to `\n` |
+| Missing commas between fields | `} "key"` | Adds `,` |
+| Trailing commas | `},]` | Removes the extra comma |
+| Markdown fences | `` ```json `` | Automatic cleanup |
+| Control characters | tabs, null bytes | Escapes or removes |
 
-### Uso
+### Usage
 
 ```python
 from dataforge.transformers.json_repair import repair_json, parse_json_with_repair
 
-# Limpiar y extraer JSON de una respuesta
+# Clean and extract JSON from a response
 cleaned = clean_json_response(llm_response)
 
-# Reparar errores comunes
+# Fix common errors
 repaired = repair_json(cleaned)
 
-# Parse con fallback automático (intenta directo, luego repara)
+# Parse with automatic fallback (tries direct, then repairs)
 result = parse_json_with_repair(llm_response)
 if result is None:
-    print("No se pudo parsear ni reparando")
+    print("Could not parse even after repair")
 ```
 
 ---
 
 ## ⚡ Performance Tuning
 
-### `batch_size` + `num_workers`: Cómo Afinar el Throughput
+### `batch_size` + `num_workers`: How to Tune Throughput
 
-Cada LLM step acepta dos parámetros que controlan el rendimiento:
+Each LLM step accepts two parameters that control performance:
 
-| Parámetro | Default (LLM / Judge) | Qué Controla |
-|-----------|----------------------|--------------|
-| `batch_size` | 8 / 4 | Filas cargadas por lote en memoria. También limita la concurrencia máxima. |
-| `num_workers` | 1 | Requests concurrentes a Ollama **dentro** de cada batch. |
+| Parameter | Default (LLM / Judge) | What It Controls |
+|-----------|----------------------|------------------|
+| `batch_size` | 8 / 4 | Rows loaded per batch in memory. Also caps maximum concurrency. |
+| `num_workers` | 1 | Concurrent requests to Ollama **within** each batch. |
 
-**Regla de oro:** `batch_size >= num_workers`. Si `num_workers > batch_size`, sobran workers que nunca se usan.
+**Golden rule:** `batch_size >= num_workers`. If `num_workers > batch_size`, extra workers are never used.
 
-**¿`batch_size` es placebo?** No, pero su rol cambió con `num_workers`:
-- **Sin paralelismo** (`num_workers=1`): controla memoria y granularidad de caché
-- **Con paralelismo** (`num_workers > 1`): actúa como tope de concurrencia
+**Is `batch_size` a placebo?** No, but its role changes with `num_workers`:
+- **Without parallelism** (`num_workers=1`): controls memory and cache granularity
+- **With parallelism** (`num_workers > 1`): acts as a concurrency cap
 
-### Guía por Hardware
+### Hardware Guide
 
-Valores de partida recomendados para **modelos 7B-8B** (llama3.1:8b, qwen3:8b, deepseek-r1:8b):
+Recommended starting values for **7B-8B models** (llama3.1:8b, qwen3:8b, deepseek-r1:8b):
 
-| Hardware | `num_workers` | `batch_size` | Notas |
+| Hardware | `num_workers` | `batch_size` | Notes |
 |----------|:------------:|:------------:|-------|
-| **Solo CPU** (8GB RAM) | 1 | 4-8 | CPU encola requests secuencialmente. Paralelismo no da ganancia real. |
-| **Solo CPU** (16GB+ RAM) | 1-2 | 4-8 | Con 2 workers puede ayudar si hay múltiples cores físicos. |
-| **GPU 4GB VRAM** | 1 | 2-4 | Sin espacio para más de 1 modelo en VRAM. Batches chicos. |
-| **GPU 6GB VRAM** | 2 | 4 | Point inicial para modelos 7B con cuantización Q4. |
-| **GPU 8GB VRAM** | 2-3 | 4-6 | Ollama puede mantener 1-2 requests simultáneos en GPU. |
-| **GPU 12GB VRAM** | 4 | 8 | **Balance ideal** para 7B-8B. GPU aprovechada sin saturar. |
-| **GPU 16GB VRAM** | 4-6 | 8 | Podés usar modelos 13B y mantener paralelismo. |
-| **GPU 24GB+ VRAM** | 6-8 | 8-12 | Múltiples requests caben en VRAM. Probá de a poco. |
+| **CPU only** (8GB RAM) | 1 | 4-8 | CPU queues requests sequentially. Parallelism yields no real gain. |
+| **CPU only** (16GB+ RAM) | 1-2 | 4-8 | With 2 workers it can help if you have multiple physical cores. |
+| **GPU 4GB VRAM** | 1 | 2-4 | No room for more than 1 model in VRAM. Keep batches small. |
+| **GPU 6GB VRAM** | 2 | 4 | Good starting point for 7B models with Q4 quantization. |
+| **GPU 8GB VRAM** | 2-3 | 4-6 | Ollama can keep 1-2 concurrent GPU requests. |
+| **GPU 12GB VRAM** | 4 | 8 | **Sweet spot** for 7B-8B. GPU fully utilized without saturation. |
+| **GPU 16GB VRAM** | 4-6 | 8 | Can run 13B models while maintaining parallelism. |
+| **GPU 24GB+ VRAM** | 6-8 | 8-12 | Multiple requests fit in VRAM. Increase gradually and monitor. |
 
-### Recomendaciones por Tamaño de Modelo
+### Recommendations by Model Size
 
-| Modelo | Ejemplos | `num_workers` | Notas |
-|--------|----------|:------------:|-------|
-| **1B-3B** | `llama3.2:3b`, `qwen3:4b`, `phi4-mini` | 4-8 | Modelos chicos, mucha concurrencia posible. No saturan VRAM. |
-| **7B-8B** | `llama3.1:8b`, `qwen3:8b`, `deepseek-r1:8b` | 2-4 | El punto dulce. Buena calidad sin consumir mucha VRAM. |
-| **13B-14B** | `llama3.1:14b`, `qwen3:14b` | 1-3 | Cada request ocupa más VRAM. Reducí workers respecto a 7B. |
-| **30B+** | `qwen3:30b`, `llama3.1:70b` | 1-2 | Modelos grandes. Necesitás 24GB+ VRAM. Paralelismo mínimo. |
+| Model | Examples | `num_workers` | Notes |
+|-------|----------|:------------:|-------|
+| **1B-3B** | `llama3.2:3b`, `qwen3:4b`, `phi4-mini` | 4-8 | Small models, lots of concurrency possible. Don't saturate VRAM. |
+| **7B-8B** | `llama3.1:8b`, `qwen3:8b`, `deepseek-r1:8b` | 2-4 | The sweet spot. Good quality without consuming too much VRAM. |
+| **13B-14B** | `llama3.1:14b`, `qwen3:14b` | 1-3 | Each request uses more VRAM. Reduce workers compared to 7B. |
+| **30B+** | `qwen3:30b`, `llama3.1:70b` | 1-2 | Large models. Need 24GB+ VRAM. Minimal parallelism. |
 
-### Cómo Ajustar
+### How to Tune
 
 ```python
-# GPU 12GB VRAM + modelo 7B-8B → punto dulce
+# GPU 12GB VRAM + 7B-8B model → sweet spot
 generator = OllamaLLMStep(
     name="generate",
     model_name="qwen3:8b",
@@ -486,7 +486,7 @@ generator = OllamaLLMStep(
     num_workers=4,
 )
 
-# GPU 8GB VRAM + modelo 13B → conservador
+# GPU 8GB VRAM + 13B model → conservative
 judge = OllamaJudgeStep(
     name="validate",
     model_name="llama3.1:14b",
@@ -497,18 +497,18 @@ judge = OllamaJudgeStep(
 )
 ```
 
-### Ajuste Fino con `ollama ps`
+### Fine-tuning with `ollama ps`
 
 ```bash
-# Mientras corre el pipeline, monitoreá:
+# While the pipeline is running, monitor:
 ollama ps
 
-# Si ves cola de requests sin procesar → subí num_workers
-# Si ves errores CUDA OOM → bajá num_workers o batch_size
-# Si el output es lento pero GPU al 100% → num_workers suficiente
+# If you see a queue of unprocessed requests → increase num_workers
+# If you see CUDA OOM errors → decrease num_workers or batch_size
+# If output is slow but GPU at 100% → num_workers is sufficient
 ```
 
-**Estrategia:** Empezá con `num_workers=2` y subí de a 1 mientras monitoreás con `ollama ps`. Cuando veas errores de memoria o latencia que no mejora, ese es tu límite.
+**Strategy:** Start with `num_workers=2` and increase by 1 while monitoring with `ollama ps`. When you hit memory errors or latency stops improving, that's your limit.
 
 ---
 
@@ -617,7 +617,7 @@ LocalLLM-DataForge/
 4. Update documentation
 5. Submit a pull request
 
-**¿Por dónde empezar?** Revisá los pipelines en `src/dataforge/use_cases/` para ver ejemplos reales de cómo se arman pipelines completos.
+**Where to start?** Check out the pipelines in `src/dataforge/use_cases/` to see real examples of how complete pipelines are built.
 
 ---
 
@@ -631,4 +631,4 @@ MIT License
 
 - **Issues**: [GitHub Issues](https://github.com/alvaldes/LocalLLM-DataForge/issues)
 - **Documentation**: See `examples/`, `docs/`, and `AGENTS.md`
-- **Pipelines reales**: Explorá `src/dataforge/use_cases/salony/scripts/`
+- **Real pipelines**: Explore `src/dataforge/use_cases/salony/scripts/`
