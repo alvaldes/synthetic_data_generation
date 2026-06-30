@@ -30,5 +30,5 @@ dependencies = [
 [tool.setuptools.packages.find]
 where = ["src"]
 
-[tool.setuptools.package_data]
+[tool.setuptools.package-data]
 dataforge = ["config/prompts/*.j2"]
